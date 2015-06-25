@@ -1,0 +1,83 @@
+<?xml version="1.0" ?>
+
+<!DOCTYPE article SYSTEM "/usr/share/sgml/docbook/dtd/xml/4.5/docbookx.dtd">
+
+
+<article status="draft" class="specification"> <title>Enhanced Discrete Events System server. Requirements.</title>
+
+    <articleinfo>
+	<author><personname><firstname>Yuri</firstname><surname>Borisov</surname></personname>
+	    <email>yuri.borisov.v@gmail.com</email></author> 
+
+	<releaseinfo>Ver.0.01 at 25-Jun-2015</releaseinfo>
+
+	<abstract>
+	    <simpara>This document collects use-cases and software requirements for Discrete Events System server.</simpara>
+	</abstract>
+
+	<revhistory>
+	    <revision> <revnumber>0.01</revnumber> <date>25-Jan-2015</date> <authorinitials>Yuri Borisov</authorinitials>
+		<revremark>Initial version</revremark> </revision>
+	</revhistory>
+
+    </articleinfo>
+
+    <bibliolist>
+	<title>References</title>
+    </bibliolist>
+
+    <sect1 id="nimp"><title>Treaceability: not implemented yet</title>
+	<itemizedlist>
+	    <listitem> <xref linkend="uc_001"/> </listitem>
+	</itemizedlist>
+    </sect1>
+
+    <sect1 id="trac_impl"><title>Treaceability: implemented</title>
+	<itemizedlist>
+	</itemizedlist>
+    </sect1>
+    
+    <sect1 id="uc"> <title>Use cases</title>
+
+	<sect2 id="uc_001"><title>UC_001 Model main view</title>
+	    <sect3><title>Actors</title>
+		<itemizedlist>
+		    <listitem>USER: user of CLIENT</listitem>
+		    <listitem>CLIENT: client application (browser)</listitem>
+		    <listitem>F2SERVER: FAP2 WEB server</listitem>
+                    <listitem>MODEL: some FAP2 model USER wors with</listitem>
+		</itemizedlist>
+	    </sect3>
+	    <sect3><title>Preconditions</title> </sect3>
+	    <sect3><title>Assumptions</title> </sect3>
+	    <sect3><title>Normal</title>
+		<itemizedlist>
+		    <listitem>USER opens CLIENT</listitem>
+		    <listitem>USER requests opening MODEL - CLIENT opens MODELs main view</listitem>
+		</itemizedlist>
+                <simpara>MODELs main view contains: 
+                    <itemizedlist>
+                        <listitem>Native owning hierarchy tree view</listitem>
+                        <listitem>Native inheritance hierarchy tree view</listitem>
+                        <listitem>Imports tree view</listitem>
+                        <listitem>Models cursor details view</listitem>
+                        <listitem>Log view</listitem>
+                        <listitem>Model visualization view</listitem>
+                    </itemizedlist>
+                </simpara>
+	    </sect3>
+	    <sect3><title>Alternative</title> <simpara>Alternative flows</simpara> </sect3>
+	    <sect3><title>Exceptions</title> </sect3>
+	    <sect3><title>Variations</title> </sect3>
+	    <sect3><title>Extends</title> </sect3>
+	    <sect3><title>Extended by</title> <itemizedlist> </itemizedlist> </sect3>
+	    <sect3><title>Discussion</title> 
+		<orderedlist>
+		</orderedlist>
+	    </sect3>
+	    <sect3><title>Clarification</title> </sect3>
+	</sect2>
+
+    </sect1>
+
+</article>

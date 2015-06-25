@@ -1,0 +1,22 @@
+ rayb_srv=/home/alemehov/AL/fap/grayb/grayb_srv CD=. filter="autogen.sh Makefile *.am *.ac *.in AUTHORS COPYING ChangeLog README NEWS" {
+ autogen.sh
+ Makefile
+ Makefile.am
+ configure.ac
+ Makefile.in
+ AUTHORS
+ COPYING
+ ChangeLog
+ README
+ NEWS
+src=src CD=. filter="*.h *.cpp *.dtd Makefile.am" {
+  sclient.h
+  sserver.h
+  sthread.h
+  sclient.cpp
+  server_main.cpp
+  sserver.cpp
+  sthread.cpp
+  Makefile.am
+}
+
