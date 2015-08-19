@@ -1,4 +1,7 @@
 #include "sclient.h"
+#include "requests.h"
+#include "rgetmodellist.h"
+
 using namespace std;
 
 //Actually allocate sClients
@@ -28,19 +31,71 @@ void SessionClient::SetId(int id) {
     mId = id;
 }
 
-void SessionClient::HandleMessage(char *message) {
-    cout << "SessionClient " << mName << " received msg:" << message << endl;
-    // send reply
-    Send(message);
+void SessionClient::HandleMessage(const string& message) {
+    cout << "SessionClient " << mName << " received msg: " << message << endl;
+
+    bool handled = false;
+    size_t msg_end = message.find_first_of('\n', 0); 
+    string msg = message.substr(0, (msg_end == string::npos) ? message.length() : msg_end);
+    msg_end = msg.find_first_of(RequestIPC::REQ_SEPARATOR, 0); 
+    if (msg_end > 0) {
+	msg = message.substr(0, (msg_end == string::npos) ? msg.length() : msg_end);
+	int msg_id = RequestIPC::getRequestId(msg);
+	if (msg_id != RequestIPC::EReqID_Invalid) {
+	    handled = true;
+	    string msg_args = (msg_end == string::npos) ? "" : message.substr(msg_end + 1);
+	    HandleMessage(msg_id, msg_args);
+	} else {
+	    cout << "SessionClient, msg code not found, msg=" << msg << endl;
+	}
+    } else {
+	cout << "SessionClient, wrong message" << endl;
+    }
+
+    if (!handled) {
+    // send error
+    Send(message, RequestIPC::RES_ERROR);
+    }
 }
 
-void SessionClient::Send(char *message) {
+void SessionClient::HandleMessage(int msg_id, const string& msg_args) {
+    cout << "SessionClient, received: " << msg_id << " with args" << msg_args << endl;
+
+    switch (msg_id) {
+	case RequestIPC::EReqID_GetModelsList:
+	    Send((new ReqGetModelList(this))->Exec());
+	    break;
+	default:
+	    Send(msg_id, RequestIPC::RES_ERROR);
+	    break;
+    }
+}
+
+void SessionClient::Send(int msg_id, const string& msg_args) {
+    Send(RequestIPC::getResponseCode(msg_id), msg_args);
+}
+
+void SessionClient::Send(string const& msg, const string& msg_args) {
+    string response = "" + msg + RequestIPC::REQ_SEPARATOR + msg_args;
+    Send(response.c_str());
+}
+
+void SessionClient::Send(string const& response) {
+    Send(response.c_str());
+}
+
+void SessionClient::Send(const char *message) {
     int n;
     //Acquire the lock
     SessionThread::LockMutex("'Send()'");
     n = send(mSock, message, strlen(message), 0);
     //Release the lock
     SessionThread::UnlockMutex("'Send()'");
+}
+
+
+// EnvProvider
+void SessionClient::getEnv() {
 }
 
 //Static
@@ -80,8 +135,9 @@ void *SessionClient::HandleSessionClient(void *args) {
         }
         else {
             //Message received.
-            snprintf(message, sizeof message, "<%s>: %s", c->mName, buffer);
-            c->HandleMessage(message);
+            //snprintf(message, sizeof message, "<%s>: %s", c->mName, buffer);
+            snprintf(message, sizeof message, "%s", buffer);
+            c->HandleMessage(string(message));
         }
     }
     //End thread

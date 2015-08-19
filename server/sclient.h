@@ -7,11 +7,12 @@
 #include <cstring>
 #include <sys/socket.h>
 #include "sthread.h"
+#include "reqbase.h"
 
 #define MAX_NAME_LENGHT 20
 
 using namespace std;
-class SessionClient {
+class SessionClient : public ReqBase::EnvProvider {
     public:
         static vector<SessionClient> sClients;
         char *mName;
@@ -26,9 +27,15 @@ class SessionClient {
         void SetName(const char *name);
         void SetId(int id);
         static void * HandleSessionClient(void *args);
+	// EnvProvider
+	void getEnv();
     private:
-        void HandleMessage(char *message);
-        void Send(char *message);
+        void HandleMessage(const string& message);
+        void HandleMessage(int msg_id, const string& msg_args);
+        void Send(string const& msg, const string& msg_args);
+        void Send(int msg_id, const string& msg_args);
+        void Send(string const& response);
+        void Send(const char *message);
         static void ListSessionClients();
         static int FindSessionClientIndex(SessionClient *c);
 };

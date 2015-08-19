@@ -1,4 +1,4 @@
- rayb_srv=/home/alemehov/AL/fap/grayb/grayb_srv CD=. filter="autogen.sh Makefile *.am *.ac *.in AUTHORS COPYING ChangeLog README NEWS" {
+grayb_srv=/home/yborisov/projects/fap/fap2-srv CD=. filter="autogen.sh Makefile *.am *.ac *.in AUTHORS COPYING ChangeLog README NEWS" {
  autogen.sh
  Makefile
  Makefile.am
@@ -9,14 +9,27 @@
  ChangeLog
  README
  NEWS
-src=src CD=. filter="*.h *.cpp *.dtd Makefile.am" {
+server=server CD=. filter="*.h *.cpp *.dtd Makefile.am" {
+  reqbase.h
+  requests.h
+  rgetmodellist.h
   sclient.h
   sserver.h
   sthread.h
+  reqbase.cpp
+  requests.cpp
+  rgetmodellist.cpp
   sclient.cpp
   server_main.cpp
   sserver.cpp
   sthread.cpp
   Makefile.am
+}
+client=client CD=. filter="*.h *.cpp *.dtd Makefile.am" {
+  bclient.h
+  bclient.cpp
+  client_test_main.cpp
+  Makefile.am
+}
 }
 

@@ -1,0 +1,12 @@
+grayb_srv_docs=/home/yborisov/projects/fap/fap2-srv/doc CD=. filter="*" {
+ requirements=requirements CD=. filter="*.xml" {
+  fap2_srv_req.xml
+ }
+design=design CD=. filter="*.xml" {
+  fap2_srv_design.xml
+}
+dnotes=dnotes CD=. filter="*.xml" {
+  fap2_srv_dnotes.xml
+}
+}
+
