@@ -17,7 +17,7 @@ class RequestIPC {
 	    EReqID_GetModel
 	};
 	static const string REQ_INVALID;
-	static const string REQ_GET_MODEL_LIST;
+	static const string REQ_GET_MODELS_LIST;
 	static const string REQ_GET_MODEL;
 	// Request separator
 	static const string REQ_SEPARATOR;

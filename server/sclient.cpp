@@ -1,6 +1,6 @@
 #include "sclient.h"
 #include "requests.h"
-#include "rgetmodellist.h"
+#include "rgetmodelslist.h"
 
 using namespace std;
 
@@ -63,7 +63,7 @@ void SessionClient::HandleMessage(int msg_id, const string& msg_args) {
 
     switch (msg_id) {
 	case RequestIPC::EReqID_GetModelsList:
-	    Send((new ReqGetModelList(this))->Exec());
+	    Send((new ReqGetModelsList(this))->Exec());
 	    break;
 	default:
 	    Send(msg_id, RequestIPC::RES_ERROR);

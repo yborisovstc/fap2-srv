@@ -11,8 +11,8 @@ grayb_srv_SOURCES = \
 		       requests.cpp \
 		       reqbase.h \
 		       reqbase.cpp \
-		       rgetmodellist.h \
-		       rgetmodellist.cpp \
+		       rgetmodelslist.h \
+		       rgetmodelslist.cpp \
 		       server_main.cpp \
 		       sclient.h \
 		       sclient.cpp \

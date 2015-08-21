@@ -1,7 +1,7 @@
 #include "requests.h"
 
 const string RequestIPC::REQ_INVALID = "req_invalid";
-const string RequestIPC::REQ_GET_MODEL_LIST = "get_model_list";
+const string RequestIPC::REQ_GET_MODELS_LIST = "get_models_list";
 const string RequestIPC::REQ_GET_MODEL = "get_model";
 
 const string RequestIPC::REQ_SEPARATOR = " ";
@@ -12,7 +12,7 @@ const string RequestIPC::RES_ERROR = "error";
 
 RequestIPC::TRequestMap RequestIPC::InitReqMap() { 
     TRequestMap rmap;
-    rmap[REQ_GET_MODEL_LIST] = EReqID_GetModelsList;
+    rmap[REQ_GET_MODELS_LIST] = EReqID_GetModelsList;
     rmap[REQ_GET_MODEL] = EReqID_GetModel;
     return rmap;
 };

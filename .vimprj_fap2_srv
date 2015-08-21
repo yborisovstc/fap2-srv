@@ -12,13 +12,13 @@ grayb_srv=/home/yborisov/projects/fap/fap2-srv CD=. filter="autogen.sh Makefile 
 server=server CD=. filter="*.h *.cpp *.dtd Makefile.am" {
   reqbase.h
   requests.h
-  rgetmodellist.h
+  rgetmodelslist.h
   sclient.h
   sserver.h
   sthread.h
   reqbase.cpp
   requests.cpp
-  rgetmodellist.cpp
+  rgetmodelslist.cpp
   sclient.cpp
   server_main.cpp
   sserver.cpp

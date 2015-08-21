@@ -1,19 +1,19 @@
 #include <dirent.h>
 #include <sys/stat.h>
 
-#include "rgetmodellist.h"
+#include "rgetmodelslist.h"
 #include "requests.h"
 
-const string ReqGetModelList::MODELS_LIST_PATH = "/home/yborisov/fap_models/";
+const string ReqGetModelsList::MODELS_LIST_PATH = "/home/yborisov/fap_models/";
 
-ReqGetModelList::ReqGetModelList(EnvProvider *envProv) : ReqBase(RequestIPC::EReqID_GetModelsList, envProv) {
+ReqGetModelsList::ReqGetModelsList(EnvProvider *envProv) : ReqBase(RequestIPC::EReqID_GetModelsList, envProv) {
 }
 
-string ReqGetModelList::Execute() {
+string ReqGetModelsList::Execute() {
     return GetList(MODELS_LIST_PATH);
 }
 
-string ReqGetModelList::GetList(const string& aPath)
+string ReqGetModelsList::GetList(const string& aPath)
 {
     string res("");
     const string& dirpath = aPath;
