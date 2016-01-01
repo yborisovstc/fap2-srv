@@ -7,6 +7,8 @@ AC_CONFIG_FILES([
 		 Makefile
 		 server/Makefile
 		 client/Makefile
+		 dmas/Makefile
+		 test/Makefile
 		 ])
 
 
@@ -24,15 +26,15 @@ PKG_CHECK_MODULES(GLIB, [glib-2.0 >= 2.0.0], , [AC_MSG_ERROR([
 You must have the GLib 2.0 and development headers installed to build.
 ])])
 
-PKG_CHECK_MODULES(LIBXML, [libxml-2.0], , [AC_MSG_ERROR([
-You must have the libxml-2.0 and development headers installed to build.
-])])
-
-AC_SUBST(LIBXML_CFLAGS)
-AC_SUBST(LIBXML_LIBS)
-
 AC_CHECK_LIB(pthread, pthread_create, [PTHREAD_LIBS+=-lpthread],
 [AC_MSG_ERROR([required library pthread missing])])
+
+PKG_CHECK_MODULES(FAPWS2, [libgrayb >= 0.1], , [
+    AC_MSG_ERROR([You must have 'libgrayb' dev headers (libgrayb-dev) installed
+    ]) ])
+
+AC_SUBST(FAPWS2_CFLAGS)
+AC_SUBST(FAPWS2_LIBS)
 
 if test x$debug = xyes; then
     CXXFLAGS="-g -O0"
@@ -42,8 +44,8 @@ else
 fi
 
 
-CXXFLAGS="$CXXFLAGS $GLIB_CFLAGS $LIBXML_CFLAGS" 
-LDFLAGS="$LDFLAGS $GLIB_LIBS $LIBXML_LIBS $PTHREAD_LIBS"
+CXXFLAGS="$CXXFLAGS $GLIB_CFLAGS $FAPWS2_CFLAGS" 
+LDFLAGS="$LDFLAGS $GLIB_LIBS $PTHREAD_LIBS $FAPWS2_LIBS"
 
 AC_OUTPUT
 

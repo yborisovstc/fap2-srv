@@ -1,14 +1,16 @@
 #include <string.h>
 #include <stdio.h>
+#include <stdexcept> 
+#include "../server/requests.h" 
 
 #include "bclient.h"
 
 using namespace std;
 
 const string BaseClient::LOCAL_HOST = "localhost";
+const int BaseClient::KBufSize = 512;
 
 BaseClient::BaseClient() {
-    struct hostent *server;
 
     mServerSock = socket(AF_INET, SOCK_STREAM, 0);
     memset(&mServerAddr, 0, sizeof(sockaddr_in));
@@ -16,19 +18,48 @@ BaseClient::BaseClient() {
     mServerAddr.sin_family = AF_INET;
     //mServerAddr.sin_addr.s_addr = INADDR_ANY;
     mServerAddr.sin_port = htons(PORT);
+}
+
+void BaseClient::Connect(const string& aHostUri)
+{
+    int res = 0;
+    struct hostent *server;
 
     server = gethostbyname(LOCAL_HOST.c_str());
     if (server == NULL) {
-        cerr << "Failed, no such host";
+        //cerr << "Failed, no such host";
+	throw(runtime_error("Cannot get the host"));
     }
     bcopy((char *)server->h_addr,
             (char *)&mServerAddr.sin_addr.s_addr,
             server->h_length);
 
-    if (connect(mServerSock, (struct sockaddr *)&mServerAddr, sizeof(mServerAddr)) < 0)
-        cerr << "ERROR connecting to server";
+    if (connect(mServerSock, (struct sockaddr *)&mServerAddr, sizeof(mServerAddr)) < 0) {
+        //cerr << "ERROR connecting to server";
+	throw(runtime_error("Error connecting to server"));
+    }
 }
 
+void BaseClient::Request(const string& aRequest, string& aResponse)
+{
+    int n = send(mServerSock, aRequest.c_str(), aRequest.size(), 0);
+    if (n < 0)
+	throw(runtime_error("ERROR writing to socket"));
+    char buffer[KBufSize];
+    bzero(buffer, KBufSize);
+    n = recv(mServerSock, buffer, sizeof buffer, 0);
+    if (n < 0)
+	throw(runtime_error("ERROR reading from socket"));
+    aResponse.assign(buffer, n);
+}
+
+void BaseClient::Request(const string& aReqId, const string& aReqArgs, string& aResponse)
+{
+    string req(aReqId);
+    req.append(RequestIPC::REQ_SEPARATOR);
+    req.append(aReqArgs);
+    Request(req, aResponse);
+}
 /*
    Dispatch();
    Main loop:

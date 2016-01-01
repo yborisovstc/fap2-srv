@@ -3,6 +3,9 @@
 const string RequestIPC::REQ_INVALID = "req_invalid";
 const string RequestIPC::REQ_GET_MODELS_LIST = "get_models_list";
 const string RequestIPC::REQ_GET_MODEL = "get_model";
+const string RequestIPC::REQ_CREATE_ENV = "cenv";
+const string RequestIPC::REQ_EXEC = "exec";
+const string RequestIPC::REQ_ENV = "env";
 
 const string RequestIPC::REQ_SEPARATOR = " ";
 const string RequestIPC::R_LIST_SEPARATOR = ";";
@@ -14,6 +17,9 @@ RequestIPC::TRequestMap RequestIPC::InitReqMap() {
     TRequestMap rmap;
     rmap[REQ_GET_MODELS_LIST] = EReqID_GetModelsList;
     rmap[REQ_GET_MODEL] = EReqID_GetModel;
+    rmap[REQ_CREATE_ENV] = EReqID_CreateEnv;
+    rmap[REQ_EXEC] = EReqID_Exec;
+    rmap[REQ_ENV] = EReqID_Env;
     return rmap;
 };
 

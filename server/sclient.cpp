@@ -1,17 +1,20 @@
+#include <stdexcept> 
 #include "sclient.h"
 #include "requests.h"
 #include "rgetmodelslist.h"
+#include "rcreateenv.h"
+#include "rexec.h"
 
 using namespace std;
 
 //Actually allocate sClients
 vector<SessionClient> SessionClient::sClients;
 
-SessionClient::SessionClient() {
+SessionClient::SessionClient(): mEnv(NULL)  {
     mName = (char *) malloc(MAX_NAME_LENGHT+1);
 }
 
-SessionClient::SessionClient(int sock) {
+SessionClient::SessionClient(int sock): mEnv(NULL) {
     mName = (char *) malloc(MAX_NAME_LENGHT+1);
     Dispatch(sock);
 }
@@ -65,6 +68,15 @@ void SessionClient::HandleMessage(int msg_id, const string& msg_args) {
 	case RequestIPC::EReqID_GetModelsList:
 	    Send((new ReqGetModelsList(this))->Exec());
 	    break;
+	case RequestIPC::EReqID_CreateEnv:
+	    Send((new ReqCreateEnv(this, msg_args))->Exec());
+	    break;
+	case RequestIPC::EReqID_Exec:
+	    Send((new ReqExec(this, msg_args))->Exec());
+	    break;
+	case RequestIPC::EReqID_Env:
+	    Send((new ReqEnv(this, msg_args))->Exec());
+	    break;
 	default:
 	    Send(msg_id, RequestIPC::RES_ERROR);
 	    break;
@@ -95,7 +107,47 @@ void SessionClient::Send(const char *message) {
 
 
 // EnvProvider
-void SessionClient::getEnv() {
+Env* SessionClient::GetEnv(int aEnvId)
+{
+    /*
+    Env* res = NULL;
+    if (aEnvId > 0 && aEnvId < mEnvs.size()) {
+	res = mEnvs.at(aEnvId);
+    }
+    return res;
+    */
+    return mEnv;
+}
+
+void SessionClient::CreateEnv(const string& aChromo)
+{
+    /*
+    int id = mEnvs.size();
+    string name("Env~");
+    stringstream ss;
+    ss << id;
+    name.append(ss.str());
+    cout << "Creating env" << name << endl;
+    Env* env = new Env(name, aChromo, false);
+    mEnvs.push_back(env);
+    env->ConstructSystem();
+    */
+    
+    if (mEnv != NULL) {
+	throw(runtime_error("Env already created"));
+    }
+    string name("Env~");
+    stringstream ss;
+    ss << mId;
+    name.append(ss.str());
+    mEnv = new Env(aChromo, name+"log", false);
+    mEnv->ConstructSystem();
+    if (mEnv != NULL) {
+	throw(runtime_error("Failed creating env"));
+    }
+    // Adding to contexts
+    MEnv* menv = mEnv->GetObj(menv);
+    AddContext(MEnv::Type(), "0", menv);
 }
 
 //Static
@@ -154,5 +206,24 @@ int SessionClient::FindSessionClientIndex(SessionClient *c) {
     }
     cerr << "SessionClient id not found." << endl;
     return -1;
+}
+
+void SessionClient::AddContext(const string& aName, const string& aHandle, void* aPtr)
+{
+    TCtxKey key(aName, aHandle);
+    if (mCtx.count(key) > 0) {
+	throw(runtime_error("Context already exists"));
+    }
+    mCtx.insert(pair<TCtxKey, void*>(key, aPtr));
+}
+
+void* SessionClient::GetContext(const string& aName, const string& aHandle) const
+{
+    void* res = NULL;
+    TCtxKey key(aName, aHandle);
+    if (mCtx.count(key) > 0) {
+	res = mCtx.at(key);
+    }
+    return res;
 }
 

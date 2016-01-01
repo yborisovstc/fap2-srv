@@ -81,6 +81,11 @@
     </sect1>
 
     <sect1 id="api"><title>Server API </title>
+	<sect2><title>APIs syntax</title>
+	    <programlisting>
+		REQUEST := REQ_NAME REQ_ARGS
+	    </programlisting>
+	</sect2>
 	<sect2 id="api_get_lmdl"><title>Get list of models</title>
 	    <sect3><title>Description</title>
 		<simpara>Gets the list of models available.</simpara>
@@ -107,10 +112,7 @@
 		</cmdsynopsis>
 	    </sect3>
 	    <sect3><title>Response</title>
-		<cmdsynopsis>
-		    <command>root</command>
-		    <arg choice="plain"><replaceable>cursor_id</replaceable></arg>
-		</cmdsynopsis>
+		<cmdsynopsis> <command>cursor_id</command> </cmdsynopsis>
 	    </sect3>
 	</sect2>
 	<sect2 id="api_get_node"><title>Get node</title>
@@ -125,10 +127,7 @@
 		</cmdsynopsis>
 	    </sect3>
 	    <sect3><title>Response</title>
-		<cmdsynopsis>
-		    <command>root</command>
-		    <arg choice="plain"><replaceable>cursor_id</replaceable></arg>
-		</cmdsynopsis>
+		<cmdsynopsis> <command>cursor_id</command> </cmdsynopsis>
 	    </sect3>
 	</sect2>
     </sect1>

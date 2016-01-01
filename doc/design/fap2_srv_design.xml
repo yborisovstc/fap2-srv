@@ -41,14 +41,109 @@
 
     </glossary>
     
-    <sect1 id="ds_apis"> <title>DS_APIS APIs</title>
+    <sect1 id="ds_apis"> <title>Server APIs</title>
 	<sect2 id="ds_apis_intro"><title>Intro</title>
+	    <simpara>Server provides access to the model APIs. So server APIs is kind of remote procedure call. Thus server request specifies
+		some persistent part of the model, interface exposed by the part, and the interface method to be invoked. 
+		It is possible to request the invocation the chain of methods when the preceeding methods return ifcase instance. Actually the iface exposed
+		by the part is obtained itself via iface provider iface. But it is generic mechanism, so it makes sense to compact request by using
+		specific notation for getting iface itself method. </simpara>
+	</sect2>
+	<sect2 id="ds_apis_clc"><title>Notation for getting collection of ifaces</title>
+	    <simpara>In <xref linkend="ds_apis_intro"/> it was mentioned that it makes sense to use specific notation for getting iface method in
+		order to simplify the request notation. Iface provider exposes also method of getting collection of iface instances. What could be 
+		notation for this ? There could be several approached. One of them is add support of getting iface by indexes in provider iface. Another
+		approach is to use volatile cursor, ref <xref linkend="ds_ctxt_lt"/> </simpara>
+	</sect2>
+	<sect2><title>Invocation of interfaces method</title>
+	    <simpara>Each iface exposed by the models parts has to support virtual methos "exec" that executes the requested method. "Exec" method
+	   takes argument "name" - requested method name, and requested method arguments marshalled to string form. </simpara>
+	</sect2>
+	<sect2><title>Request notation scheme</title>
+	    <simpara>Below is EBNF notation of request</simpara>
+	    <itemizedlist>
+		<listitem>request = cmd , cursor , method </listitem>
+		<listitem>cursor = role , ".", handle , [ ("/" , volatile_local_role) | ("#" , volatile_cooperative_role , [":", index]) ]</listitem>
+	    </itemizedlist>
+	    <simpara>Exampes:</simpara>
+	    <itemizedlist>
+		<listitem>Getting root node from environment MEnv#1
+		    <programlisting>exe MEnv.1 Root</programlisting>
+		</listitem>
+		<listitem>Getting component "Comp_1" of node 2a3f7 
+		    <programlisting>exe MElem.2a3f7 GetNode ./Comp_1</programlisting>
+		</listitem>
+		<listitem>Getting pair of Vertex local role of MElem 2a3f7
+		    <programlisting>exe MElem.2a3f7/MVert Pair</programlisting>
+		</listitem>
+	    </itemizedlist>
+	</sect2>
+	<sect2><title>Notation of interface function invocation</title>
+	    <simpara>To ensure unified handling of iface method invocation there will be base iface class introduced.</simpara>
+	    <simpara>The notation is as:</simpara>
+	    <itemizedlist>
+		<listitem>method = method_name, ",", method_signature, ["," method_argument]</listitem>
+		<listitem>method_argument = method_argument_delimiter, method_argument_body, method_argument_delimiter</listitem>
+	    </itemizedlist>
 	</sect2>
     </sect1>
 
+    <sect1 id="ds_ctxt"><title>Context</title>
+	<sect2 id="ds_ctxt_intro"><title>Intro</title>
+	    <simpara>In order to support hierarchical nature of the multiagent model the clients requests have to contain a lot of arguments pointing to 
+		the required part of the model. In the other word the client have to localise the part of model to what the request is referred. For 
+		instance the part can be specified as: environment, node, interface. Thus the client specifies "cursor" for the request. There could be 
+		some approaches of how to specify the cursor. One direct approach is to have the full set of cursor attributes in the request. But 
+		this leads to sending a lot of excessive information. Another approach is to set the cursor, i.e. to set the new context for the requests.
+		In this case server saves cusrsor attributes for the conext, client sends just context id in its request, server takes the cursor attributes
+	       	from the saved context, so no necessity of sending them in request. Normally the context approach
+		is implemented by introducing so called "subsession" that keeps context id and adds it to the request, hidding the "internal" staff from the 
+		user.</simpara>
+	    <simpara>What is context should be combined from? There is just simple requirement for the conext: it has to unambiquosly point to models part
+		the request relates to. So the structure of the context depends on implementation of models parts identification, ref <xref linkend="ds_uid"/>.
+		For instance if server uniquely indentifies all the parts, so the context can be just the parts UID. But there are problem with implementing
+		"totally" unique id. This is because it is needed to get the models part and assosiate UID to it. But some parts of the model are not 
+		persistent, for instance iface (role) obtained via cooperative iface provider mechanism can vary depending on the status of agent provided
+		this role.
+	    </simpara>
+	</sect2>
+	<sect2><title>Cursor spec syntax</title>
+	    <simpara>Cursor spec contains parts_type and parts_handle. parts_type shows to server what interface is supported by the part. parts_handle
+	    specifies the instance of the part.</simpara>
+	</sect2>
+	<sect2 id="ds_ctxt_lt"><title>Cursor life time</title>
+	    <simpara>As mentioned in <xref linkend="ds_ctxt_intro"/> there are categories of cursors by the life time:</simpara>
+	    <orderedlist>
+		<listitem>Persistent
+		    <para>For that type of cursor server keeps mapping parts_handle - to - pointer_to_part. So cursor spec contains parts_type and 
+			parts_handle. </para>
+		</listitem>
+		<listitem>Virtual
+		    <para> Server doesn't keep mapping to part at all. So actually the cursor doen't 
+			specifiy the part (iface) itself but the way of getting the iface. Normally server uses cooperative iface provider to get it.</para>
+		</listitem>
+		<listitem>Volatile
+		    <para>This cursor is valid only during the period of request. Server gets the iface by the cursor and temporarily keeps it. 
+			One option is to remove this temporal cursor by special request "close". Another option is that server allows the only context related 
+			method. To "close" the context the client needs to send specific request. 
+			This type of cursor can be used for instance when interacting to models temporal
+			objects like iterators, ref <xref linkend="ds_apis_clc"/></para>
+		</listitem>
+	    </orderedlist>
+	</sect2>
+    </sect1>
+    <sect1 id="ds_uid"><title>How to uniquely identify remote model part ?</title>
+	<sect2><title>Intro</title>
+	    <simpara>Client uses unique node identificator in request to server in order to specify what node this request relates to.
+		This identificator also is set to nodes proxy, so the proxy includes id in the requests it sends. URi could be uses as UID, but
+		URI is not persistent and can be changed in result of remote model mutaions. Another solution would be to use the node handle that
+		is generated in scope of client session. In fact UID is used in the scope of the session only, so isn't persistent in the scope of the 
+		model itself.</simpara>
+	</sect2>
+    </sect1>
     <sect1 id="ds_tohandle"><title>Traceability: To handle</title>
-        <orderedlist>
-        </orderedlist>
+	<orderedlist>
+	</orderedlist>
 
     </sect1>
 

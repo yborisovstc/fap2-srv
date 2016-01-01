@@ -18,12 +18,16 @@ using namespace std;
 class BaseClient {
     private:
         static const string LOCAL_HOST;
+        static const int KBufSize;
         //Socket stuff
         int mServerSock;
         struct sockaddr_in mServerAddr;
         char mBuff[256];
     public:
         BaseClient();
+	void Connect(const string& aHostUri);
+	void Request(const string& aRequest, string& aResponse);
+	void Request(const string& aReqId, const string& aReqArgs, string& aResponse);
         void Dispatch();
 };
 

@@ -2,12 +2,15 @@
 #define _reqbase_h_
 
 #include <string>
+#include <env.h>
 
 using namespace std;
 class ReqBase {
     public:
 	class EnvProvider {
-	    virtual void getEnv() = 0;
+	    public:
+		virtual void CreateEnv(const string& aChromo) = 0;
+		virtual Env* GetEnv(int aEnvId) = 0;
 	};
     protected:
 	int mId;
