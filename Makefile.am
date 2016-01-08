@@ -1,2 +1,2 @@
-SUBDIRS = server client test dmas
+SUBDIRS = client dmas server test 
 

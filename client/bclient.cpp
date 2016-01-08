@@ -20,14 +20,19 @@ BaseClient::BaseClient() {
     mServerAddr.sin_port = htons(PORT);
 }
 
+BaseClient::~BaseClient()
+{
+    if (mServerSock != 0) {
+	Disconnect();
+    }
+}
+
 void BaseClient::Connect(const string& aHostUri)
 {
-    int res = 0;
     struct hostent *server;
 
     server = gethostbyname(LOCAL_HOST.c_str());
     if (server == NULL) {
-        //cerr << "Failed, no such host";
 	throw(runtime_error("Cannot get the host"));
     }
     bcopy((char *)server->h_addr,
@@ -35,30 +40,40 @@ void BaseClient::Connect(const string& aHostUri)
             server->h_length);
 
     if (connect(mServerSock, (struct sockaddr *)&mServerAddr, sizeof(mServerAddr)) < 0) {
-        //cerr << "ERROR connecting to server";
 	throw(runtime_error("Error connecting to server"));
     }
 }
 
-void BaseClient::Request(const string& aRequest, string& aResponse)
+bool BaseClient::Request(const string& aRequest, string& aResponse)
 {
+    bool res = true;
     int n = send(mServerSock, aRequest.c_str(), aRequest.size(), 0);
-    if (n < 0)
-	throw(runtime_error("ERROR writing to socket"));
+    if (n < 0) {
+	//throw(runtime_error("ERROR writing to socket"));
+	res = false;
+	aResponse = "Error writing to socket";
+	return res;
+    }
     char buffer[KBufSize];
     bzero(buffer, KBufSize);
     n = recv(mServerSock, buffer, sizeof buffer, 0);
-    if (n < 0)
-	throw(runtime_error("ERROR reading from socket"));
-    aResponse.assign(buffer, n);
+    if (n < 0) {
+	//throw(runtime_error("ERROR reading from socket"));
+	res = false;
+	aResponse = "Error reading from socket";
+	return res;
+    }
+    aResponse.assign(buffer + 2, n - 2);
+    res = (buffer[0] != 'E');
+    return res;
 }
 
-void BaseClient::Request(const string& aReqId, const string& aReqArgs, string& aResponse)
+bool BaseClient::Request(const string& aReqId, const string& aReqArgs, string& aResponse)
 {
     string req(aReqId);
     req.append(RequestIPC::REQ_SEPARATOR);
     req.append(aReqArgs);
-    Request(req, aResponse);
+    return Request(req, aResponse);
 }
 /*
    Dispatch();
@@ -80,5 +95,11 @@ void BaseClient::Dispatch() {
             cerr << "ERROR reading from socket";
         printf("%s\n",buffer);
     }
+}
+
+void BaseClient::Disconnect()
+{
+    close(mServerSock);
+    mServerSock = 0;
 }
 

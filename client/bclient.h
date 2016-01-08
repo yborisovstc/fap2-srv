@@ -25,10 +25,12 @@ class BaseClient {
         char mBuff[256];
     public:
         BaseClient();
+        ~BaseClient();
 	void Connect(const string& aHostUri);
-	void Request(const string& aRequest, string& aResponse);
-	void Request(const string& aReqId, const string& aReqArgs, string& aResponse);
+	bool Request(const string& aRequest, string& aResponse);
+	bool Request(const string& aReqId, const string& aReqArgs, string& aResponse);
         void Dispatch();
+	void Disconnect();
 };
 
 #endif

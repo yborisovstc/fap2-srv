@@ -25,4 +25,5 @@ fap2_srv_SOURCES = \
 		       sserver.h \
 		       sserver.cpp
 
-fap2_srv_LDFLAGS= -lrt -Wl,--no-as-needed
+fap2_srv_LDFLAGS=  -L../client/.libs/ -lfap2client -L../dmas/.libs -lfap2da -lrt -Wl,--no-as-needed
+#fap2_srv_LDFLAGS= -lrt -Wl,--no-as-needed

@@ -21,20 +21,21 @@ class RequestIPC {
 	    EReqID_GetModel,
 	    EReqID_CreateEnv,
 	    EReqID_Exec,
-	    EReqID_Env,
 	};
 	static const string REQ_INVALID;
 	static const string REQ_GET_MODELS_LIST;
 	static const string REQ_GET_MODEL;
 	static const string REQ_CREATE_ENV;
 	static const string REQ_EXEC;
-	static const string REQ_ENV;
 	// Request separator
 	static const string REQ_SEPARATOR;
 	// Response success 
 	static const string RES_OK;
-	// Response error 
+	// Response errors
 	static const string RES_ERROR;
+	static const string RES_ERROR_CTX_NOTFOUND;
+	static const string RES_ERROR_CTX_MISSING;
+	static const string RES_ERROR_NOCSPEC;
 	// Request separator
 	static const string R_LIST_SEPARATOR;
     public:

@@ -139,6 +139,16 @@
 		URI is not persistent and can be changed in result of remote model mutaions. Another solution would be to use the node handle that
 		is generated in scope of client session. In fact UID is used in the scope of the session only, so isn't persistent in the scope of the 
 		model itself.</simpara>
+	    <simpara>The problems with handle is that actually we need two-derections identification: UID-to-object and object-to-UID. Why do we need both ?
+		This is because of it would be convenient to have one-to-one relation. Otherwise the UID-to-object relation map will be increasing any time 
+		even if we request the object that already exists within the mapping. For that object the new UID will be generated. So using handles
+		required two maps that is resource-intensive.</simpara>
+	    <simpara>Looking at URI again we can see that there is the way of making URI unambiguous: using URI canonical form. This way we avoid 
+		ambuguous nature of URI. URI gives us object-to-UID relation. Using URI we can avoid dedicated mapping mechanism for UID-to-object:
+		models navigation mechanism plays this role.</simpara>
+	    <simpara>It also makes sense to consider intermediate variant: each object has API to generate its UID. The UID can be generated from
+		canonical URI for example, so is persistent. Another way is to generate random UID on the object construction phase.
+		Using generated persistent UID gives us implementation of object-to-UID relation.</simpara>
 	</sect2>
     </sect1>
     <sect1 id="ds_tohandle"><title>Traceability: To handle</title>

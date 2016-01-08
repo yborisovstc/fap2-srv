@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+
+<!-- Unit test for ceation of remote env with bidirectional 
+     communication. "Down" and "Up" remote env agent are used
+     -->
+
+
+<!DOCTYPE node SYSTEM "../etc/objspec.dtd"> 
+
+<node id="test" parent="Vert">
+    <node id="v1" parent="Vert"/>
+    <node id="v2" parent="Vert"/>
+    <node id="Renv" parent="ARenv">
+	<cont val="test_remote_env"/>
+	    <node id="renv_root" parent="ARenvu">
+	    <node id="renv_l1node1" parent="Prop">
+		<cont val="Hello!"/>
+	    </node>
+	</node>
+    </node>
+</node>
+

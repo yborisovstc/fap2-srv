@@ -14,12 +14,12 @@
 using namespace std;
 class SessionClient : public ReqBase::EnvProvider {
     public:
-	// Key of context map: Iface_name, Handle
-	typedef pair<string, string> TCtxKey;
+	// Key of context map: Handle
+	typedef string TCtxKey;
 	// Context: key, pointer to iface
-	typedef map<TCtxKey, void*> TCtx;
+	typedef map<TCtxKey, MIface*> TCtx;
     public:
-        static vector<SessionClient> sClients;
+        static vector<SessionClient*> sClients;
         char *mName;
         int mId;
         //Socket stuff
@@ -28,6 +28,7 @@ class SessionClient : public ReqBase::EnvProvider {
 	//vector<Env*> mEnvs;
 	Env* mEnv;
 	TCtx mCtx; // Context
+	SessionClient* mAttached;
 
     public:
         SessionClient();
@@ -39,16 +40,23 @@ class SessionClient : public ReqBase::EnvProvider {
 	// EnvProvider
 	virtual void CreateEnv(const string& aChromo);
 	virtual Env* GetEnv(int aEnvId);
+	virtual void AttachEnv(int aSessionId, const string& aKey);
+	virtual void GetId (string& aSessionId);
+	virtual MIface* Call(const string& aSpec, string& aRes);
+	virtual string Uid() const;
     private:
-        void HandleMessage(const string& message);
-        void HandleMessage(int msg_id, const string& msg_args);
+//        void HandleMessage(const string& message);
+        void HandleMessage(const string& aMsg);
         void Send(string const& msg, const string& msg_args);
         void Send(int msg_id, const string& msg_args);
         void Send(string const& response);
         void Send(const char *message);
         static void ListSessionClients();
         static int FindSessionClientIndex(SessionClient *c);
-	void AddContext(const string& aName, const string& aHandle, void* aPtr);
-	void* GetContext(const string& aName, const string& aHandle) const;
+        static void FindSessionClientById(int mId, SessionClient *&c);
+	void AddContext(const string& aHandle, MIface* aPtr);
+	MIface* GetContext(const string& aHandle);
+	// Debug
+	void DumpCtx() const;
 };
 #endif

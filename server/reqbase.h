@@ -7,8 +7,9 @@
 using namespace std;
 class ReqBase {
     public:
-	class EnvProvider {
+	class EnvProvider: public MIface {
 	    public:
+		static const char* Type() { return "EnvProvider";};
 		virtual void CreateEnv(const string& aChromo) = 0;
 		virtual Env* GetEnv(int aEnvId) = 0;
 	};
