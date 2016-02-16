@@ -33,6 +33,7 @@ class SessionClient : public ReqBase::EnvProvider {
     public:
         SessionClient();
         SessionClient(int sock);
+	~SessionClient();
         void Dispatch(int sock);
         void SetName(const char *name);
         void SetId(int id);
@@ -58,5 +59,6 @@ class SessionClient : public ReqBase::EnvProvider {
 	MIface* GetContext(const string& aHandle);
 	// Debug
 	void DumpCtx() const;
+	static SessionClient* GetSession(int aId);
 };
 #endif

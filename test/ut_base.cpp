@@ -6,6 +6,8 @@
 #include <env.h>
 #include <elem.h>
 #include <daaprov.h>
+#include <iostream>
+#include <fstream>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -136,27 +138,23 @@ void Ut_CreateEnv::test_CreateModel()
     }
     printf("Client connected to the server\n");
     string resp;
+    string cenv;
+    // Issue request for creating env
+    bool res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + KChromo_1, cenv);
+    printf("Create model -- Response: %s\n", cenv.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating remote env failed: " + cenv, res);
     // Issue request for creating model
-    try {
-	client->Request("EnvProvider", KMeth_CreateEnv + ",1," + KChromo_1, resp);
-	printf("Create model -- Response: %s\n", resp.c_str());
-    } catch (exception& e) {
-	CPPUNIT_ASSERT_MESSAGE("Request -create_model- failed", false);
-    }
+    res = client->Request(cenv, "ConstructSystem", resp);
+    printf("Constructing system -- Response: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Constructing system failed: " + resp, res);
     // Issue request for root
-    try {
-	client->Request(resp, "Root", resp);
-	printf("Getting root -- Response: %s\n", resp.c_str());
-    } catch (exception& e) {
-	CPPUNIT_ASSERT_MESSAGE("Request -get root- failed", false);
-    }
+    res = client->Request(cenv, "Root", resp);
+    printf("Getting root -- Response: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Request -get root- failed", res);
     // Issue request for root name
-    try {
-	client->Request(resp, "Name", resp);
-	printf("Getting root name -- Response: %s\n", resp.c_str());
-    } catch (exception& e) {
-	CPPUNIT_ASSERT_MESSAGE("Request -get root name- failed", false);
-    }
+    res = client->Request(resp, "Name", resp);
+    printf("Getting root name -- Response: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Request -get root name- failed", res);
     client->Disconnect();
     delete client;
 }
@@ -203,11 +201,15 @@ void Ut_ExecMagt::test_Melem()
     bool res = client->Request("EnvProvider", "GetId", sid);
     CPPUNIT_ASSERT_MESSAGE("Request -GetId- failed", res);
     printf("Getting session1 id -- Response: %s\n", sid.c_str());
-    // Creating model
+    // Creating env
     string cenv;
     res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + KChromo_1, cenv);
     printf("Create model -- Response: %s\n", cenv.c_str());
     CPPUNIT_ASSERT_MESSAGE("Request -create_model- failed", res);
+    // Creating model
+    res = client->Request(cenv, "ConstructSystem", resp);
+    printf("Constructing model: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Constructing model failed: " + resp, res);
     // Getting root
     string root;
     res = client->Request(cenv, "Root", root);
@@ -280,7 +282,13 @@ void Ut_Renva::setUp()
 
 void Ut_Renva::tearDown() { }
 
-// Test of request "Exec Melem iface methods"
+/* Test of request "Exec Melem iface methods"
+ * Actually this schema is not working, there is no sense
+ * to create remote model because there is no means of remote
+ * model communicating to local primary model
+ * So this test is for very limited purpose only: to verify
+ * of functioning of primary remote agent and MElem proxy
+ */
 void Ut_Renva::test_Renva_Cre()
 {
     printf("\n === Test of Creating remote env agent\n");
@@ -331,6 +339,18 @@ void Ut_Renva::test_Renva_Cre()
 }
 
 
+void ReadCspec(const string& aFileName, string& aCspec)
+{
+    ifstream ifs("ut_bidir_cre.xml");
+    filebuf* pbuf = ifs.rdbuf();
+    size_t size = pbuf->pubseekoff (0,ifs.end,ifs.in);
+    pbuf->pubseekpos (0,ifs.in);
+    char* buffer=new char[size];
+    pbuf->sgetn(buffer,size);
+    aCspec.insert(0, buffer, size);
+    ifs.close();
+    delete buffer;
+}
 
 /* Test suite to verify remote interaction to the primary model
  * The complete scheme is used: primary model is created remotelly, the model
@@ -383,16 +403,48 @@ void Ut_Bidir::test_Bidir_Cre()
     string sid;
     res = client->Request("EnvProvider", "GetId", sid);
     printf("Getting session1 id -- Response: %s\n", sid.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Request -GetId- failed", res);
-    // Create primary model remotelly
-    res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + KChromo_1, cenv);
-    printf("Create model -- Response: %s\n", cenv.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Request -create_model- failed", res);
+    CPPUNIT_ASSERT_MESSAGE("Gettng session1 id failed: " + sid, res);
+    // Create primary model env remotelly
+    string cspec;
+    ReadCspec("ut_bidir_cre.xml", cspec);
+    res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + cspec, cenv);
+    printf("Creating env: %s\n", cenv.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating env failed: " + cenv, res);
+    // Set SID to primary env
+    string resp;
+    res = client->Request(cenv, "SetEVar,1,SID," + sid, resp);
+    printf("Setting Session Id: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Setting Session Id failed: " + resp, res);
+    res = client->Request(cenv, "GetEVar,1,SID", resp);
+    printf("Checking Session Id: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: " + resp, res);
+    CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: incorrect value", resp == sid);
+    // Construct primary model
+    res = client->Request(cenv, "ConstructSystem", resp);
+    printf("Creating model: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating model failed: " + resp, res);
     // Getting root
     string root;
     res = client->Request(cenv, "Root", root);
-    printf("Getting root -- Response: %s\n", root.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Request -get root- failed", res);
+    printf("Getting root: %s\n", root.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
+    // Getting remote root
+    string rroot;
+    res = client->Request(root, "GetNode,1,./Renv/renv_root", rroot);
+    printf("Getting remote root: %s\n", rroot.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root failed: " + rroot, res);
+    // Getting remote root name
+    res = client->Request(rroot, "Name", resp);
+    printf("Getting remote root name: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root name failed: " + resp, res);
+    // Getting remote root owner
+    res = client->Request(rroot, "GetMan", resp);
+    printf("Getting remote root owner: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root owner failed: " + resp, res);
+    // Getting upper node via remote root
+    res = client->Request(rroot, "GetNode,1,/*", resp);
+    printf("Getting root via remote root: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting root via remote root failed: " + resp, res);
 
     client->Disconnect();
     delete client;

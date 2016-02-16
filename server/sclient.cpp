@@ -13,6 +13,8 @@
 
 using namespace std;
 
+const int KBufSize = 1024;
+
 //Actually allocate sClients
 vector<SessionClient*> SessionClient::sClients;
 
@@ -27,6 +29,19 @@ SessionClient::SessionClient(int sock): mEnv(NULL), mAttached(NULL) {
     Dispatch(sock);
     srand(time(NULL));
     AddContext("EnvProvider", this);
+}
+
+SessionClient::~SessionClient()
+{
+    if (mEnv != NULL) {
+	delete mEnv;
+    }
+    if (mThread != NULL) {
+	delete mThread;
+    }
+    if (mName != NULL) {
+	delete mName;
+    }
 }
 
 void SessionClient::Dispatch(int sock) {
@@ -167,7 +182,7 @@ void SessionClient::CreateEnv(const string& aChromo)
     mEnv->SetEVar("EnvId", sid);
     DaaProv* daaprov = new DaaProv("DaaProv", mEnv);
     mEnv->AddProvider(daaprov);
-    mEnv->ConstructSystem();
+    //mEnv->ConstructSystem();
     // Adding to contexts
     MEnv* menv = NULL;
     menv = mEnv->GetObj(menv);
@@ -178,7 +193,7 @@ void SessionClient::CreateEnv(const string& aChromo)
 void *SessionClient::HandleSessionClient(void *args) {
     //Pointer to accept()'ed SessionClient
     SessionClient *c = (SessionClient *) args;
-    char buffer[256-25], message[256];
+    char buffer[KBufSize-25], message[KBufSize];
     int index;
     int n;
     //Add client in Static sClients <vector> (Critical section!)
@@ -195,7 +210,7 @@ void *SessionClient::HandleSessionClient(void *args) {
 	n = recv(c->mSock, buffer, sizeof buffer, 0);
 	//SessionClient disconnected?
 	if(n == 0) {
-	    cout << "SessionClient " << c->mName << " diconnected" << endl;
+	    cout << "SessionClient " << c->mName << " disconnected" << endl;
 	    close(c->mSock);
 	    //Remove client in Static sClients <vector> (Critical section!)
 	    SessionThread::LockMutex((const char *) c->mName);
@@ -204,6 +219,7 @@ void *SessionClient::HandleSessionClient(void *args) {
 		<< sClients[index]->mId << endl;
 	    sClients.erase(sClients.begin() + index);
 	    SessionThread::UnlockMutex((const char *) c->mName);
+	    delete c;
 	    break;
 	}
 	else if(n < 0) {
@@ -212,8 +228,8 @@ void *SessionClient::HandleSessionClient(void *args) {
 	else {
 	    //Message received.
 	    //snprintf(message, sizeof message, "<%s>: %s", c->mName, buffer);
-	    snprintf(message, sizeof message, "%s", buffer);
-	    c->HandleMessage(string(message));
+	    //snprintf(message, sizeof message, "%s", buffer);
+	    c->HandleMessage(string(buffer));
 	}
     }
     //End thread
@@ -246,10 +262,13 @@ void SessionClient::FindSessionClientById(int aId, SessionClient *&c)
 void SessionClient::AddContext(const string& aHandle, MIface* aPtr)
 {
     TCtxKey key(aHandle);
-    if (mCtx.count(key) > 0) {
+    TCtx& ctx = (mAttached == NULL) ?  mCtx : mAttached->mCtx;
+    /*
+    if (ctx.count(key) > 0) {
 	throw(runtime_error("Context already exists"));
     }
-    mCtx.insert(pair<TCtxKey, MIface*>(key, aPtr));
+    */
+    ctx.insert(pair<TCtxKey, MIface*>(key, aPtr));
 }
 
 MIface* SessionClient::GetContext(const string& aHandle)
@@ -327,4 +346,13 @@ MIface* SessionClient::Call(const string& aSpec, string& aRes)
 	throw (runtime_error("Unknown method"));
     }
     return res;
+}
+
+// Static
+SessionClient* SessionClient::GetSession(int aId)
+{
+    SessionClient* res = NULL;
+    FindSessionClientById(aId, res);
+    return res;
+    
 }

@@ -344,23 +344,44 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
     string env;
     string spec;
     aSpec.ToString(spec);
-    // Create remote env and model
+    // Create remote env
     TBool res = mRenvClient.Request("EnvProvider", "CreateEnv,1," + spec, env);
     if (res) {
-	Logger()->Write(MLogRec::EInfo, this, "Added node to remote env [%s], resp [%s]", mRenvUri.c_str(), env.c_str());
+	// Get current session id
+	string sid;
+	res = iEnv->GetEVar("SID", sid);
+	if (res) {
+	    string resp;
+	    // Set session id and this Uid to remote env as PrimarySid and PrimaryUid
+	    res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
+	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryUid," + GetUri(), resp);
+	    if (res) {
+		// Create remote model
+		res = mRenvClient.Request(env, "ConstructSystem", resp);
+		if (res) {
+		    Logger()->Write(MLogRec::EInfo, this, "Added node to remote env [%s]", mRenvUri.c_str());
+		    // Get remote root
+		    string rroot;
+		    res = mRenvClient.Request(env, "Root", rroot);
+		    if (res) {
+			Logger()->Write(MLogRec::EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
+			// Create proxy for remote root, bind proxy to component
+			MelemPx* px = new MelemPx(iEnv, this, rroot);
+			mRroot = px;
+		    } else {
+			Logger()->Write(MLogRec::EErr, this, "Failed getting remote env root, resp: %s", rroot.c_str());
+		    }
+		} else {
+		    Logger()->Write(MLogRec::EErr, this, "Error adding node to remote env [%s], resp [%s]", mRenvUri.c_str(), resp.c_str());
+		}
+	    } else {
+		Logger()->Write(MLogRec::EErr, this, "Error creating remote env [%s]: %s", mRenvUri.c_str(), env.c_str());
+	    }
+	} else {
+	    Logger()->Write(MLogRec::EErr, this, "Error creating remote model: session ID isn't set");
+	}
     } else {
-	Logger()->Write(MLogRec::EInfo, this, "Error adding node to remote env [%s], resp [%s]", mRenvUri.c_str(), env.c_str());
-    }
-    // Get remote root
-    string rroot;
-    res = mRenvClient.Request(env, "Root", rroot);
-    if (res) {
-	Logger()->Write(MLogRec::EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
-	// Create proxy for remote root, bind proxy to component
-	MelemPx* px = new MelemPx(iEnv, this, rroot);
-	mRroot = px;
-    } else {
-	Logger()->Write(MLogRec::EErr, this, "Failed getting remote env root, resp: %s", rroot.c_str());
+	Logger()->Write(MLogRec::EErr, this, "Error creating remote model env: %s", env.c_str());
     }
 }
 
@@ -375,151 +396,17 @@ TBool ARenv::Request(const string& aContext, const string& aReq, string& aResp)
 
 
 
-
-
-
-
-ARenvu::CompsIter::CompsIter(ARenvu& aElem, GUri::TElem aId, TBool aToEnd): iElem(aElem), iId(aId), mEnd(aToEnd)
-{
-    char rel = SRel();
-    if (!iId.first.empty()) {
-	iExtsrel = iId.first.at(iId.first.size() - 1);
-	if (iExtsrel == GUri::KParentSep || iExtsrel == GUri::KNodeSep) {
-	    iExt = iId.first.substr(0, iId.first.size() - 1);
-	}
-    }
-    if (rel == GUri::KNodeSep) {
-	if (iId.second.second == GUri::KTypeAny) {
-	    mEnd = EFalse;
-	} else {
-	    mEnd = iElem.mRroot->Name() == iId.second.second;
-	}
-	if (aToEnd) {
-	    mEnd = aToEnd;
-	}
-	else {
-	    if (iId.first.empty() || iExtsrel !=  GUri::KParentSep || iExt.empty() || iExt == GUri::KTypeAny) {
-		mEnd = EFalse;
-	    } 
-	    else {
-		mEnd = (iElem.mRroot->GetParent()->Name() == iExt && !iElem.mRroot->IsRemoved());
-	    }
-	}
-    }
-    else if (rel == GUri::KParentSep) {
-	if (iId.second.second == GUri::KTypeAny) {
-	    iChildsRange = TNMRegItRange(iElem.iChilds.begin(), iElem.iChilds.end());
-	} else {
-	    iChildsRange = iElem.iChilds.equal_range(iId.second.second);
-	}
-	if (aToEnd) {
-	    iChildsIter = iChildsRange.second;
-	}
-	else {
-	    if (iId.first.empty() || iExtsrel !=  GUri::KNodeSep || iExt.empty() || iExt == GUri::KTypeAny) {
-		iChildsIter = iChildsRange.first;
-		for (; iChildsIter != iChildsRange.second && iChildsIter->second->IsRemoved(); iChildsIter++); 
-	    }
-	    else {
-		for (iChildsIter = iChildsRange.first; iChildsIter != iChildsRange.second; iChildsIter++) {
-		    MElem* comp = iChildsIter->second;
-		    MElem* cowner = comp->GetMan()->GetObj(cowner);
-		    if (cowner->Name() == iExt && !comp->IsRemoved()) {
-			break;
-		    }
-		}
-	    }
-	}
-    }
-};
-
-ARenvu::CompsIter::CompsIter(const CompsIter& aIt): iElem(aIt.iElem), iId(aIt.iId),
-    iExtsrel(aIt.iExtsrel), iExt(aIt.iExt), iChildsIter(aIt.iChildsIter), mEnd(aIt.mEnd)
-{
-};
-
-ARenvu::MIterImpl* ARenvu::CompsIter::Clone()
-{
-    return new CompsIter(*this);
-}
-
-void ARenvu::CompsIter::Set(const MIterImpl& aImpl)
-{
-    const CompsIter& impl = dynamic_cast<const CompsIter&>(aImpl);
-    iElem = impl.iElem;
-    iId = impl.iId;
-    iChildsIter = impl.iChildsIter;
-    mEnd = impl.mEnd;
-}
-
-char ARenvu::CompsIter::SRel() const
-{
-    return iId.second.first;
-}
-
-void ARenvu::CompsIter::PostIncr()
-{
-    if (SRel() == GUri::KNodeSep) {
-	mEnd = ETrue;
-    }
-    else {
-	iChildsIter++;
-	// Omit removed children from the look
-	for (; iChildsIter != iChildsRange.second && iChildsIter->second->IsRemoved(); iChildsIter++); 
-	if (!iId.first.empty() && iExtsrel == GUri::KNodeSep && !iExt.empty() && iExt != GUri::KTypeAny) {
-	    for (;iChildsIter != iChildsRange.second; iChildsIter++) {
-		MElem* comp = iChildsIter->second;
-		MElem* cowner = comp->GetMan()->GetObj(cowner);
-		if (cowner->Name() == iExt && !comp->IsRemoved()) {
-		    break;
-		}
-	    }
-	}
-    }
-}
-
-TBool ARenvu::CompsIter::IsCompatible(const MIterImpl& aImpl) const
-{
-    return ETrue;
-}
-
-TBool ARenvu::CompsIter::IsEqual(const MIterImpl& aImplm) const
-{
-    const CompsIter& aImpl = dynamic_cast<const CompsIter&>(aImplm);
-    TBool res = EFalse;
-    if (IsCompatible(aImpl) && aImpl.IsCompatible(*this)) {
-	res = &iElem == &(aImpl.iElem) && iId == aImpl.iId && iChildsIter == aImpl.iChildsIter && mEnd == aImpl.mEnd;
-    }
-    return res;
-}
-
-MElem*  ARenvu::CompsIter::GetElem()
-{
-    MElem* res = NULL;
-    if (SRel() == GUri::KNodeSep) {
-	if (!mEnd) {
-	    res = iElem.mRroot;
-	}
-    }
-    else if (SRel() == GUri::KParentSep) {
-	res = iChildsIter->second;
-    }
-    return res;
-}
-
-
-
 string ARenvu::PEType()
 {
     return Elem::PEType() + GUri::KParentSep + Type();
 }
 
-ARenvu::ARenvu(const string& aName, Elem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL)
+ARenvu::ARenvu(const string& aName, Elem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse)
 {
     SetParent(Type());
 }
 
-ARenvu::ARenvu(Elem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
+ARenvu::ARenvu(Elem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse)
 {
     SetParent(Elem::PEType());
 }
@@ -550,28 +437,8 @@ TBool ARenvu::IsContChangeable(const string& aName) const
 TBool ARenvu::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
 {
     TBool res = ETrue;
-    if (aVal != mRenvUri) {
-	mRenvUri = aVal;
-	try {
-	    mRenvClient.Connect("");
-	} catch (exception& e) {
-	    Logger()->Write(MLogRec::EErr, this, "Connecting to [%s] failed", aVal.c_str());
-	    res = EFalse;
-	}
-	if (res) {
-	    if (aRtOnly) {
-		iMan->OnContentChanged(*this);
-	    } else {
-		iMan->OnCompChanged(*this);
-	    }
-	}
-    }
+    Connect();
     return res;
-}
-
-void ARenvu::GetCont(string& aCont, const string& aName)
-{
-    aCont = mRenvUri;
 }
 
 void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode)
@@ -631,17 +498,51 @@ void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheck
     }
 }
 
-Elem::Iterator ARenvu::NodesLoc_Begin(const GUri::TElem& aId)
-{
-    return Iterator(new CompsIter(*this, aId));
-}
-
-Elem::Iterator ARenvu::NodesLoc_End(const GUri::TElem& aId)
-{
-    return Iterator(new CompsIter(*this, aId, ETrue));
-}
-
 TBool ARenvu::Request(const string& aContext, const string& aReq, string& aResp)
 {
     return mRenvClient.Request(aContext, aReq, aResp);
+}
+
+void ARenvu::Connect()
+{
+    string psid, puid;
+    TBool res = iEnv->GetEVar("PrimarySID", psid);
+    res = res && iEnv->GetEVar("PrimaryUid", puid);
+    if (res) {
+	try {
+	    mRenvClient.Connect("");
+	    res = ETrue;
+	} catch (exception& e) {
+	    Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed");
+	}
+	if (res) {
+	    string resp;
+	    res = mRenvClient.Request("EnvProvider", "AttachEnv,1," + psid, resp);
+	    if (res) {
+		// Get primary env agent
+		string root, pagt;
+		res = mRenvClient.Request("MEnv#0", "Root", root);
+		res = res && mRenvClient.Request(root, "GetNode,1," + puid, pagt);
+		if (res) {
+		    mConnected = ETrue;
+		    MelemPx* px = new MelemPx(iEnv, this, pagt);
+		    if (px != NULL) {
+			iMan = px;
+		    }
+		    // Create proxy for primary uid
+		} else {
+		    Logger()->Write(MLogRec::EErr, this, "Primary agent access failed: %s", resp.c_str());
+		}
+	    } else {
+		Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: cannot attach to env#%s", psid.c_str());
+	    }
+	}
+    } else {
+	Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: missing primary session id");
+    }
+}
+
+string ARenvu::Uid() const
+{
+    return Elem::Uid();
 }

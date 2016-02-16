@@ -18,6 +18,12 @@ Elem* DaaProv::CreateNode(const string& aType, const string& aName, Elem* aMan, 
     else if (aType.compare(ARenvu::Type()) == 0) {
 	res = new ARenvu(aName, aMan, aEnv);
     }
+    if (res != NULL) {
+	Elem* parent = GetNode(aType);
+	if (parent != NULL) {
+	    parent->AppendChild(res);
+	}
+    }
     return res;
 }
 

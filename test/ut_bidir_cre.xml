@@ -12,9 +12,9 @@
     <node id="v2" parent="Vert"/>
     <node id="Renv" parent="ARenv">
 	<cont val="test_remote_env"/>
-	    <node id="renv_root" parent="ARenvu">
-	    <node id="renv_l1node1" parent="Prop">
-		<cont val="Hello!"/>
+	<node id="renv_root" parent="ARenvu">
+	    <cont val="Connect"/>
+	    <node id="remote_node_1" parent="Elem">
 	    </node>
 	</node>
     </node>
