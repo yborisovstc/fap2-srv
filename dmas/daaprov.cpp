@@ -9,7 +9,7 @@ DaaProv::DaaProv(const string &aName, MEnv* aEnv): GProvider(aName, aEnv)
 {
 }
 
-Elem* DaaProv::CreateNode(const string& aType, const string& aName, Elem* aMan, MEnv* aEnv)
+Elem* DaaProv::CreateNode(const string& aType, const string& aName, MElem* aMan, MEnv* aEnv)
 {
     Elem* res = NULL;
     if (aType.compare(ARenv::Type()) == 0) {

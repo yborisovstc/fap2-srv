@@ -202,7 +202,7 @@ void ARenv::GetCont(string& aCont, const string& aName)
     aCont = mRenvUri;
 }
 
-void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, TBool aAttach)
+void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
 {
     const ChromoNode& mroot = aMutSpec;
     if (mroot.Begin() == mroot.End()) return;
@@ -233,29 +233,46 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 	    }
 	    continue;
 	}
-	TNodeType rnotype = rno.Type();
-	if (rnotype == ENt_Node) {
-	    AddElemRmt(rno, aRunTime, aTrialMode);
+	if (rno.AttrExists(ENa_Targ)) {
+	    // Targeted mutation, propagate downward, i.e redirect to comp owning the target
+	    // ref ds_mut_osm_linchr_lce
+	    MElem* ftarg = GetNode(rno.Attr(ENa_Targ));
+	    // Mutation is not local, propagate downward
+	    if (ftarg != NULL) {
+		ChromoNode& troot = ftarg->Mutation().Root();
+		ChromoNode madd = troot.AddChild(rno, ETrue, ETrue);
+		madd.RmAttr(ENa_Targ);
+		// Redirect the mut to target: no run-time to keep the mut in internal nodes
+		// Propagate till target owning comp if run-time to keep hidden all muts from parent 
+		ftarg->Mutate(EFalse, aCheckSafety, aTrialMode, aRunTime ? GetCompOwning(ftarg) : aCtx);
+	    } else {
+		Logger()->Write(MLogRec::EErr, this, "Cannot find target node [%s]", rno.Attr(ENa_Targ).c_str());
+	    }
+	} else {
+	    TNodeType rnotype = rno.Type();
+	    if (rnotype == ENt_Node) {
+		AddElemRmt(rno, aRunTime, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Change) {
+		ChangeAttr(rno, aRunTime, aCheckSafety, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Cont) {
+		DoMutChangeCont(rno, aRunTime, aCheckSafety, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Move) {
+		MoveNode(rno, aRunTime, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Import) {
+		ImportNode(rno, aRunTime, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Rm) {
+		RmNode(rno, aRunTime, aCheckSafety, aTrialMode);
+	    }
+	    else {
+		Logger()->Write(MLogRec::EErr, this, "Mutating - unknown mutation type [%d]", rnotype);
+	    }
+	    Logger()->SetContextMutId();
 	}
-	else if (rnotype == ENt_Change) {
-	    ChangeAttr(rno, aRunTime, aCheckSafety, aTrialMode);
-	}
-	else if (rnotype == ENt_Cont) {
-	    DoMutChangeCont(rno, aRunTime, aCheckSafety, aTrialMode);
-	}
-	else if (rnotype == ENt_Move) {
-	    MoveNode(rno, aRunTime, aTrialMode);
-	}
-	else if (rnotype == ENt_Import) {
-	    ImportNode(rno, aRunTime, aTrialMode);
-	}
-	else if (rnotype == ENt_Rm) {
-	    RmNode(rno, aRunTime, aCheckSafety, aTrialMode);
-	}
-	else {
-	    Logger()->Write(MLogRec::EErr, this, "Mutating - unknown mutation type [%d]", rnotype);
-	}
-	Logger()->SetContextMutId();
     }
 }
 
@@ -314,8 +331,8 @@ MElem* ARenv::GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool 
 		if (res1 != NULL) {
 		    if (res == NULL) {
 			res = res1;
-			}
-			else {
+		    }
+		    else {
 			res = NULL;
 			Logger()->Write(MLogRec::EErr, this, "Getting node [%s] - multiple choice", aUri.GetUri().c_str());
 			break;
@@ -441,7 +458,7 @@ TBool ARenvu::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
     return res;
 }
 
-void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, TBool aAttach)
+void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
 {
     const ChromoNode& mroot = aMutSpec;
     if (mroot.Begin() == mroot.End()) return;
@@ -472,29 +489,46 @@ void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheck
 	    }
 	    continue;
 	}
-	TNodeType rnotype = rno.Type();
-	if (rnotype == ENt_Node) {
-	    AddElem(rno, aRunTime, aTrialMode);
+	if (rno.AttrExists(ENa_Targ)) {
+	    // Targeted mutation, propagate downward, i.e redirect to comp owning the target
+	    // ref ds_mut_osm_linchr_lce
+	    MElem* ftarg = GetNode(rno.Attr(ENa_Targ));
+	    // Mutation is not local, propagate downward
+	    if (ftarg != NULL) {
+		ChromoNode& troot = ftarg->Mutation().Root();
+		ChromoNode madd = troot.AddChild(rno, ETrue, ETrue);
+		madd.RmAttr(ENa_Targ);
+		// Redirect the mut to target: no run-time to keep the mut in internal nodes
+		// Propagate till target owning comp if run-time to keep hidden all muts from parent 
+		ftarg->Mutate(EFalse, aCheckSafety, aTrialMode, aRunTime ? GetCompOwning(ftarg) : aCtx);
+	    } else {
+		Logger()->Write(MLogRec::EErr, this, "Cannot find target node [%s]", rno.Attr(ENa_Targ).c_str());
+	    }
+	} else {
+	    TNodeType rnotype = rno.Type();
+	    if (rnotype == ENt_Node) {
+		AddElem(rno, aRunTime, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Change) {
+		ChangeAttr(rno, aRunTime, aCheckSafety, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Cont) {
+		DoMutChangeCont(rno, aRunTime, aCheckSafety, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Move) {
+		MoveNode(rno, aRunTime, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Import) {
+		ImportNode(rno, aRunTime, aTrialMode);
+	    }
+	    else if (rnotype == ENt_Rm) {
+		RmNode(rno, aRunTime, aCheckSafety, aTrialMode);
+	    }
+	    else {
+		Logger()->Write(MLogRec::EErr, this, "Mutating - unknown mutation type [%d]", rnotype);
+	    }
+	    Logger()->SetContextMutId();
 	}
-	else if (rnotype == ENt_Change) {
-	    ChangeAttr(rno, aRunTime, aCheckSafety, aTrialMode);
-	}
-	else if (rnotype == ENt_Cont) {
-	    DoMutChangeCont(rno, aRunTime, aCheckSafety, aTrialMode);
-	}
-	else if (rnotype == ENt_Move) {
-	    MoveNode(rno, aRunTime, aTrialMode);
-	}
-	else if (rnotype == ENt_Import) {
-	    ImportNode(rno, aRunTime, aTrialMode);
-	}
-	else if (rnotype == ENt_Rm) {
-	    RmNode(rno, aRunTime, aCheckSafety, aTrialMode);
-	}
-	else {
-	    Logger()->Write(MLogRec::EErr, this, "Mutating - unknown mutation type [%d]", rnotype);
-	}
-	Logger()->SetContextMutId();
     }
 }
 

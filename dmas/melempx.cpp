@@ -59,8 +59,13 @@ MIface* MelemPx::Call(const string& aSpec, string& aRes)
 	aRes = Name();
     } else if (name == "GetMan") {
 	res = GetMan();
+    } else if (name == "GetParent") {
+	res = GetParent();
     } else if (name == "GetRoot") {
 	res = GetRoot();
+    } else if (name == "IsProvided") {
+	TBool rr = IsProvided();
+	aRes = Ifu::FromBool(rr);
     } else if (name == "GetNode") {
 	res = GetNode(args.at(0));
     } else if (name == "GetCont") {
@@ -106,7 +111,12 @@ MElem* MelemPx::NewProxyRequest(const string& aCallSpec) const
     return res;
 }
 
-const string MelemPx::EType(TBool aShort) const { return string();}
+const string MelemPx::EType(TBool aShort) const
+{
+    string resp;
+    TBool rr = mMgr->Request(mContext, "EType,1," + Ifu::FromBool(aShort), resp);
+    return resp;
+}
 
 const string& MelemPx::Name() const
 {
@@ -194,9 +204,9 @@ TBool MelemPx::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName
  
 TBool MelemPx::MoveNode(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode) {return false;}
 
-void MelemPx::Mutate(TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, TBool aAttach) {}
+void MelemPx::Mutate(TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
 
-void MelemPx::Mutate(const ChromoNode& aMutsRoot, TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, TBool aAttach) {}
+void MelemPx::Mutate(const ChromoNode& aMutsRoot, TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
 
 void MelemPx::GetUri(GUri& aUri, MElem* aTop) const {}
 
@@ -224,15 +234,15 @@ TBool MelemPx::IsRemoved() const {return false;}
 
 void MelemPx::SetRemoved() {}
 
-MElem* MelemPx::GetAttachingMgr() {return NULL;}
+MElem* MelemPx::GetAttachedMgr() {return NULL;}
 
-const MElem* MelemPx::GetAttachingMgr() const {return NULL;}
+const MElem* MelemPx::GetAttachedMgr() const {return NULL;}
 
 TBool MelemPx::IsAownerOf(const MElem* aElem) const {return false;}
 
 TBool MelemPx::ChangeAttr(TNodeAttr aAttr, const string& aVal) {return false;}
 
-void MelemPx::ChangeAttr(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, TBool aAttach) {}
+void MelemPx::ChangeAttr(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
 
 void MelemPx::GetRank(Rank& aRank) const {};
 
@@ -264,16 +274,17 @@ MElem* MelemPx::GetComp(const string& aParent, const string& aName) {};
 
 MElem* MelemPx::GetComp(const string& aParent, const string& aName) const {};
 
+TBool MelemPx::IsCompAttached(const MElem* aComp) const {return EFalse;}
 
 
-void MelemPx::DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, TBool aAttach) {}
+void MelemPx::DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
 
-TBool  MelemPx::DoMutChangeCont(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, TBool aAttach) { return false;}
+TBool  MelemPx::DoMutChangeCont(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) { return false;}
 
 MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 {
     MElem* heir = NULL;
-    if (Provider()->IsProvided(this)) {
+    if (IsProvided()) {
 	heir = Provider()->CreateNode(Name(), aName, aMan, mEnv);
     }
     else {
@@ -281,7 +292,7 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 	__ASSERT(parent != NULL);
 	MElem* owner = GetMan();
 	__ASSERT(owner != NULL);
-	if (Provider()->IsProvided(parent)) {
+	if (parent->IsProvided()) {
 	    // Parent is Agent - native element. Create via provider
 	    heir = Provider()->CreateNode(EType(), aName, owner, mEnv);
 	}
@@ -289,11 +300,13 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 	    heir = parent->CreateHeir(aName, owner);
 	}
 	// Mutate bare child with original parent chromo, mutate run-time only to have clean heir's chromo
-	auto_ptr<MChromo> chr = GetFullChromo();
+	string cspec = GetChromoSpec();
+	Chromo* chr = Provider()->CreateChromo();
+	chr->SetFromSpec(cspec);
 	ChromoNode& root = chr->Root();
 	heir->SetMutation(root);
 	// Mutate run-time only - !! DON'T UPDATE CHROMO, ref UC_019
-	heir->Mutate(ETrue, EFalse, EFalse, EFalse);
+	heir->Mutate(ETrue, EFalse, EFalse, heir);
 	// Mutate bare child with original parent chromo, mutate run-time only to have clean heir's chromo
 	// Mutated with parent's own chromo - so panent's name is the type now. Set also the parent, but it will be updated further
 	heir->SetParent(Name());
@@ -303,13 +316,14 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 	// Re-adopte the child
 	parent->RemoveChild(heir);
 	AppendChild(heir);
+	delete chr;
     }
     return heir;
 }
 
-MElem*  MelemPx::AddElem(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode, TBool aAttach) {return NULL;}
+MElem*  MelemPx::AddElem(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode, const MElem* aCtx) {return NULL;}
 
-TBool  MelemPx::RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, TBool aAttach) { return false;}
+TBool  MelemPx::RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) { return false;}
 
 const MChromo&  MelemPx::Chromos() const { return *mChromo;}
 
@@ -353,7 +367,7 @@ TBool  MelemPx::CompactChromo() { return false;}
 
 TBool  MelemPx::CompactChromo(const ChromoNode& aNode) { return false;}
 
-void MelemPx::OnNodeMutated(const MElem* aNode, const ChromoNode& aMut) {};
+void MelemPx::OnNodeMutated(const MElem* aNode, const ChromoNode& aMut, const MElem* aCtx) {}
 
 void MelemPx::OnParentMutated(MElem* aParent, const ChromoNode& aMut) {};
 
@@ -394,7 +408,10 @@ void  MelemPx::RemoveChild(MElem* aChild) {}
 
 // MChild
 
-MElem*  MelemPx::GetParent() { return NULL;}
+MElem*  MelemPx::GetParent()
+{
+    return NewProxyRequest("GetParent");
+}
 
 const MElem*  MelemPx::GetParent() const { return NULL;}
 
@@ -426,3 +443,27 @@ MElem* MelemPx::GetNodeS(const char* aUri) {};
 MElem* MelemPx::GetComp(TInt aInd) {};
 
 void *MelemPx::DoGetObj(const char *aName) { return NULL;}
+
+void MelemPx::SaveChromo(const char* aPath) const {}
+
+TBool MelemPx::IsProvided() const
+{
+    TBool res = EFalse;
+    string resp;
+    TBool rr = mMgr->Request(mContext, "IsProvided", resp);
+    if (rr) 
+	res = Ifu::ToBool(resp);
+    return res;
+}
+
+string MelemPx::GetChromoSpec() const
+{
+    string resp;
+    TBool rr = mMgr->Request(mContext, "GetChromoSpec", resp);
+    return resp;
+}
+
+TBool MelemPx::RegisterChild(const string& aChildUri)
+{
+    return EFalse;
+}

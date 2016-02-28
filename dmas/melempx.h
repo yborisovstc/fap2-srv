@@ -26,6 +26,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void *DoGetObj(const char *aName);
 	virtual const string EType(TBool aShort = ETrue) const;
 	virtual const string& Name() const;
+	virtual TBool IsProvided() const;
 	virtual MElem* GetMan();
 	virtual const MElem* GetMan() const;
 	virtual void SetMan(MElem* aMan);
@@ -46,8 +47,8 @@ class MelemPx : public DaaProxy, public MElem
 	virtual string GetContent(const string& aName=string()) const;
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName=string()); 
 	virtual TBool MoveNode(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode = EFalse);
-	virtual void Mutate(TBool aRunTimeOnly = EFalse, TBool aCheckSafety = EFalse, TBool aTrialMode = ETrue, TBool aAttach = ETrue);
-	virtual void Mutate(const ChromoNode& aMutsRoot, TBool aRunTimeOnly = EFalse, TBool aCheckSafety = EFalse, TBool aTrialMode = ETrue, TBool aAttach = ETrue);
+	virtual void Mutate(TBool aRunTimeOnly = EFalse, TBool aCheckSafety = EFalse, TBool aTrialMode = ETrue, const MElem* aCtx = NULL);
+	virtual void Mutate(const ChromoNode& aMutsRoot, TBool aRunTimeOnly = EFalse, TBool aCheckSafety = EFalse, TBool aTrialMode = ETrue, const MElem* aCtx = NULL);
 	// Gets URI from hier top node aTop, if aTop is NULL then the absolute URI will be produced
 	virtual void GetUri(GUri& aUri, MElem* aTop = NULL) const;
 	virtual void GetRUri(GUri& aUri, MElem* aTop = NULL);
@@ -62,11 +63,12 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetCommonOwner(MElem* aElem);
 	virtual TBool IsRemoved() const;
 	virtual void SetRemoved();
-	virtual MElem* GetAttachingMgr();
-	virtual const MElem* GetAttachingMgr() const;
+	virtual MElem* GetAttachedMgr();
+	virtual const MElem* GetAttachedMgr() const;
+	virtual TBool IsCompAttached(const MElem* aComp) const;
 	virtual TBool IsAownerOf(const MElem* aElem) const;
 	virtual TBool ChangeAttr(TNodeAttr aAttr, const string& aVal);
-	virtual void ChangeAttr(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
+	virtual void ChangeAttr(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	virtual void GetRank(Rank& aRank) const;
 	virtual void GetRank(Rank& aRank, const ChromoNode& aMut) const;
 	virtual void GetCompRank(Rank& aRank, const MElem* aComp) const;
@@ -86,17 +88,19 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void DumpCmDeps() const;
 	virtual MElem* GetNodeS(const char* aUri);
 	virtual MElem* GetComp(TInt aInd);
+	virtual void SaveChromo(const char* aPath) const;
     public:
 	// MMUtable
-	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
-	virtual TBool DoMutChangeCont(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
+	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
+	virtual TBool DoMutChangeCont(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	virtual MElem* CreateHeir(const string& aName, MElem* aMan);
-	virtual MElem* AddElem(const ChromoNode& aSpec, TBool aRunTime = EFalse, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
-	virtual TBool RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
+	virtual MElem* AddElem(const ChromoNode& aSpec, TBool aRunTime = EFalse, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
+	virtual TBool RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	virtual const MChromo& Chromos() const;
 	virtual MChromo& Chromos();
 	virtual MChromo& Mutation();
 	virtual auto_ptr<MChromo> GetFullChromo() const;
+	virtual string GetChromoSpec() const;
 	virtual void SetMutation(const ChromoNode& aMuta);
 	virtual TBool AppendMutation(const string& aFileName);
 	virtual ChromoNode AppendMutation(const ChromoNode& aMuta);
@@ -114,7 +118,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual ChromoNode GetLocalForwardCCDep(MElem* aOwner, const ChromoNode& aMut) const;
 	virtual TBool CompactChromo();
 	virtual TBool CompactChromo(const ChromoNode& aNode);
-	virtual void OnNodeMutated(const MElem* aNode, const ChromoNode& aMut);
+	virtual void OnNodeMutated(const MElem* aNode, const ChromoNode& aMut, const MElem* aCtx);
 	virtual void OnParentMutated(MElem* aParent, const ChromoNode& aMut);
     public:
 	// MCompsObserver
@@ -134,6 +138,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void OnChildDeleting(MElem* aChild);
 	virtual TBool OnChildRenamed(MElem* aComp, const string& aOldName);
 	virtual TBool AppendChild(MElem* aChild);
+	virtual TBool RegisterChild(const string& aChildUri);
 	virtual void RemoveChild(MElem* aChild);
     public:
 	// MChild

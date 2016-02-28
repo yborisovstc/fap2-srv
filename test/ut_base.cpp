@@ -288,6 +288,8 @@ void Ut_Renva::tearDown() { }
  * model communicating to local primary model
  * So this test is for very limited purpose only: to verify
  * of functioning of primary remote agent and MElem proxy
+ * TODO [YB] Currently this test in not working because design of Renv agent
+ * required that the primary environment is also in server context
  */
 void Ut_Renva::test_Renva_Cre()
 {
@@ -455,6 +457,16 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1", rnode1);
     printf("Getting remote remote_node_1: %s\n", rnode1.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_1 failed: " + rnode1, res);
+    // Getting URI of remote remote_node_1
+    string rnode1_uri;
+    res = client->Request(root, "GetUri,1," + rnode1, rnode1_uri);
+    printf("Getting URI of remote remote_node_1: %s\n", rnode1_uri.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting URI of remote remote_node_1 failed: " + rnode1_uri, res);
+    // Getting remote remote_node_2 created from remote parent (from primary env)
+    string rnode2;
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);
+    printf("Getting remote remote_node_2: %s\n", rnode2.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_2 failed: " + rnode2, res);
 
     client->Disconnect();
     delete client;
