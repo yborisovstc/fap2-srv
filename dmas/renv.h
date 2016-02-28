@@ -37,8 +37,8 @@ class ARenv: public Elem, public MProxyMgr
     public:
 	static const char* Type() { return "ARenv";};
 	static string PEType();
-	ARenv(const string& aName, Elem* aMan, MEnv* aEnv);
-	ARenv(Elem* aMan, MEnv* aEnv);
+	ARenv(const string& aName, MElem* aMan, MEnv* aEnv);
+	ARenv(MElem* aMan, MEnv* aEnv);
 	virtual ~ARenv();
     public:
 	// From Base
@@ -48,10 +48,10 @@ class ARenv: public Elem, public MProxyMgr
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName = string()); 
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
 	//virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse);
-	virtual Iterator NodesLoc_Begin(const GUri::TElem& aElem);
-	virtual Iterator NodesLoc_End(const GUri::TElem& aElem);
+	virtual Iterator NodesLoc_Begin(const GUri::TElem& aElem, TBool aInclRm = EFalse);
+	virtual Iterator NodesLoc_End(const GUri::TElem& aElem, TBool aInclRm = EFalse);
 	// From MMutable
-	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse);
+	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
 	// From MProxyMgr
 	virtual TBool Request(const string& aContext, const string& aReq, string& aResp);
     protected:
@@ -71,8 +71,8 @@ class ARenvu: public Elem, public MProxyMgr
     public:
 	static const char* Type() { return "ARenvu";};
 	static string PEType();
-	ARenvu(const string& aName, Elem* aMan, MEnv* aEnv);
-	ARenvu(Elem* aMan, MEnv* aEnv);
+	ARenvu(const string& aName, MElem* aMan, MEnv* aEnv);
+	ARenvu(MElem* aMan, MEnv* aEnv);
 	virtual ~ARenvu();
     public:
 	// From Base
@@ -82,7 +82,7 @@ class ARenvu: public Elem, public MProxyMgr
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
 	//virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse);
 	// From MMutable
-	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse);
+	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
 	// From MProxyMgr
 	virtual TBool Request(const string& aContext, const string& aReq, string& aResp);
 	// From Ifu	

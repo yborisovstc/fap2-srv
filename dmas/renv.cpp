@@ -142,12 +142,12 @@ string ARenv::PEType()
     return Elem::PEType() + GUri::KParentSep + Type();
 }
 
-ARenv::ARenv(const string& aName, Elem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL)
+ARenv::ARenv(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL)
 {
     SetParent(Type());
 }
 
-ARenv::ARenv(Elem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
+ARenv::ARenv(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
 {
     SetParent(Elem::PEType());
 }
@@ -202,7 +202,7 @@ void ARenv::GetCont(string& aCont, const string& aName)
     aCont = mRenvUri;
 }
 
-void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode)
+void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, TBool aAttach)
 {
     const ChromoNode& mroot = aMutSpec;
     if (mroot.Begin() == mroot.End()) return;
@@ -328,12 +328,12 @@ MElem* ARenv::GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool 
 }
 #endif
 
-Elem::Iterator ARenv::NodesLoc_Begin(const GUri::TElem& aId)
+Elem::Iterator ARenv::NodesLoc_Begin(const GUri::TElem& aId, TBool aInclRm)
 {
     return Iterator(new CompsIter(*this, aId));
 }
 
-Elem::Iterator ARenv::NodesLoc_End(const GUri::TElem& aId)
+Elem::Iterator ARenv::NodesLoc_End(const GUri::TElem& aId, TBool aInclRm)
 {
     return Iterator(new CompsIter(*this, aId, ETrue));
 }
@@ -401,12 +401,12 @@ string ARenvu::PEType()
     return Elem::PEType() + GUri::KParentSep + Type();
 }
 
-ARenvu::ARenvu(const string& aName, Elem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse)
+ARenvu::ARenvu(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse)
 {
     SetParent(Type());
 }
 
-ARenvu::ARenvu(Elem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse)
+ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse)
 {
     SetParent(Elem::PEType());
 }
@@ -441,7 +441,7 @@ TBool ARenvu::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
     return res;
 }
 
-void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode)
+void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, TBool aAttach)
 {
     const ChromoNode& mroot = aMutSpec;
     if (mroot.Begin() == mroot.End()) return;

@@ -16,6 +16,8 @@
 	    <cont val="Connect"/>
 	    <node id="remote_node_1" parent="Elem">
 	    </node>
+	    <node id="remote_node_2" parent="./../../v1">
+	    </node>
 	</node>
     </node>
 </node>

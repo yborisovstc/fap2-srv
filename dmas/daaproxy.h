@@ -22,11 +22,14 @@ class DaaProxy : public MProxy, public MProxyMgr
 	TBool IsCached(const string& aContext) const;
 	void RegProxy(DaaProxy* aProxy);
 	DaaProxy* GetProxy(const string& aContext);
+	inline MProvider* Provider() const;
     protected:
 	MEnv* mEnv;
 	MProxyMgr* mMgr;
 	string mContext;
 	map<string, DaaProxy*> mProxies;
 };
+
+inline MProvider* DaaProxy::Provider() const {return mEnv ? mEnv->Provider(): NULL; }
 
 #endif 

@@ -32,6 +32,8 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void SetObserver(MCompsObserver* aObserver);
 	virtual vector<MElem*>& Comps();
 	virtual const vector<MElem*>& Comps() const;
+	virtual MElem* GetComp(const string& aParent, const string& aName);
+	virtual MElem* GetComp(const string& aParent, const string& aName) const;
 	virtual MElem* GetNode(const string& aUri, TBool aInclRm = EFalse);
 	virtual MElem* GetNode(const GUri& aUri, TBool aInclRm = EFalse);
 	virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse, TBool aInclRm = EFalse);
@@ -59,18 +61,20 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetUpperAowner();
 	virtual MElem* GetCommonOwner(MElem* aElem);
 	virtual TBool IsRemoved() const;
-	virtual TBool IsPhenoModif() const;
 	virtual void SetRemoved();
 	virtual MElem* GetAttachingMgr();
 	virtual const MElem* GetAttachingMgr() const;
 	virtual TBool IsAownerOf(const MElem* aElem) const;
 	virtual TBool ChangeAttr(TNodeAttr aAttr, const string& aVal);
-	virtual void ChangeAttr(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse);
+	virtual void ChangeAttr(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
+	virtual void GetRank(Rank& aRank) const;
 	virtual void GetRank(Rank& aRank, const ChromoNode& aMut) const;
-	virtual void GetLRank(Rank& aRank, TBool aCur = EFalse) const; 
+	virtual void GetCompRank(Rank& aRank, const MElem* aComp) const;
+	virtual TInt GetCompLrank(const MElem* aComp) const;
 	// Gets the comp with given type and owning given element
 	virtual MElem* GetCompOwning(const string& aParent, MElem* aElem);
 	virtual MElem* GetCompOwning(MElem* aElem);
+	virtual const MElem* GetCompOwning(const MElem* aElem) const;
 	virtual TBool IsInheritedComp(const MElem* aNode) const;
 	virtual TBool HasInherDeps(const MElem* aScope) const;
 	virtual MElem* GetCompAowner(const MElem* aComp);
@@ -80,6 +84,8 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TBool IsHeirOf(const string& aParent) const;
 	virtual void DumpMcDeps() const;
 	virtual void DumpCmDeps() const;
+	virtual MElem* GetNodeS(const char* aUri);
+	virtual MElem* GetComp(TInt aInd);
     public:
 	// MMUtable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, TBool aAttach = ETrue);
@@ -106,19 +112,10 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TMDep GetMajorDep(TNodeType aMut, MChromo::TDepsLevel aLevel);
 	virtual void GetMajorDep(TMDep& aDep, TNodeType aMut, MChromo::TDPath aDpath, MChromo::TDepsLevel aLevel, TBool aUp = ETrue, TBool aDown = ETrue);
 	virtual ChromoNode GetLocalForwardCCDep(MElem* aOwner, const ChromoNode& aMut) const;
-	virtual void GetImplicitDep(TMDep& aDep, MElem* aObj, MElem* aRef);
-	virtual TBool IsRefSafe(MElem* aRef, TNodeAttr aReftype, MElem* aObj = NULL, TMDep* aDep = NULL);
-	// Resolve owned mutation unsafety via changing mutation position
-	virtual TBool ResolveMutUnsafety(MElem* aMutated, const TMDep& aDep);
-	virtual TBool ResolveMutsUnsafety();
 	virtual TBool CompactChromo();
 	virtual TBool CompactChromo(const ChromoNode& aNode);
-	// Transformations
-	virtual TBool HasParentModifs() const;
-	virtual void CopyModifsFromParent();
-	virtual TBool HasModifs(const MElem* aOwner) const;
-	virtual void CopyParentModifsToComp(MElem* aComp);
-	virtual TBool RebaseUriToIntNode(const GUri& aUri, const MElem* aComp, GUri& aResult);
+	virtual void OnNodeMutated(const MElem* aNode, const ChromoNode& aMut);
+	virtual void OnParentMutated(MElem* aParent, const ChromoNode& aMut);
     public:
 	// MCompsObserver
 	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);

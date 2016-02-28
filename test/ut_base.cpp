@@ -428,6 +428,11 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(cenv, "Root", root);
     printf("Getting root: %s\n", root.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
+    // Getting local node Renv
+    string renv;
+    res = client->Request(root, "GetNode,1,./Renv", renv);
+    printf("Getting local node Renv: %s\n", renv.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting local node Renv failed: " + renv, res);
     // Getting remote root
     string rroot;
     res = client->Request(root, "GetNode,1,./Renv/renv_root", rroot);
@@ -445,6 +450,11 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(rroot, "GetNode,1,/*", resp);
     printf("Getting root via remote root: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting root via remote root failed: " + resp, res);
+    // Getting remote remote_node_1
+    string rnode1;
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1", rnode1);
+    printf("Getting remote remote_node_1: %s\n", rnode1.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_1 failed: " + rnode1, res);
 
     client->Disconnect();
     delete client;
