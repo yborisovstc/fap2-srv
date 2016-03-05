@@ -16,11 +16,15 @@ class MelemPx : public DaaProxy, public MElem
 	MelemPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~MelemPx();
     public:
+	virtual DaaProxy* CreateProxy(const string& aId, const string& aContext) const;
+	virtual void *GetIface(const string& aName);
+	virtual const void *GetIface(const string& aName) const;
 	// From MProxyMgr
 	virtual bool Request(const string& aContext, const string& aReq, string& aResp);
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);
 	virtual string Uid() const;
+	virtual string Mid() const;
     public:
 	// From MElem
 	virtual void *DoGetObj(const char *aName);
@@ -154,8 +158,10 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void* GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert);
 	virtual TIfRange GetIfi(const string& aName, const RqContext* aCtx);
     protected:
-	MElem* NewProxyRequest(const string& aCallSpec);
-	MElem* NewProxyRequest(const string& aCallSpec) const;
+	void* NewProxyRequest(const string& aCallSpec, const string& aPxType);
+	const void* NewProxyRequest(const string& aCallSpec, const string& aPxType) const;
+	MElem* NewMElemProxyRequest(const string& aCallSpec);
+	const MElem* NewMElemProxyRequest(const string& aCallSpec) const;
     protected:
 	Chromo* mChromo;
 	TMDeps mMDeps;

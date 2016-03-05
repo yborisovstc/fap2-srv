@@ -412,7 +412,6 @@ TBool ARenv::Request(const string& aContext, const string& aReq, string& aResp)
 
 
 
-
 string ARenvu::PEType()
 {
     return Elem::PEType() + GUri::KParentSep + Type();
@@ -574,9 +573,4 @@ void ARenvu::Connect()
     } else {
 	Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: missing primary session id");
     }
-}
-
-string ARenvu::Uid() const
-{
-    return Elem::Uid();
 }

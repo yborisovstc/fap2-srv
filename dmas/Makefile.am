@@ -12,6 +12,8 @@ libfap2da_la_SOURCES = \
                        daaproxy.cpp \
                        melempx.h \
                        melempx.cpp \
+                       mvertpx.h \
+                       mvertpx.cpp \
                        elempx.h \
                        elempx.cpp
 

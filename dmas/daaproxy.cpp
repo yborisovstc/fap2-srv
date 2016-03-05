@@ -32,8 +32,28 @@ void DaaProxy::RegProxy(DaaProxy* aProxy)
     mProxies.insert(pair<string, DaaProxy*>(aProxy->GetContext(), aProxy));
 }
 
-DaaProxy* DaaProxy::GetProxy(const string& aContext)
+DaaProxy* DaaProxy::GetProxy(const string& aContext) const
 {
     __ASSERT(IsCached(aContext));
     return mProxies.at(aContext);
+}
+
+string DaaProxy::Uid() const
+{
+    return GetContext();
+}
+	
+DaaProxy* DaaProxy::CreateProxy(const string& aId, const string& aContext) const
+{
+    return NULL;
+}
+
+void *DaaProxy::GetIface(const string& aName)
+{
+    return NULL;
+}
+
+const void *DaaProxy::GetIface(const string& aName) const
+{
+    return NULL;
 }

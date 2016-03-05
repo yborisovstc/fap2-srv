@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <env.h>
 #include <elem.h>
+#include <mvert.h>
 #include <daaprov.h>
 #include <iostream>
 #include <fstream>
@@ -343,7 +344,7 @@ void Ut_Renva::test_Renva_Cre()
 
 void ReadCspec(const string& aFileName, string& aCspec)
 {
-    ifstream ifs("ut_bidir_cre.xml");
+    ifstream ifs(aFileName.c_str());
     filebuf* pbuf = ifs.rdbuf();
     size_t size = pbuf->pubseekoff (0,ifs.end,ifs.in);
     pbuf->pubseekpos (0,ifs.in);
@@ -422,6 +423,7 @@ void Ut_Bidir::test_Bidir_Cre()
     CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: " + resp, res);
     CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: incorrect value", resp == sid);
     // Construct primary model
+    printf("Started creating model");
     res = client->Request(cenv, "ConstructSystem", resp);
     printf("Creating model: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Creating model failed: " + resp, res);
@@ -430,6 +432,16 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(cenv, "Root", root);
     printf("Getting root: %s\n", root.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
+    // Getting local node v2
+    string v2;
+    res = client->Request(root, "GetNode,1,./v2", v2);
+    printf("Getting local node v2: %s\n", v2.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting local node v2 failed: " + v2, res);
+    // Getting MVert local iface of local node v2
+    string v2_vert;
+    res = client->Request(v2, string("DoGetObj,1,") + MVert::Type(), v2_vert);
+    printf("Getting MVert iface of local node v2: %s\n", v2_vert.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of local node v2 failed: " + v2_vert, res);
     // Getting local node Renv
     string renv;
     res = client->Request(root, "GetNode,1,./Renv", renv);
@@ -459,9 +471,144 @@ void Ut_Bidir::test_Bidir_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_1 failed: " + rnode1, res);
     // Getting URI of remote remote_node_1
     string rnode1_uri;
-    res = client->Request(root, "GetUri,1," + rnode1, rnode1_uri);
+    res = client->Request(rnode1, "GetUri,1", rnode1_uri);
     printf("Getting URI of remote remote_node_1: %s\n", rnode1_uri.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting URI of remote remote_node_1 failed: " + rnode1_uri, res);
+    // Getting local iface of remote remote_node_1
+    string rnode1_vert;
+    res = client->Request(rnode1, string("DoGetObj,1,") + MVert::Type(), rnode1_vert);
+    printf("Getting MVert iface of remote remote_node_1: %s\n", rnode1_vert.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of remote remote_node_1 failed: " + rnode1_vert, res);
+    // Getting remote remote_node_2 created from remote parent (from primary env)
+    string rnode2;
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);
+    printf("Getting remote remote_node_2: %s\n", rnode2.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_2 failed: " + rnode2, res);
+
+    client->Disconnect();
+    delete client;
+}
+
+
+/* Test suite to verify Vertex-level remote interaction to the primary model
+*/
+class Ut_Vert : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(Ut_Vert);
+    CPPUNIT_TEST(test_Vert_Cre);
+    CPPUNIT_TEST_SUITE_END();
+    public:
+    virtual void setUp();
+    virtual void tearDown();
+    private:
+    void test_Vert_Cre();
+    private:
+    Env* iEnv;
+};
+
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_Vert, "Ut_Vert");
+
+
+void Ut_Vert::setUp()
+{
+}
+
+void Ut_Vert::tearDown() { }
+
+// Test of creation Vertex based  model
+void Ut_Vert::test_Vert_Cre()
+{
+    printf("\n === Test of Creating remote Vertex model with 2-dir communication\n");
+    BaseClient* client = new BaseClient();
+    // Wait until server run
+    bool srv_run = WaitSrv();
+    CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
+    try {
+	client->Connect("");
+    } catch (exception& e) {
+	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
+    }
+    printf("Client connected to the server\n");
+    // Creating model
+    string cenv;
+    bool res;
+    // Checking env id
+    string sid;
+    res = client->Request("EnvProvider", "GetId", sid);
+    printf("Getting session1 id -- Response: %s\n", sid.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Gettng session1 id failed: " + sid, res);
+    // Create primary model env remotelly
+    string cspec;
+    ReadCspec("ut_vert_cre.xml", cspec);
+    res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + cspec, cenv);
+    printf("Creating env: %s\n", cenv.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating env failed: " + cenv, res);
+    // Set SID to primary env
+    string resp;
+    res = client->Request(cenv, "SetEVar,1,SID," + sid, resp);
+    printf("Setting Session Id: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Setting Session Id failed: " + resp, res);
+    res = client->Request(cenv, "GetEVar,1,SID", resp);
+    printf("Checking Session Id: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: " + resp, res);
+    CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: incorrect value", resp == sid);
+    // Construct primary model
+    printf("Started creating model");
+    res = client->Request(cenv, "ConstructSystem", resp);
+    printf("Creating model: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating model failed: " + resp, res);
+    // Getting root
+    string root;
+    res = client->Request(cenv, "Root", root);
+    printf("Getting root: %s\n", root.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
+    // Getting local node v2
+    string v2;
+    res = client->Request(root, "GetNode,1,./v2", v2);
+    printf("Getting local node v2: %s\n", v2.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting local node v2 failed: " + v2, res);
+    // Getting MVert local iface of local node v2
+    string v2_vert;
+    res = client->Request(v2, string("DoGetObj,1,") + MVert::Type(), v2_vert);
+    printf("Getting MVert iface of local node v2: %s\n", v2_vert.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of local node v2 failed: " + v2_vert, res);
+    // Getting local node Renv
+    string renv;
+    res = client->Request(root, "GetNode,1,./Renv", renv);
+    printf("Getting local node Renv: %s\n", renv.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting local node Renv failed: " + renv, res);
+    // Getting remote root
+    string rroot;
+    res = client->Request(root, "GetNode,1,./Renv/renv_root", rroot);
+    printf("Getting remote root: %s\n", rroot.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root failed: " + rroot, res);
+    // Getting remote root name
+    res = client->Request(rroot, "Name", resp);
+    printf("Getting remote root name: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root name failed: " + resp, res);
+    // Getting remote root owner
+    res = client->Request(rroot, "GetMan", resp);
+    printf("Getting remote root owner: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root owner failed: " + resp, res);
+    // Getting upper node via remote root
+    res = client->Request(rroot, "GetNode,1,/*", resp);
+    printf("Getting root via remote root: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting root via remote root failed: " + resp, res);
+    // Getting remote remote_node_1
+    string rnode1;
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1", rnode1);
+    printf("Getting remote remote_node_1: %s\n", rnode1.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_1 failed: " + rnode1, res);
+    // Getting URI of remote remote_node_1
+    string rnode1_uri;
+    res = client->Request(rnode1, "GetUri,1", rnode1_uri);
+    printf("Getting URI of remote remote_node_1: %s\n", rnode1_uri.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting URI of remote remote_node_1 failed: " + rnode1_uri, res);
+    // Getting local iface of remote remote_node_1
+    string rnode1_vert;
+    res = client->Request(rnode1, string("DoGetObj,1,") + MVert::Type(), rnode1_vert);
+    printf("Getting MVert iface of remote remote_node_1: %s\n", rnode1_vert.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of remote remote_node_1 failed: " + rnode1_vert, res);
     // Getting remote remote_node_2 created from remote parent (from primary env)
     string rnode2;
     res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);

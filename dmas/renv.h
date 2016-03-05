@@ -85,8 +85,6 @@ class ARenvu: public Elem, public MProxyMgr
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	// From MProxyMgr
 	virtual TBool Request(const string& aContext, const string& aReq, string& aResp);
-	// From Ifu	
-	virtual string Uid() const;
     protected:
 	void Connect();
     protected:

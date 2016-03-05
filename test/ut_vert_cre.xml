@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 
-<!-- Unit test for ceation of remote env with bidirectional 
+<!-- Unit test for ceation of remote env with bidirectional  Vertex
      communication. "Down" and "Up" remote env agent are used
      -->
 
@@ -10,6 +10,7 @@
 <node id="test" parent="Vert">
     <node id="v1" parent="Vert"/>
     <node id="v2" parent="Vert"/>
+    <node id="e1" parent="Edge"/>
     <node id="Renv" parent="ARenv">
 	<cont val="test_remote_env"/>
 	<node id="renv_root" parent="ARenvu">
@@ -20,5 +21,7 @@
 	    </node>
 	</node>
     </node>
+    <cont targ="./e1/P1" ref="./../../v1"/>
+    <cont targ="./e1/P2" ref="./../../Renv/renv_root/remote_node_1"/>
 </node>
 
