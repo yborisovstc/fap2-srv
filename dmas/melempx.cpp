@@ -3,6 +3,7 @@
 #include <elem.h>
 #include "melempx.h"
 #include "mvertpx.h"
+#include "mipxprov.h"
 #include <stdexcept> 
 
 const string FakeString = "";
@@ -73,42 +74,6 @@ MIface* MelemPx::Call(const string& aSpec, string& aRes)
     } else {
 	throw (runtime_error("Unhandled method: " + name));
     }
-    return res;
-}
-
-void* MelemPx::NewProxyRequest(const string& aCallSpec, const string& aPxType)
-{ 
-    void* res = NULL;
-    string resp;
-    TBool rres = mMgr->Request(mContext, aCallSpec, resp);
-    if (rres) {
-	DaaProxy* px = NULL;
-	if (!IsCached(resp)) {
-	    px = CreateProxy(aPxType, resp);
-	} else {
-	    px = GetProxy(resp);
-	}
-	res = px->GetIface(aPxType);
-    }
-    __ASSERT(res != NULL);
-    return res;
-}
-
-const void* MelemPx::NewProxyRequest(const string& aCallSpec, const string& aPxType) const
-{ 
-    const void* res = NULL;
-    string resp;
-    TBool rres = mMgr->Request(mContext, aCallSpec, resp);
-    if (rres) {
-	DaaProxy* px = NULL;
-	if (!IsCached(resp)) {
-	    px = CreateProxy(aPxType, resp);
-	} else {
-	    px = GetProxy(resp);
-	}
-	res = px->GetIface(aPxType);
-    }
-    __ASSERT(res != NULL);
     return res;
 }
 
@@ -513,19 +478,6 @@ string MelemPx::Uid() const
 string MelemPx::Mid() const
 {
     return string();
-}
-
-DaaProxy* MelemPx::CreateProxy(const string& aId, const string& aContext) const
-{
-    DaaProxy* res = NULL;
-    if (aId == MElem::Type()) {
-	res = new MelemPx(mEnv, (MelemPx*) this, aContext);
-	((MelemPx*) this)->RegProxy(res);
-    } else if (aId == MVert::Type()) {
-	res = new MvertPx(mEnv, (MelemPx*) this, aContext);
-	((MelemPx*) this)->RegProxy(res);
-    }
-    return res;
 }
 
 void *MelemPx::GetIface(const string& aName)

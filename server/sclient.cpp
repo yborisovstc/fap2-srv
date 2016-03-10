@@ -315,6 +315,11 @@ string SessionClient::Uid() const
     return GUriBase::KIfaceSepS + EnvProvider::Type();
 }
 
+string SessionClient::Mid() const
+{
+    return string();
+}
+
 MIface* SessionClient::Call(const string& aSpec, string& aRes)
 {
     MIface* res = NULL;

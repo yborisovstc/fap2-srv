@@ -2,6 +2,7 @@
 #include "daaprov.h"
 
 #include "renv.h"
+#include "daapxprov.h"
 
 
 
@@ -17,6 +18,9 @@ Elem* DaaProv::CreateNode(const string& aType, const string& aName, MElem* aMan,
     }
     else if (aType.compare(ARenvu::Type()) == 0) {
 	res = new ARenvu(aName, aMan, aEnv);
+    }
+    else if (aType.compare(ADaaPxProv::Type()) == 0) {
+	res = new ADaaPxProv(aName, aMan, aEnv);
     }
     if (res != NULL) {
 	Elem* parent = GetNode(aType);
@@ -42,6 +46,10 @@ Elem* DaaProv::GetNode(const string& aUri){
 	else if (aUri.compare(ARenvu::Type()) == 0) {
 	    parent = prov->GetNode("Elem");
 	    res = new ARenvu(NULL, iEnv);
+	}
+	else if (aUri.compare(ADaaPxProv::Type()) == 0) {
+	    parent = prov->GetNode("Elem");
+	    res = new ADaaPxProv(NULL, iEnv);
 	}
 	if (res != NULL) {
 	    if (parent != NULL) {

@@ -4,6 +4,7 @@ lib_LTLIBRARIES = libfap2da.la
 
 libfap2da_la_SOURCES = \
                        mproxy.h \
+                       mipxprov.h \
                        renv.h \
                        renv.cpp \
                        daaprov.h \
@@ -14,8 +15,13 @@ libfap2da_la_SOURCES = \
                        melempx.cpp \
                        mvertpx.h \
                        mvertpx.cpp \
+                       daapxprov.h \
+                       daapxprov.cpp \
                        elempx.h \
                        elempx.cpp
+
+include_HEADERS = \
+		  mipxprov.h
 
 libfap2da_la_LDFLAGS = -rdynamic -no-undefined
 libfap2da_la_CXXFLAGS=-I@srcdir@/../client

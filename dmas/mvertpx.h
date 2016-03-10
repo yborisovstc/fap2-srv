@@ -3,6 +3,7 @@
 
 #include "daaproxy.h"
 #include <mvert.h>
+#include <medge.h>
 #include <chromo.h>
 #include <ifu.h>
 
@@ -27,15 +28,39 @@ class MvertPx : public DaaProxy, public MVert
 	virtual void Disconnect(MVert* aPair);
 	virtual void Disconnect(MEdge* aEdge);
 	virtual set<MVert*>& Pairs();
-	virtual Base* EBase();
-	// From MIface	
-	virtual string Uid() const;
-	virtual string Mid() const;
+	virtual void *MVert_DoGetObj(const char *aName);
     public:
-	// From MProxyMgr
-	virtual bool Request(const string& aContext, const string& aReq, string& aResp);
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);
+	virtual string Uid() const;
+	virtual string Mid() const;
+};
+
+class MedgePx : public DaaProxy, public MEdge
+{
+    public:
+	MedgePx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
+	virtual ~MedgePx();
+    public:
+	virtual void *GetIface(const string& aName);
+	virtual const void *GetIface(const string& aName) const;
+	// From MEdge
+	virtual string EdgeName() const;
+	virtual string EdgeUri() const;
+	virtual TBool ConnectP1(MVert* aPoint);
+	virtual TBool ConnectP2(MVert* aPoint);
+	virtual void Disconnect(MVert* aPoint);
+	virtual void Disconnect();
+	virtual MVert* Pair(const MVert* aPoint);
+	virtual MVert* Point1() const;
+	virtual MVert* Point2() const;
+	virtual MVert* Ref1() const;
+	virtual MVert* Ref2() const;
+    public:
+	// From MIface	
+	virtual MIface* Call(const string& aSpec, string& aRes);
+	virtual string Uid() const;
+	virtual string Mid() const;
 };
 
 #endif 

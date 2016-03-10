@@ -42,9 +42,9 @@ int SessionThread::InitMutex() {
    Blocks until mutex becomes available
    */
 int SessionThread::LockMutex(const char *identifier) {
-    cout << identifier << " is trying to acquire the lock..." << endl;
+    //cout << identifier << " is trying to acquire the lock..." << endl;
     if (pthread_mutex_lock(&SessionThread::sMutex) == 0) {
-        cout << identifier << " acquired the lock!" << endl;
+        //cout << identifier << " acquired the lock!" << endl;
         return 0;
     }
     else {
@@ -54,9 +54,9 @@ int SessionThread::LockMutex(const char *identifier) {
 }
 
 int SessionThread::UnlockMutex(const char *identifier) {
-    cout << identifier << " is trying to release the lock..." << endl;
+    //cout << identifier << " is trying to release the lock..." << endl;
     if (pthread_mutex_unlock(&SessionThread::sMutex) == 0) {
-        cout << identifier << " released the lock!" << endl;
+        //cout << identifier << " released the lock!" << endl;
         return 0;
     }
     else {

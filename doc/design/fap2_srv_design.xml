@@ -151,6 +151,51 @@
 		Using generated persistent UID gives us implementation of object-to-UID relation.</simpara>
 	</sect2>
     </sect1>
+    <sect1 id="ds_pp"><title>How to implement Agents Proxies Provider ?</title>
+	<sect2><title>Intro</title>
+	    <simpara>The core design idea of Distributed Async Agents (DAA) is to implement the functionality of enviroment distributing via introducing
+		specific agents - remote root agents, ref. <ulink url="../../../grayb/doc/design/index.html#ds_daa_proxy_crh_stx_agt_alz"/>. So the philosophy of
+		mutliagent system's would be fully supported: new functionality obtained via new agents. This means that the base implmentation "doesn't know"
+		of this new functionality. DAA implemetation also includes agents provider supplying remote root agents instances.
+		The problem here is that remote root agent have to use agent's proxies to implement interaction between 
+		distributed parts of the model. Note that there can be more that one root agent in the sepatate parts of model. According to DAA desing the 
+		root agent is the full owner of the proxies it's generated within the scope of model's interaction support.
+		The set of the proxies is not pre-determined but extendable. So we need kind of proxies provider that supports
+		extention mechanism. There could be more that one way of how to implement this. The options are:</simpara>
+	    <orderedlist>
+		<listitem><xref linkend="ds_pp_sip"/></listitem>
+		<listitem><xref linkend="ds_pp_da"/></listitem>
+	    </orderedlist>
+	</sect2>
+	<sect2 id="ds_pp_sip"><title>Option: Each root agent posesses it's own instance of proxies provider.</title>
+	    <simpara>The idea is that there is native implementation of proxies provider (actually factory that supports the plugins). Any root agents
+		has to instantiate it's own provider in order to ensure proxies generation. So in result there will be some proxies factory instances in 
+		single model part. The extention mechanism in this case would be native plug-ins implemented proxies provider interface.</simpara>
+	</sect2>
+	<sect2 id="ds_pp_da"><title>Option: Dedicated agent for proxies provider.</title>
+	    <simpara>The idea here is to utilize the nature of mutli-agent approach for implementing proxies provider. So we can create dedicated 
+		proxies provider agent implementing proxies provider interface. DAA agents provider secure instantiating such agent, so
+		the agent will be accessible in the native hierarchy. The extending mechanism can be native plug-ins, as for the option
+		<xref linkend="ds_pp_sip"/>.</simpara>
+	    <simpara>Another variation of this approach is to have "base" agent for proxy provider. It check its own list of proxies provided but also
+		redirec the request to all its children. In this case the extention mechanism can be simple. The supplier of new agent can also deliever
+	    the agent for related proxies, the agent has to be inherited from base proxies provider agent.</simpara>
+	</sect2>
+    </sect1>
+    <sect1 id="ds_pacl_id"><title>Proxy approach critical limitation: interactions deadlock</title>
+	<sect2><title>Intro</title>
+	    <simpara>In Agents proxy approach, <xref linkend="ds_daa_proxy"/> some dedicated agents are used for interacting between models distributed parts.
+		These agents are root "down" and "up" agents. The agents owns clients sessions to "remote" model parts. These session are used as master
+		session whereas all the lower layer proxies utilise these master sessions, so that proxies can be considered as subsessions.</simpara>
+	    <simpara>The problem here is that it's possible to block the interaction in case of "cyclic" request. Let's consider the example. Assume there
+		are two part's of model: M1 and M2, M2 is "down" submodel, so the interaction M1-to-M2 are performed via the client session CS1_2 owned by M1 "down" root
+		agent. Server SM2 owning M2 has the corresponding server session SS1_2. Correspondingly M2 interacts to M1 via client session CS2_1 owned by 
+		M2 root "up" anent, server SM1 owning M1 has server session SS2_1. Let's assume M1 issued the request R1. CS1_2 starts handling this request. Les't
+		also assume that R1 in turn causes R2 from M2 to M1 and then in turn R2 causes R3 from M1 to M2. We can see that R3 cannot be handled in the
+	scope of this architecture. This is because R3 also is sended to SS1_2 that is blocked by execution of R1.	
+	    </simpara>
+	</sect2>
+    </sect1>
     <sect1 id="ds_tohandle"><title>Traceability: To handle</title>
 	<orderedlist>
 	</orderedlist>

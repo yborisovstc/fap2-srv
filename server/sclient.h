@@ -45,6 +45,7 @@ class SessionClient : public ReqBase::EnvProvider {
 	virtual void GetId (string& aSessionId);
 	virtual MIface* Call(const string& aSpec, string& aRes);
 	virtual string Uid() const;
+	virtual string Mid() const;
     private:
 //        void HandleMessage(const string& message);
         void HandleMessage(const string& aMsg);
