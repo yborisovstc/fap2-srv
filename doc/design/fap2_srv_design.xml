@@ -196,6 +196,17 @@
 	    </simpara>
 	</sect2>
     </sect1>
+    <sect1 id="ds_pa_msra"><title>Multi-session root agents as solution against interactions deadlock</title>
+	<sect2><title>Intro</title>
+	    <simpara>The current architecture is based on single communication session in root agents. This causes blocking interaction in case of
+		cyclic requests, ref <xref linkend="ds_pacl_id"/>. One of the alternative solution would be supporting multiple requests from one 
+		model part to another. Assuming the sockets mechanism is used, we need to extend communication "channel" the root agent is operating with, i.e.
+		to use more than one session to remote server.</simpara>
+	</sect2>
+	<sect2><title>Solution: creating additional sessions </title>
+	    <simpara>The simplest solution is the use additional sessions to remote env in the case when cyclic request occurs.</simpara>
+	</sect2>
+    </sect1>
     <sect1 id="ds_tohandle"><title>Traceability: To handle</title>
 	<orderedlist>
 	</orderedlist>

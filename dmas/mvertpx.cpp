@@ -31,15 +31,10 @@ MIface* MvertPx::Call(const string& aSpec, string& aRes)
 TBool MvertPx::Connect(MVert* aPair)
 {
     TBool res = EFalse;
-    return res;
-}
-
-TBool MvertPx::Connect(MEdge* aEdge)
-{
-    TBool res = EFalse;
     string resp;
-    string euri = aEdge->EdgeUri();
-    TBool rr = mMgr->Request(mContext, "Connect#2,1," + euri, resp);
+    MElem* epair = aPair->MVert::GetObj(epair);
+    string puri = epair->GetUri(NULL, ETrue);
+    TBool rr = mMgr->Request(mContext, "Connect,1," + puri, resp);
     if (rr) 
 	res = Ifu::ToBool(resp);
     return res;
@@ -47,15 +42,6 @@ TBool MvertPx::Connect(MEdge* aEdge)
 
 void MvertPx::Disconnect(MVert* aPair)
 {
-}
-
-void MvertPx::Disconnect(MEdge* aEdge)
-{
-}
-
-set<MVert*>& MvertPx::Pairs()
-{
-    __ASSERT(false);
 }
 
 void *MvertPx::GetIface(const string& aName)
@@ -91,6 +77,17 @@ string MvertPx::Mid() const
     return string();
 }
 
+TInt MvertPx::PairsCount() const
+{
+}
+
+MVert* MvertPx::GetPair(TInt aInd) const
+{
+}
+
+TBool MvertPx::IsPair(const MVert* aPair) const
+{
+}
 
 
 
@@ -159,6 +156,7 @@ void MedgePx::Disconnect()
 {
 }
 
+/*
 MVert* MedgePx::Pair(const MVert* aPoint)
 {
     string resp;
@@ -167,6 +165,7 @@ MVert* MedgePx::Pair(const MVert* aPoint)
     string puri = pe->GetUri(NULL, ETrue);
     return (MVert*) NewProxyRequest(string("Pair,1,") + puri, MVert::Type());
 }
+*/
 
 MVert* MedgePx::Point1() const
 {

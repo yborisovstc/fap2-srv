@@ -6,6 +6,32 @@
 #include "melempx.h"
 
 /*
+ * Remote environment client. Provides set of clients session to same remote environment
+ * This allows to avoid interaction deadlock in case of cyclyc requests, ref ds_pa_msra
+ */
+class RenvClient
+{
+    public:
+	typedef vector<BaseClient*> TClients;
+    public:
+	RenvClient();
+	~RenvClient();
+	void SetRmtSID(const string& aSID);
+	void Connect(const string& aHostUri);
+	void Disconnect();
+	bool Request(const string& aRequest, string& aResponse);
+	bool Request(const string& aReqId, const string& aReqArgs, string& aResponse);
+    protected:
+	BaseClient* GetClient();
+    protected:
+	TClients mClients;
+	// Session ID of remote environment
+	string mRmtSID;
+	string mHostUri;
+};
+
+
+/*
  * Remote environment agent. Supports of interacting to lower layer models part,
  * so is "bottom" remote env engine.
  */
@@ -58,7 +84,7 @@ class ARenv: public Elem, public MProxyMgr
 	void AddElemRmt(const ChromoNode& aSpec, TBool aRunTime = EFalse, TBool aTrialMode = EFalse);
     protected:
 	string mRenvUri;
-	BaseClient mRenvClient;
+	RenvClient mRenvClient;
 	vector<DaaProxy*> mProxies;
 	MelemPx* mRroot;
 };
@@ -88,7 +114,7 @@ class ARenvu: public Elem, public MProxyMgr
     protected:
 	void Connect();
     protected:
-	BaseClient mRenvClient;
+	RenvClient mRenvClient;
 	vector<DaaProxy*> mProxies;
 	MelemPx* mRroot;
 	TBool mConnected;

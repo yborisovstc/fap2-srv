@@ -134,6 +134,8 @@ MElem* MelemPx::GetNode(const string& aUri, TBool aInclRm)
 	} else {
 	    res = dynamic_cast<MElem*>(GetProxy(resp));
 	}
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetNode %s] request failed", Uid().c_str(), aUri.c_str());
     }
     return res;
 }
@@ -154,6 +156,8 @@ MElem* MelemPx::GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBoo
 	} else {
 	    res = dynamic_cast<MElem*>(GetProxy(resp));
 	}
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetNode %s] request failed", Uid().c_str(), suri.c_str());
     }
     return res;
 }

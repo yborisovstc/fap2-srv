@@ -295,18 +295,6 @@ void Ut_Renva::tearDown() { }
 void Ut_Renva::test_Renva_Cre()
 {
     printf("\n === Test of Creating remote env agent\n");
-    BaseClient* client = new BaseClient();
-    // Wait until server run
-    bool srv_run = WaitSrv();
-    CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
-    try {
-	client->Connect("");
-    } catch (exception& e) {
-	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
-    }
-    printf("Client connected to the server\n");
-    string resp;
-    RequestIPC ipc;
     // Create model
     iEnv = new Env("ut_renva_cre.xml", "ut_renva_cre.txt");
     CPPUNIT_ASSERT_MESSAGE("Fail to create Env", iEnv != 0);
@@ -614,6 +602,26 @@ void Ut_Vert::test_Vert_Cre()
     res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);
     printf("Getting remote remote_node_2: %s\n", rnode2.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_2 failed: " + rnode2, res);
+    // Getting primary env vertex v1
+    string v1;
+    res = client->Request(root, "GetNode,1,./v1", v1);
+    printf("Getting primary env vertex v1: %s\n", v1.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting primary env vertex v1 failed: " + v1, res);
+    // Getting vertex iface of primary env vertex v1
+    string v1_vert;
+    res = client->Request(v1, string("DoGetObj,1,") + MVert::Type(), v1_vert);
+    printf("Getting vertex iface of primary env vertex v1: %s\n", v1_vert.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting vertex iface of primary env vertex v1 failed: " + v1_vert, res);
+    // Getting count of pairs of primary env vertex v1
+    string v1_pairs_cnt;
+    res = client->Request(v1, "PairsCount,1", v1_pairs_cnt);
+    printf("Getting pairs count of primary env vertex v1: %s\n", v1_pairs_cnt.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting pairs count of primary env vertex v1 failed", v1_pairs_cnt == "1");
+    // Getting pair of primary env vertex v1
+    string v1_pair;
+    res = client->Request(v1, "GetPair,1,0", v1_pair);
+    printf("Getting pair of primary env vertex v1: %s\n", v1_pair.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting pair of primary env vertex v1 failed", v1_pair != "[NONE]");
 
     client->Disconnect();
     delete client;

@@ -3,6 +3,7 @@
 
 #include "mproxy.h"
 #include "menv.h"
+#include "mlog.h"
 #include <map>
 
 /*
@@ -30,6 +31,7 @@ class DaaProxy : public MProxy, public MProxyMgr
 	void RegProxy(DaaProxy* aProxy);
 	DaaProxy* GetProxy(const string& aContext) const;
 	inline MProvider* Provider() const;
+	inline MLogRec* Logger() const;
 	void* NewProxyRequest(const string& aCallSpec, const string& aPxType);
 	const void* NewProxyRequest(const string& aCallSpec, const string& aPxType) const;
     protected:
@@ -40,5 +42,7 @@ class DaaProxy : public MProxy, public MProxyMgr
 };
 
 inline MProvider* DaaProxy::Provider() const {return mEnv ? mEnv->Provider(): NULL; }
+
+inline MLogRec* DaaProxy::Logger() const {return mEnv ? mEnv->Logger(): NULL; }
 
 #endif 

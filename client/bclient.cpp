@@ -1,6 +1,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdexcept> 
+#include <assert.h>
 #include "../server/requests.h" 
 
 #include "bclient.h"
@@ -10,7 +11,8 @@ using namespace std;
 const string BaseClient::LOCAL_HOST = "localhost";
 const int BaseClient::KBufSize = 512;
 
-BaseClient::BaseClient() {
+BaseClient::BaseClient(): mState(St_Idle)
+{
 
     mServerSock = socket(AF_INET, SOCK_STREAM, 0);
     memset(&mServerAddr, 0, sizeof(sockaddr_in));
@@ -18,6 +20,7 @@ BaseClient::BaseClient() {
     mServerAddr.sin_family = AF_INET;
     //mServerAddr.sin_addr.s_addr = INADDR_ANY;
     mServerAddr.sin_port = htons(PORT);
+    pthread_mutex_init(&mMutex, NULL);
 }
 
 BaseClient::~BaseClient()
@@ -42,10 +45,18 @@ void BaseClient::Connect(const string& aHostUri)
     if (connect(mServerSock, (struct sockaddr *)&mServerAddr, sizeof(mServerAddr)) < 0) {
 	throw(runtime_error("Error connecting to server"));
     }
+    pthread_mutex_lock(&mMutex);
+    mState = St_Ready;
+    pthread_mutex_unlock(&mMutex);
 }
 
 bool BaseClient::Request(const string& aRequest, string& aResponse)
 {
+    bool is_ready = false;
+    pthread_mutex_lock(&mMutex);
+    is_ready = (mState == St_Ready);
+    pthread_mutex_unlock(&mMutex);
+    assert(is_ready);
     bool res = true;
     int n = send(mServerSock, aRequest.c_str(), aRequest.size(), 0);
     if (n < 0) {
@@ -54,6 +65,9 @@ bool BaseClient::Request(const string& aRequest, string& aResponse)
 	aResponse = "Error writing to socket";
 	return res;
     }
+    pthread_mutex_lock(&mMutex);
+    mState = St_Requesting;
+    pthread_mutex_unlock(&mMutex);
     char buffer[KBufSize];
     bzero(buffer, KBufSize);
     n = recv(mServerSock, buffer, sizeof buffer, 0);
@@ -65,6 +79,9 @@ bool BaseClient::Request(const string& aRequest, string& aResponse)
     }
     aResponse.assign(buffer + 2, n - 2);
     res = (buffer[0] != 'E');
+    pthread_mutex_lock(&mMutex);
+    mState = St_Ready;
+    pthread_mutex_unlock(&mMutex);
     return res;
 }
 
@@ -101,5 +118,14 @@ void BaseClient::Disconnect()
 {
     close(mServerSock);
     mServerSock = 0;
+}
+
+bool BaseClient::IsReady()
+{
+    bool res = false;
+    pthread_mutex_lock(&mMutex);
+    res =  mState == St_Ready;
+    pthread_mutex_unlock(&mMutex);
+    return res;
 }
 

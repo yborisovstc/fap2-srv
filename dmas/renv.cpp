@@ -5,6 +5,90 @@
 #include "melempx.h"
 
 
+RenvClient::RenvClient()
+{
+    // Create primary client session
+    BaseClient* client = new BaseClient();
+    mClients.push_back(client);
+}
+
+RenvClient::~RenvClient()
+{
+    Disconnect();
+}
+
+void RenvClient::Connect(const string& aHostUri)
+{
+    // Connect primary client
+    BaseClient* client = mClients.at(0);
+    assert(client != NULL);
+    if (client != NULL) {
+	client->Connect(aHostUri);
+	mHostUri = aHostUri;
+    }
+}
+
+void RenvClient::Disconnect()
+{
+    for (TClients::iterator it = mClients.begin(); it != mClients.end(); it++) {
+	BaseClient* client = *it;
+	client->Disconnect();
+	delete client;
+    }
+    mClients.clear();
+}
+
+bool RenvClient::Request(const string& aRequest, string& aResponse)
+{
+    bool res = false;
+    BaseClient* client = GetClient();
+    if (client != NULL) {
+	res = client->Request(aRequest, aResponse);
+    }
+    return res;
+}
+
+bool RenvClient::Request(const string& aReqId, const string& aReqArgs, string& aResponse)
+{
+    string req(aReqId);
+    req.append(RequestIPC::REQ_SEPARATOR);
+    req.append(aReqArgs);
+    return Request(req, aResponse);
+}
+
+void RenvClient::SetRmtSID(const string& aSID)
+{
+    assert(mRmtSID.empty());
+    mRmtSID = aSID;
+}
+
+BaseClient* RenvClient::GetClient()
+{
+    BaseClient* res = NULL;
+    // Search client ready for request
+    for (TClients::iterator it = mClients.begin(); it != mClients.end() && res == NULL; it++) {
+	BaseClient* client = *it;
+	if (client->IsReady()) {
+	    res = client;
+	}
+    }
+    // If no one client hasn't found then create new one
+    if (res == NULL) {
+	BaseClient* client = new BaseClient();
+	assert(client != NULL);
+	client->Connect(mHostUri);
+	assert(!mRmtSID.empty());
+	string resp;
+	TBool rr = client->Request("EnvProvider", "AttachEnv,1," + mRmtSID, resp);
+	if (rr) {
+	    res = client;
+	    mClients.push_back(client);
+	} else {
+	    delete client;
+	}
+    }
+    return res;
+}
 
 
 ARenv::CompsIter::CompsIter(ARenv& aElem, GUri::TElem aId, TBool aToEnd): iElem(aElem), iId(aId), mEnd(aToEnd)
@@ -276,75 +360,6 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
     }
 }
 
-#if 0
-MElem* ARenv::GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere) 
-{
-    MElem* res = NULL;
-    GUri::const_elem_iter uripos = aPathBase;
-    GUri::TElem elem = *uripos;
-    TBool anywhere = aAnywhere;
-    if (elem.second.second == "..") {
-	if (iMan != NULL) {
-	    if (++uripos != aUri.Elems().end()) {
-		res = iMan->GetNode(aUri, uripos);
-	    }
-	    else {
-		res = iMan;
-	    }
-	}
-	else {
-	    __ASSERT(EFalse);
-	    Logger()->Write(MLogRec::EErr, this, "Getting node [%s] - path to top of root", aUri.GetUri().c_str());
-	}
-    }
-    else {
-	if (!anywhere && elem.second.second == GUri::KTypeAnywhere) {
-	    elem = GUri::Elem(GUri::KParentSep, GUri::KTypeAny, GUri::KTypeAny);
-	    anywhere = ETrue;
-	}
-	TBool isnative = elem.second.first == GUri::KSepNone;
-	if (isnative) {
-	    // Native node, not embedded to hier, to get from environment, ref uc_045
-	    uripos++;
-	    if (uripos != aUri.Elems().end()) {
-		Elem* node = Provider()->GetNode(elem.second.second);
-		if (node != NULL) {
-		    res = node->GetNode(aUri, uripos);
-		}
-	    }
-	    else {
-		res = Provider()->GetNode(elem.second.second);
-	    }
-	}
-	else {
-	    // Redirect the request to remote root proxy
-	    res = mRroot->GetNode(aUri, uripos);
-	}
-	if (res == NULL && anywhere && uripos != aUri.Elems().end()) {
-	    // Try to search in all nodes
-	    elem = GUri::Elem(GUri::KNodeSep, GUri::KTypeAny, GUri::KTypeAny);
-	    Iterator it = NodesLoc_Begin(elem);
-	    Iterator itend = NodesLoc_End(elem);
-	    for (; it != itend; it++) {
-		MElem* node = *it;
-		MElem* res1 = node->GetNode(aUri, uripos, anywhere);
-		if (res1 != NULL) {
-		    if (res == NULL) {
-			res = res1;
-		    }
-		    else {
-			res = NULL;
-			Logger()->Write(MLogRec::EErr, this, "Getting node [%s] - multiple choice", aUri.GetUri().c_str());
-			break;
-		    }
-		}
-	    }
-	}
-    }
-    return res;
-}
-#endif
-
 Elem::Iterator ARenv::NodesLoc_Begin(const GUri::TElem& aId, TBool aInclRm)
 {
     return Iterator(new CompsIter(*this, aId));
@@ -372,7 +387,10 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
 	    // Set session id and this Uid to remote env as PrimarySid and PrimaryUid
 	    res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
 	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryUid," + GetUri(), resp);
+	    string rsid;
+	    res = res && mRenvClient.Request(env, "GetEVar,1,SID", rsid);
 	    if (res) {
+		mRenvClient.SetRmtSID(rsid);
 		// Create remote model
 		res = mRenvClient.Request(env, "ConstructSystem", resp);
 		if (res) {
@@ -549,6 +567,7 @@ void ARenvu::Connect()
 	    Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed");
 	}
 	if (res) {
+	    mRenvClient.SetRmtSID(psid);
 	    string resp;
 	    res = mRenvClient.Request("EnvProvider", "AttachEnv,1," + psid, resp);
 	    if (res) {

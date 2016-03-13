@@ -16,13 +16,12 @@
 using namespace std;
 
 class BaseClient {
-    private:
-        static const string LOCAL_HOST;
-        static const int KBufSize;
-        //Socket stuff
-        int mServerSock;
-        struct sockaddr_in mServerAddr;
-        char mBuff[256];
+    public:
+	enum TState {
+	    St_Idle = 0, // Not connected
+	    St_Ready, // Connected, ready for request
+	    St_Requesting // Issued request, waiting for response
+	};
     public:
         BaseClient();
         ~BaseClient();
@@ -31,6 +30,17 @@ class BaseClient {
 	bool Request(const string& aReqId, const string& aReqArgs, string& aResponse);
         void Dispatch();
 	void Disconnect();
+	bool IsReady();
+    protected:
+        static const string LOCAL_HOST;
+        static const int KBufSize;
+        //Socket stuff
+        int mServerSock;
+        struct sockaddr_in mServerAddr;
+        char mBuff[256];
+	TState mState;
+        pthread_mutex_t mMutex;
 };
+
 
 #endif

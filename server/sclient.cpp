@@ -122,7 +122,7 @@ void SessionClient::HandleMessage(const string& aMsg) {
 		AddContext(uid, new_ctx);
 		Send(RequestIPC::RES_OK, uid);
 	    } else {
-		Send(RequestIPC::RES_OK, cres.empty() ? "OK":cres);
+		Send(RequestIPC::RES_OK, cres.empty() ? "[NONE]":cres);
 	    }
 	}
     }
@@ -179,7 +179,7 @@ void SessionClient::CreateEnv(const string& aChromo)
 	throw(runtime_error("Failed creating env"));
     }
     // Adding session Id into env variables
-    mEnv->SetEVar("EnvId", sid);
+    mEnv->SetEVar("SID", sid);
     DaaProv* daaprov = new DaaProv("DaaProv", mEnv);
     mEnv->AddProvider(daaprov);
     //mEnv->ConstructSystem();

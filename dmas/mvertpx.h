@@ -24,10 +24,10 @@ class MvertPx : public DaaProxy, public MVert
 	// From MVert
 	static const char* Type() { return "MVert";};
 	virtual TBool Connect(MVert* aPair);
-	virtual TBool Connect(MEdge* aEdge);
 	virtual void Disconnect(MVert* aPair);
-	virtual void Disconnect(MEdge* aEdge);
-	virtual set<MVert*>& Pairs();
+	virtual TInt PairsCount() const;
+	virtual MVert* GetPair(TInt aInd) const;
+	virtual TBool IsPair(const MVert* aPair) const;
 	virtual void *MVert_DoGetObj(const char *aName);
     public:
 	// From MIface	
@@ -51,7 +51,6 @@ class MedgePx : public DaaProxy, public MEdge
 	virtual TBool ConnectP2(MVert* aPoint);
 	virtual void Disconnect(MVert* aPoint);
 	virtual void Disconnect();
-	virtual MVert* Pair(const MVert* aPoint);
 	virtual MVert* Point1() const;
 	virtual MVert* Point2() const;
 	virtual MVert* Ref1() const;
