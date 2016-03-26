@@ -9,7 +9,7 @@
 using namespace std;
 
 const string BaseClient::LOCAL_HOST = "localhost";
-const int BaseClient::KBufSize = 512;
+const int BaseClient::KBufSize = 2048;
 
 BaseClient::BaseClient(): mState(St_Idle)
 {

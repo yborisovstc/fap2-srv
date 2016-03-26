@@ -1,4 +1,5 @@
 
+#include "../server/requests.h"
 #include "daaproxy.h"
 #include "mipxprov.h"
 #include <elem.h>
@@ -70,7 +71,7 @@ void* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& aPxType)
     void* res = NULL;
     string resp;
     TBool rres = mMgr->Request(mContext, aCallSpec, resp);
-    if (rres) {
+    if (rres && resp != RequestIPC::RES_OK_NONE) {
 	DaaProxy* px = NULL;
 	if (!IsCached(resp)) {
 	    px = CreateProxy(aPxType, this, resp);
@@ -80,7 +81,6 @@ void* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& aPxType)
 	}
 	res = px->GetIface(aPxType);
     }
-    __ASSERT(res != NULL);
     return res;
 }
 
@@ -89,7 +89,7 @@ const void* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& aPx
     const void* res = NULL;
     string resp;
     TBool rres = mMgr->Request(mContext, aCallSpec, resp);
-    if (rres) {
+    if (rres && resp != RequestIPC::RES_OK_NONE) {
 	DaaProxy* self = (DaaProxy*) this;
 	DaaProxy* px = NULL;
 	if (!IsCached(resp)) {
@@ -100,12 +100,11 @@ const void* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& aPx
 	}
 	res = px->GetIface(aPxType);
     }
-    __ASSERT(res != NULL);
     return res;
 }
 
 bool DaaProxy::Request(const string& aContext, const string& aReq, string& aResp)
 {
     // Just redirect to mgr
-   return mMgr->Request(aContext, aReq, aResp);
+    return mMgr->Request(aContext, aReq, aResp);
 }

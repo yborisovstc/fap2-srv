@@ -6,12 +6,14 @@
 #include <medge.h>
 #include <chromo.h>
 #include <ifu.h>
+#include <mprop.h>
 
 /*
  * MVert proxy
  */
 
 class MEdge;
+class MElem;
 
 class MvertPx : public DaaProxy, public MVert
 {
@@ -60,6 +62,45 @@ class MedgePx : public DaaProxy, public MEdge
 	virtual MIface* Call(const string& aSpec, string& aRes);
 	virtual string Uid() const;
 	virtual string Mid() const;
+};
+
+class MCompatCheckerPx : public DaaProxy, public MCompatChecker
+{
+    public:
+	MCompatCheckerPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
+	virtual ~MCompatCheckerPx();
+    public:
+	virtual void *GetIface(const string& aName);
+	virtual const void *GetIface(const string& aName) const;
+	// From MCompatChecker
+	virtual TBool IsCompatible(MElem* aPair, TBool aExt = EFalse);
+	virtual MElem* GetExtd();
+	virtual TDir GetDir() const;
+    public:
+	// From MIface	
+	virtual MIface* Call(const string& aSpec, string& aRes);
+	virtual string Uid() const;
+	virtual string Mid() const;
+};
+
+
+class MPropPx : public DaaProxy, public MProp
+{
+    public:
+	MPropPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
+	virtual ~MPropPx();
+    public:
+	virtual void *GetIface(const string& aName);
+	virtual const void *GetIface(const string& aName) const;
+	// From MProp
+	virtual const string& Value() const;
+    public:
+	// From MIface	
+	virtual MIface* Call(const string& aSpec, string& aRes);
+	virtual string Uid() const;
+	virtual string Mid() const;
+    protected:
+	string mValue;
 };
 
 #endif 

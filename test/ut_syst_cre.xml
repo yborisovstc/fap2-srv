@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+
+<!-- Unit test for ceation of remote env with bidirectional Syst
+     communication.
+     -->
+
+
+<!DOCTYPE node SYSTEM "../etc/objspec.dtd"> 
+
+
+<node id="root" parent="Syst">
+    <node id="Modules" parent="AImports">
+	<import id="/SysComps" />
+    </node>
+    <node id="Syst1" parent="Syst">
+	<node id="Cp1" parent="./../Modules/SysComps/ConnPoint"> 
+	    <cont node="./Provided" val="Role1"/> <cont node="./Required" val="MProp"/>
+	</node>
+    </node>
+
+    <node id="Renv" parent="ARenv">
+	<cont val="test_remote_env"/>
+	<node id="Renv_Root" parent="ARenvu">
+	    <cont val="Connect"/>
+	    <node id="Modules" parent="AImports">
+		<import id="/SysComps" />
+	    </node>
+	    <node id="Syst2" parent="Syst">
+		<node targ="./Agents" id="Token" parent="Prop"/>
+		<node id="Cp2" parent="./../Modules/SysComps/ConnPoint"> 
+		    <cont node="./Provided" val="MProp"/> <cont node="./Required" val="Role1"/>
+		</node>
+	    </node>
+	</node>
+    </node>
+
+    <node id="E1" parent="Edge"> 
+	<cont node="./P1" ref="./../../Syst1/Cp1"/> <cont node="./P2" ref="./../../Renv/Renv_Root/Syst2/Cp2"/>
+    </node>
+</node>

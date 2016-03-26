@@ -13,7 +13,7 @@
 
 using namespace std;
 
-const int KBufSize = 1024;
+const int KBufSize = 2048;
 
 //Actually allocate sClients
 vector<SessionClient*> SessionClient::sClients;
@@ -122,7 +122,7 @@ void SessionClient::HandleMessage(const string& aMsg) {
 		AddContext(uid, new_ctx);
 		Send(RequestIPC::RES_OK, uid);
 	    } else {
-		Send(RequestIPC::RES_OK, cres.empty() ? "[NONE]":cres);
+		Send(RequestIPC::RES_OK, cres.empty() ? RequestIPC::RES_OK_NONE : cres);
 	    }
 	}
     }

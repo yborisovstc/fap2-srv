@@ -5,23 +5,50 @@
 #include "mvertpx.h"
 #include "mipxprov.h"
 #include <stdexcept> 
+#include "../server/requests.h"
 
 const string FakeString = "";
 vector<MElem*> FakeComps;
 
-/*
-MelemPx::EIfu MelemPx::mIfu;
+MelemPx::IfIter::IfIter(MelemPx* aHost, const string& aIfName, const TICacheRCtx& aReq, int aInd): mHost(aHost), mIfName(aIfName), mReq(aReq), mInd(aInd)
+{}
 
-// Ifu static initialisation
-MelemPx::EIfu::EIfu()
+MelemPx::IfIter::IfIter(const IfIter& aIt): mHost(aIt.mHost), mInd(aIt.mInd), mIfName(aIt.mIfName) {}
+
+MElem::MIfIter& MelemPx::IfIter::operator=(const MIfIter& aIt)
 {
-    RegMethod("Name", 0);
-    RegMethod("GetMan", 0);
-    RegMethod("GetNode", 1);
-    RegMethod("GetCont", 1);
-    RegMethod("Mutate", 4);
+    const IfIter& it = (const IfIter&) aIt;
+    mHost = it.mHost; 
+    mInd = it.mInd;
+    mIfName = it.mIfName;
+    mReq = it.mReq;
+    return *this;
 }
-*/
+
+MElem::MIfIter* MelemPx::IfIter::Clone() const
+{
+    return new IfIter(*this);
+}
+
+MElem::MIfIter& MelemPx::IfIter::operator++()
+{
+    mInd++;
+    return *this;
+}
+
+TBool MelemPx::IfIter::operator==(const MIfIter& aIt)
+{
+    const IfIter& it = (const IfIter&) aIt;
+    TBool res = (mHost == it.mHost && mInd == it.mInd && mIfName == it.mIfName && mReq == it.mReq);
+    return res;
+}
+
+void*  MelemPx::IfIter::operator*()
+{
+    void* res = mHost->GetIfind(mIfName, mReq, mInd);
+    return res;
+}
+
 
 
 MelemPx::MelemPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): DaaProxy(aEnv, aMgr, aContext)
@@ -71,6 +98,14 @@ MIface* MelemPx::Call(const string& aSpec, string& aRes)
 	aRes = GetUri(NULL, ETrue);
     } else if (name == "DoGetObj") {
 	res = (MIface*) DoGetObj(args.at(0).c_str());
+    } else if (name == "GetIfi") {
+	mMgr->Request(mContext, aSpec, aRes);
+    } else if (name == "GetIfind") {
+	string name = args.at(0);
+	res = (MIface*) NewProxyRequest(aSpec, name);
+    } else if (name == "GetSIfi") {
+	string name = args.at(0);
+	res = (MIface*) NewProxyRequest(aSpec, name);
     } else {
 	throw (runtime_error("Unhandled method: " + name));
     }
@@ -427,13 +462,56 @@ void  MelemPx::SetParent(MElem* aParent) {}
 
 // MIfProv
 
-void*  MelemPx::GetSIfiC(const string& aName, Base* aRequestor) { return NULL;}
+void*  MelemPx::GetSIfiC(const string& aName, Base* aRequestor)
+{
+    RqContext ctx(aRequestor);
+    return GetSIfi(aName, &ctx);
+}
 
-void*  MelemPx::GetSIfi(const string& aName, const RqContext* aCtx) { return NULL;}
+void*  MelemPx::GetSIfi(const string& aName, const RqContext* aCtx)
+{
+    void* res = NULL;
+    string resp;
+    string req("GetSIfi,1,");
+    req += aName + RequestIPC::R_ARGS_SEPARATOR;
+    const RqContext* cct(aCtx);
+    while (cct != NULL) {
+	Base* rq = cct->Requestor();
+	MElem* re = rq->GetObj(re);
+	string reuri = re->GetUri(NULL, ETrue);
+	req += reuri + RequestIPC::R_LIST_SEPARATOR;
+	cct = cct->Ctx();
+    }
+    res = NewProxyRequest(req, aName);
+    return res;
+}
 
 void*  MelemPx::GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert) { return NULL;}
 
-MElem::TIfRange  MelemPx::GetIfi(const string& aName, const RqContext* aCtx) { return TIfRange(TIfIter(), TIfIter());}
+MElem::TIfRange  MelemPx::GetIfi(const string& aName, const RqContext* aCtx)
+{
+    string resp;
+    string req("GetIfi,1,");
+    req += aName + RequestIPC::R_ARGS_SEPARATOR;
+    const RqContext* cct(aCtx);
+    while (cct != NULL) {
+	Base* rq = cct->Requestor();
+	if (rq != NULL) {
+	    MElem* re = rq->GetObj(re);
+	    string reuri = re->GetUri(NULL, ETrue);
+	    req += reuri + RequestIPC::R_LIST_SEPARATOR;
+	}
+	cct = cct->Ctx();
+    }
+    TBool res = mMgr->Request(mContext, req, resp);
+    TInt ifcnt = 0;
+    if (res) 
+	ifcnt = Ifu::ToInt(resp);
+    TICacheRCtx rctx(aCtx);
+    IfIter beg(this, aName, rctx, 0);
+    IfIter end(this, aName, rctx, ifcnt);
+    return TIfRange(beg, end);
+}
 
 // Debugging
 
@@ -499,5 +577,18 @@ const void *MelemPx::GetIface(const string& aName) const
     if (aName == MElem::Type()) {
 	res = (const MElem*) this;
     }
+    return res;
+}
+
+void* MelemPx::GetIfind(const string& aName, const TICacheRCtx& aCtx, TInt aInd)
+{
+    string resp;
+    string req("GetIfind,1,");
+    req += aName + RequestIPC::R_ARGS_SEPARATOR;
+    string ctx;
+    EIfu::FromCtx(aCtx, ctx);
+    req += ctx;
+    req += RequestIPC::R_ARGS_SEPARATOR + Ifu::FromInt(aInd);
+    MIface* res = (MIface*) NewProxyRequest(req, aName);
     return res;
 }

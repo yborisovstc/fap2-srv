@@ -560,6 +560,16 @@ void Ut_Vert::test_Vert_Cre()
     res = client->Request(v2, string("DoGetObj,1,") + MVert::Type(), v2_vert);
     printf("Getting MVert iface of local node v2: %s\n", v2_vert.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of local node v2 failed: " + v2_vert, res);
+    // Getting iface range from v2
+    string v2_ifcr;
+    res = client->Request(v2, "GetIfi,1,MVert,", v2_ifcr);
+    printf("Getting iface range from local node v2: %s\n", v2_ifcr.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting iface range from local node v2 failed: " + v2_ifcr, res && v2_ifcr == "1");
+    // Getting iface from v2
+    string v2_ifind;
+    res = client->Request(v2, "GetIfind,1,MVert,,0", v2_ifind);
+    printf("Getting iface from local node v2: %s\n", v2_ifind.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting iface from local node v2 failed: " + v2_ifind, res);
     // Getting local node Renv
     string renv;
     res = client->Request(root, "GetNode,1,./Renv", renv);
@@ -597,6 +607,16 @@ void Ut_Vert::test_Vert_Cre()
     res = client->Request(rnode1, string("DoGetObj,1,") + MVert::Type(), rnode1_vert);
     printf("Getting MVert iface of remote remote_node_1: %s\n", rnode1_vert.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of remote remote_node_1 failed: " + rnode1_vert, res);
+    // Getting iface range from proxy of remote_node_1
+    string rnode1_ifcr;
+    res = client->Request(rnode1, "GetIfi,1,MVert,", rnode1_ifcr);
+    printf("Getting iface range from proxy of  remote_node_1: %s\n", rnode1_ifcr.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting iface range from proxy of remote_node_1: " + rnode1_ifcr, res && rnode1_ifcr == "1");
+    // Getting iface from proxy of remote_node_1
+    string rnode1_ifind;
+    res = client->Request(rnode1, "GetIfind,1,MVert,,0", rnode1_ifind);
+    printf("Getting iface from proxy of remote_node_1: %s\n", rnode1_ifind.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting iface from proxy of remote_node_1: " + rnode1_ifind, res);
     // Getting remote remote_node_2 created from remote parent (from primary env)
     string rnode2;
     res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);
@@ -622,6 +642,96 @@ void Ut_Vert::test_Vert_Cre()
     res = client->Request(v1, "GetPair,1,0", v1_pair);
     printf("Getting pair of primary env vertex v1: %s\n", v1_pair.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting pair of primary env vertex v1 failed", v1_pair != "[NONE]");
+
+    client->Disconnect();
+    delete client;
+}
+
+
+
+/* Test suite to verify Syst-level remote interaction to the primary model
+*/
+class Ut_Syst : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(Ut_Syst);
+    CPPUNIT_TEST(test_Syst_Cre);
+    CPPUNIT_TEST_SUITE_END();
+    public:
+    virtual void setUp();
+    virtual void tearDown();
+    private:
+    void test_Syst_Cre();
+};
+
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_Syst, "Ut_Syst");
+
+
+void Ut_Syst::setUp() {}
+
+void Ut_Syst::tearDown() {}
+
+// Test of creation Syst based  model
+void Ut_Syst::test_Syst_Cre()
+{
+    printf("\n === Test of Creating remote Syst model with 2-dir communication\n");
+    BaseClient* client = new BaseClient();
+    // Wait until server run
+    bool srv_run = WaitSrv();
+    CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
+    try {
+	client->Connect("");
+    } catch (exception& e) {
+	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
+    }
+    printf("Client connected to the server\n");
+    // Creating model
+    string cenv;
+    bool res;
+    // Checking env id
+    string sid;
+    res = client->Request("EnvProvider", "GetId", sid);
+    printf("Getting session1 id -- Response: %s\n", sid.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Gettng session1 id failed: " + sid, res);
+    // Create primary model env remotelly
+    string cspec;
+    ReadCspec("ut_syst_cre.xml", cspec);
+    res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + cspec, cenv);
+    printf("Creating env: %s\n", cenv.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating env failed: " + cenv, res);
+    // Set SID to primary env
+    string resp;
+    res = client->Request(cenv, "SetEVar,1,SID," + sid, resp);
+    printf("Setting Session Id: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Setting Session Id failed: " + resp, res);
+    res = client->Request(cenv, "GetEVar,1,SID", resp);
+    printf("Checking Session Id: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: " + resp, res);
+    CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: incorrect value", resp == sid);
+    // Construct primary model
+    printf("Started creating model");
+    res = client->Request(cenv, "ConstructSystem", resp);
+    printf("Creating model: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating model failed: " + resp, res);
+    // Getting root
+    string root;
+    res = client->Request(cenv, "Root", root);
+    printf("Getting root: %s\n", root.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
+    // Getting local node conn point Syst1/Cp1
+    string cp1;
+    res = client->Request(root, "GetNode,1,./Syst1/Cp1", cp1);
+    printf("Getting local conn point Syst1/Cp1: %s\n", cp1.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting local conn point Syst1/Cp1 failed: " + cp1, res);
+    // Getting iface range from local conn point Syst1/Cp1
+    string cp1_ifcr;
+    res = client->Request(cp1, "GetIfi,1,MProp,", cp1_ifcr);
+    printf("Getting iface range from local conn point Syst1/Cp1: %s\n", cp1_ifcr.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting iface range from conn point Syst1/Cp1: " + cp1_ifcr, res && cp1_ifcr == "1");
+    // Getting iface from local conn point Syst1/Cp1
+    string cp1_ifind;
+    res = client->Request(cp1, "GetIfind,1,MProp,,0", cp1_ifind);
+    printf("Getting iface from local conn point Syst1/Cp1: %s\n", cp1_ifind.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting iface from conn point Syst1/Cp1: " + cp1_ifind, res);
 
     client->Disconnect();
     delete client;

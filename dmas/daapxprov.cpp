@@ -50,6 +50,10 @@ DaaProxy* ADaaPxProv::CreateProxy(const string& aId, MProxyMgr* aMgr, const stri
 	res = new MvertPx(iEnv, aMgr, aContext);
     } else if (aId == MedgePx::Type()) {
 	res = new MedgePx(iEnv, aMgr, aContext);
+    } else if (aId == MCompatCheckerPx::Type()) {
+	res = new MCompatCheckerPx(iEnv, aMgr, aContext);
+    } else if (aId == MProp::Type()) {
+	res = new MPropPx(iEnv, aMgr, aContext);
     } else {
 	__ASSERT(EFalse);
     }

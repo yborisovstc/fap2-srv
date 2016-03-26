@@ -13,6 +13,25 @@
 class MelemPx : public DaaProxy, public MElem
 {
     public:
+	class IfIter: public MIfProv::MIfIter {
+	    friend class Elem;
+	    public:
+	    IfIter(): mHost(NULL) {};
+	    IfIter(MelemPx* aHost, const string& aIfName, const TICacheRCtx& aReq, int aInd);
+	    IfIter(const IfIter& aIt);
+	    virtual MIfIter* Clone() const;
+	    virtual MIfIter& operator=(const MIfIter& aIt);
+	    virtual MIfIter& operator++();
+	    virtual TBool operator==(const MIfIter& aIt);
+	    virtual void*  operator*();
+	    public:
+	    MelemPx* mHost;
+	    string mIfName; // Iface name
+	    TICacheRCtx mReq; // Requestor
+	    int mInd; // Index of iface in the range
+	};
+
+    public:
 	MelemPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~MelemPx();
     public:
@@ -156,6 +175,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void* GetSIfi(const string& aName, const RqContext* aCtx);
 	virtual void* GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert);
 	virtual TIfRange GetIfi(const string& aName, const RqContext* aCtx);
+	void* GetIfind(const string& aName, const TICacheRCtx& aCtx, TInt aInd);
     protected:
 	MElem* NewMElemProxyRequest(const string& aCallSpec);
 	const MElem* NewMElemProxyRequest(const string& aCallSpec) const;
@@ -164,11 +184,11 @@ class MelemPx : public DaaProxy, public MElem
 	TMDeps mMDeps;
 	string mName;
 	/*
-    protected:
-	class EIfu: public Ifu {
-	    public:
-		EIfu();
-	};
+	   protected:
+	   class EIfu: public Ifu {
+	   public:
+	   EIfu();
+	   };
 	// Interface methods utility
 	static EIfu mIfu;
 	*/
