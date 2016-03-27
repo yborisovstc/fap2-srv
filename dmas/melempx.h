@@ -176,6 +176,8 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void* GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert);
 	virtual TIfRange GetIfi(const string& aName, const RqContext* aCtx);
 	void* GetIfind(const string& aName, const TICacheRCtx& aCtx, TInt aInd);
+	virtual void UnregIfReq(const string& aIfName, const TICacheRCtx& aCtx);
+	virtual void UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem* aProv, TBool aInv = EFalse);
     protected:
 	MElem* NewMElemProxyRequest(const string& aCallSpec);
 	const MElem* NewMElemProxyRequest(const string& aCallSpec) const;

@@ -106,6 +106,10 @@ MIface* MelemPx::Call(const string& aSpec, string& aRes)
     } else if (name == "GetSIfi") {
 	string name = args.at(0);
 	res = (MIface*) NewProxyRequest(aSpec, name);
+    } else if (name == "UnregIfReq") {
+	mMgr->Request(mContext, aSpec, aRes);
+    } else if (name == "UnregIfProv") {
+	mMgr->Request(mContext, aSpec, aRes);
     } else {
 	throw (runtime_error("Unhandled method: " + name));
     }
@@ -591,4 +595,33 @@ void* MelemPx::GetIfind(const string& aName, const TICacheRCtx& aCtx, TInt aInd)
     req += RequestIPC::R_ARGS_SEPARATOR + Ifu::FromInt(aInd);
     MIface* res = (MIface*) NewProxyRequest(req, aName);
     return res;
+}
+
+void MelemPx::UnregIfReq(const string& aIfName, const TICacheRCtx& aCtx)
+{
+    string resp;
+    string req("UnregIfReq,1,");
+    req += aIfName + Ifu::KRinvSep;
+    string ctx;
+    EIfu::FromCtx(aCtx, ctx);
+    req += ctx;
+    TBool rr = mMgr->Request(mContext, req, resp);
+}
+
+void MelemPx::UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem* aProv, TBool aInv)
+{
+    string resp;
+    string req("UnregIfProv,1,");
+    req += aIfName;
+    string ctx;
+    EIfu::FromCtx(aCtx, ctx);
+    req += Ifu::KRinvSep;
+    req += ctx;
+    string prov = aProv->GetUri(NULL, ETrue);
+    req += Ifu::KRinvSep;
+    req += prov;
+    string inv = Ifu::FromBool(aInv);
+    req += Ifu::KRinvSep;
+    req += inv;
+    TBool rr = mMgr->Request(mContext, req, resp);
 }
