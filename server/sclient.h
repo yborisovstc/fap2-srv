@@ -7,23 +7,31 @@
 #include <cstring>
 #include <sys/socket.h>
 #include "sthread.h"
-#include "reqbase.h"
+#include <env.h>
 
 #define MAX_NAME_LENGHT 20
 
 using namespace std;
-class SessionClient : public ReqBase::EnvProvider {
+
+class EnvProvider: public MIface {
+    public:
+	static const char* Type() { return "EnvProvider";};
+	virtual void CreateEnv(const string& aChromo) = 0;
+	virtual Env* GetEnv(int aEnvId) = 0;
+};
+
+class SessionClient : public EnvProvider {
     public:
 	// Key of context map: Handle
 	typedef string TCtxKey;
 	// Context: key, pointer to iface
 	typedef map<TCtxKey, MIface*> TCtx;
     public:
-        static vector<SessionClient*> sClients;
-        char *mName;
-        int mId;
-        //Socket stuff
-        int mSock;
+	static vector<SessionClient*> sClients;
+	char *mName;
+	int mId;
+	//Socket stuff
+	int mSock;
         SessionThread *mThread;
 	//vector<Env*> mEnvs;
 	Env* mEnv;
@@ -50,7 +58,6 @@ class SessionClient : public ReqBase::EnvProvider {
 //        void HandleMessage(const string& message);
         void HandleMessage(const string& aMsg);
         void Send(string const& msg, const string& msg_args);
-        void Send(int msg_id, const string& msg_args);
         void Send(string const& response);
         void Send(const char *message);
         static void ListSessionClients();

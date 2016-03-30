@@ -65,5 +65,7 @@ Elem* DaaProv::GetNode(const string& aUri){
 void DaaProv::AppendNodesInfo(vector<string>& aInfo)
 {
     aInfo.push_back(ARenv::Type());
+    aInfo.push_back(ARenvu::Type());
+    aInfo.push_back(ADaaPxProv::Type());
 }
 

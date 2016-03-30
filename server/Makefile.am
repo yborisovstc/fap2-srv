@@ -9,14 +9,6 @@ bin_PROGRAMS = fap2-srv
 fap2_srv_SOURCES = \
 		       requests.h \
 		       requests.cpp \
-		       reqbase.h \
-		       reqbase.cpp \
-		       rgetmodelslist.h \
-		       rgetmodelslist.cpp \
-		       rcreateenv.h \
-		       rcreateenv.cpp \
-		       rexec.h \
-		       rexec.cpp \
 		       server_main.cpp \
 		       sclient.h \
 		       sclient.cpp \

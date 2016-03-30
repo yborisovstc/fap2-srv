@@ -1,5 +1,5 @@
 
-AC_INIT([grayb_srv], [0.1], [yuri.borisov.v@gmail.com])
+AC_INIT([fap2srv], [0.1], [yuri.borisov.v@gmail.com])
 
 AM_INIT_AUTOMAKE([-Wall])
 
@@ -46,6 +46,8 @@ fi
 
 CXXFLAGS="$CXXFLAGS $GLIB_CFLAGS $FAPWS2_CFLAGS" 
 LDFLAGS="$LDFLAGS $GLIB_LIBS $PTHREAD_LIBS $FAPWS2_LIBS"
+
+AC_CONFIG_FILES([fap2srv.pc])
 
 AC_OUTPUT
 
