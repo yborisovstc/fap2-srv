@@ -101,17 +101,6 @@ void Ut_base::test_Connect()
 	    CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
 	}
 	printf("Client connected to the server\n");
-	string resp;
-	RequestIPC ipc;
-	// Request -get_models_list-
-	try {
-	    client->Request(RequestIPC::REQ_GET_MODELS_LIST, resp);
-	} catch (exception& e) {
-	    CPPUNIT_ASSERT_MESSAGE("Request -get_models_list- failed", false);
-	}
-	printf("Response: %s\n", resp.c_str());
-	// Kill server process
-	//kill(serv_pid, -9);
     } else {
 	printf("\n === Starting server\n");
 	int exit_status = system("../server/fap2-srv");
@@ -726,12 +715,18 @@ void Ut_Syst::test_Syst_Cre()
     string cp1_ifcr;
     res = client->Request(cp1, "GetIfi,1,MProp,", cp1_ifcr);
     printf("Getting iface range from local conn point Syst1/Cp1: %s\n", cp1_ifcr.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Getting iface range from conn point Syst1/Cp1: " + cp1_ifcr, res && cp1_ifcr == "1");
+    CPPUNIT_ASSERT_MESSAGE("Getting iface range from conn point Syst1/Cp1 failed: " + cp1_ifcr, res && cp1_ifcr == "1");
     // Getting iface from local conn point Syst1/Cp1
     string cp1_ifind;
     res = client->Request(cp1, "GetIfind,1,MProp,,0", cp1_ifind);
     printf("Getting iface from local conn point Syst1/Cp1: %s\n", cp1_ifind.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Getting iface from conn point Syst1/Cp1: " + cp1_ifind, res);
+    CPPUNIT_ASSERT_MESSAGE("Getting iface from conn point Syst1/Cp1 failed: " + cp1_ifind, res);
+    // Getting value from obtained MProp iface
+    string token_val;
+    res = client->Request(cp1_ifind, "Value", token_val);
+    printf("Getting value from obtained MProp iface: %s\n", token_val.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting value from obtained MProp iface failed: " + token_val, res);
+
 
     client->Disconnect();
     delete client;

@@ -26,7 +26,9 @@
 		<import id="/SysComps" />
 	    </node>
 	    <node id="Syst2" parent="Syst">
-		<node targ="./Agents" id="Token" parent="Prop"/>
+		<node targ="./Agents" id="Token" parent="Prop">
+		    <cont val="Hello!"/>
+		</node>
 		<node id="Cp2" parent="./../Modules/SysComps/ConnPoint"> 
 		    <cont node="./Provided" val="MProp"/> <cont node="./Required" val="Role1"/>
 		</node>

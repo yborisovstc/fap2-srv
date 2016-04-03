@@ -477,13 +477,13 @@ void*  MelemPx::GetSIfi(const string& aName, const RqContext* aCtx)
     void* res = NULL;
     string resp;
     string req("GetSIfi,1,");
-    req += aName + RequestIPC::R_ARGS_SEPARATOR;
+    req += aName + Ifu::KRinvSep;
     const RqContext* cct(aCtx);
     while (cct != NULL) {
 	Base* rq = cct->Requestor();
 	MElem* re = rq->GetObj(re);
 	string reuri = re->GetUri(NULL, ETrue);
-	req += reuri + RequestIPC::R_LIST_SEPARATOR;
+	req += reuri + Ifu::KArraySep;
 	cct = cct->Ctx();
     }
     res = NewProxyRequest(req, aName);
@@ -496,14 +496,14 @@ MElem::TIfRange  MelemPx::GetIfi(const string& aName, const RqContext* aCtx)
 {
     string resp;
     string req("GetIfi,1,");
-    req += aName + RequestIPC::R_ARGS_SEPARATOR;
+    req += aName + Ifu::KRinvSep;
     const RqContext* cct(aCtx);
     while (cct != NULL) {
 	Base* rq = cct->Requestor();
 	if (rq != NULL) {
 	    MElem* re = rq->GetObj(re);
 	    string reuri = re->GetUri(NULL, ETrue);
-	    req += reuri + RequestIPC::R_LIST_SEPARATOR;
+	    req += reuri + Ifu::KArraySep;
 	}
 	cct = cct->Ctx();
     }
@@ -588,11 +588,11 @@ void* MelemPx::GetIfind(const string& aName, const TICacheRCtx& aCtx, TInt aInd)
 {
     string resp;
     string req("GetIfind,1,");
-    req += aName + RequestIPC::R_ARGS_SEPARATOR;
+    req += aName + Ifu::KRinvSep;
     string ctx;
     EIfu::FromCtx(aCtx, ctx);
     req += ctx;
-    req += RequestIPC::R_ARGS_SEPARATOR + Ifu::FromInt(aInd);
+    req += Ifu::KRinvSep + Ifu::FromInt(aInd);
     MIface* res = (MIface*) NewProxyRequest(req, aName);
     return res;
 }

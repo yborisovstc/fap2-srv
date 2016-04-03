@@ -1,10 +1,6 @@
 #include "requests.h"
 
-const string RequestIPC::REQ_INVALID = "req_invalid";
-
 const string RequestIPC::REQ_SEPARATOR = " ";
-const string RequestIPC::R_ARGS_SEPARATOR = ",";
-const string RequestIPC::R_LIST_SEPARATOR = ";";
 
 const string RequestIPC::RES_OK = "O";
 const string RequestIPC::RES_OK_NONE = "[NONE]";

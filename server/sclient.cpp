@@ -2,7 +2,6 @@
 #include "sclient.h"
 #include "requests.h"
 #include <stdlib.h>
-#include <time.h>
 #include <ifu.h>
 #include <guri.h>
 #include <sstream>
@@ -12,19 +11,26 @@ using namespace std;
 
 const int KBufSize = 2048;
 
+EnvProvider::EIfu EnvProvider::mIfu;
+
+// Ifu static initialisation
+EnvProvider::EIfu::EIfu()
+{
+    RegMethod("CreateEnv", 1);
+    RegMethod("AttachEnv", 1);
+    RegMethod("GetId", 0);
+}
+
+
 //Actually allocate sClients
 vector<SessionClient*> SessionClient::sClients;
 
 SessionClient::SessionClient(): mEnv(NULL), mAttached(NULL)  {
-    mName = (char *) malloc(MAX_NAME_LENGHT+1);
-    srand(time(NULL));
     AddContext("EnvProvider", this);
 }
 
 SessionClient::SessionClient(int sock): mEnv(NULL), mAttached(NULL) {
-    mName = (char *) malloc(MAX_NAME_LENGHT+1);
     Dispatch(sock);
-    srand(time(NULL));
     AddContext("EnvProvider", this);
 }
 
@@ -36,9 +42,6 @@ SessionClient::~SessionClient()
     if (mThread != NULL) {
 	delete mThread;
     }
-    if (mName != NULL) {
-	delete mName;
-    }
 }
 
 void SessionClient::Dispatch(int sock) {
@@ -47,18 +50,14 @@ void SessionClient::Dispatch(int sock) {
     mThread->Create((void *) HandleSessionClient, this);
 }
 
-void SessionClient::SetName(const char *name) {
-    //Copies at most MAX_NAME_LENGHT + 1 (including '\0')
-    snprintf(mName, MAX_NAME_LENGHT+1, "%s", name);
-}
-
 void SessionClient::SetId(int id) {
-    mId = id;
+    stringstream ss;
+    ss << id;
+    mId = ss.str();
 }
 
 void SessionClient::HandleMessage(const string& aMsg) {
-    cout << "SessionClient " << mName << " received msg: " << aMsg << endl;
-
+    cout << "SessionClient [" << mId << "] received: " << aMsg << endl;
     size_t ctxid_beg = 0;
     size_t ctxid_end = aMsg.find_first_of(RequestIPC::REQ_SEPARATOR, ctxid_beg); 
     if (ctxid_end == ctxid_beg) {
@@ -83,9 +82,6 @@ void SessionClient::HandleMessage(const string& aMsg) {
 		return;
 	    }
 	    if (new_ctx != NULL) {
-		//stringstream ss;
-		//ss << rand();
-		//AddContext(ss.str(), new_ctx);
 		string uid = new_ctx->Uid();
 		AddContext(uid, new_ctx);
 		Send(RequestIPC::RES_OK, uid);
@@ -97,35 +93,14 @@ void SessionClient::HandleMessage(const string& aMsg) {
 }
 
 void SessionClient::Send(string const& msg, const string& msg_args) {
-    //string response = "" + msg + RequestIPC::REQ_SEPARATOR + msg_args;
-    string response = msg + " " + msg_args;
+    string response = msg + RequestIPC::REQ_SEPARATOR + msg_args;
     Send(response.c_str());
 }
 
-void SessionClient::Send(string const& response) {
-    Send(response.c_str());
-}
-
-void SessionClient::Send(const char *message) {
-    //Acquire the lock
+void SessionClient::Send(string const& aMsg) {
     SessionThread::LockMutex("'Send()'");
-    send(mSock, message, strlen(message), 0);
-    //Release the lock
+    send(mSock, aMsg.c_str(), aMsg.size(), 0);
     SessionThread::UnlockMutex("'Send()'");
-}
-
-
-// EnvProvider
-Env* SessionClient::GetEnv(int aEnvId)
-{
-    /*
-       Env* res = NULL;
-       if (aEnvId > 0 && aEnvId < mEnvs.size()) {
-       res = mEnvs.at(aEnvId);
-       }
-       return res;
-       */
-    return mEnv;
 }
 
 void SessionClient::CreateEnv(const string& aChromo)
@@ -134,16 +109,13 @@ void SessionClient::CreateEnv(const string& aChromo)
 	throw(runtime_error("Env already created"));
     }
     string name("Env~");
-    stringstream ss;
-    ss << mId;
-    string sid = ss.str();
-    name.append(sid);
+    name.append(mId);
     mEnv = new Env(aChromo, name+".log", false);
     if (mEnv == NULL) {
 	throw(runtime_error("Failed creating env"));
     }
     // Adding session Id into env variables
-    mEnv->SetEVar("SID", sid);
+    mEnv->SetEVar("SID", mId);
     DaaProv* daaprov = new DaaProv("DaaProv", mEnv);
     mEnv->AddProvider(daaprov);
     //mEnv->ConstructSystem();
@@ -157,42 +129,37 @@ void SessionClient::CreateEnv(const string& aChromo)
 void *SessionClient::HandleSessionClient(void *args) {
     //Pointer to accept()'ed SessionClient
     SessionClient *c = (SessionClient *) args;
-    char buffer[KBufSize-25], message[KBufSize];
+    char buffer[KBufSize-25];
     int index;
     int n;
     //Add client in Static sClients <vector> (Critical section!)
-    SessionThread::LockMutex((const char *) c->mName);
+    SessionThread::LockMutex(c->mId.c_str());
     //Before adding the new client, calculate its id. (Now we have the lock)
     c->SetId(sClients.size());
-    sprintf(buffer, "SessionClient n.%d", c->mId);
-    c->SetName(buffer);
     cout << "Adding client with id: " << c->mId << endl;
     sClients.push_back(c);
-    SessionThread::UnlockMutex((const char *) c->mName);
+    SessionThread::UnlockMutex(c->mId.c_str());
     while(1) {
 	memset(buffer, 0, sizeof buffer);
 	n = recv(c->mSock, buffer, sizeof buffer, 0);
 	//SessionClient disconnected?
 	if(n == 0) {
-	    cout << "SessionClient " << c->mName << " disconnected" << endl;
+	    cout << "SessionClient [" << c->mId << "] disconnected" << endl;
 	    close(c->mSock);
 	    //Remove client in Static sClients <vector> (Critical section!)
-	    SessionThread::LockMutex((const char *) c->mName);
+	    SessionThread::LockMutex(c->mId.c_str());
 	    index = FindSessionClientIndex(c);
-	    cout << "Erasing user in position " << index << " whose name id is: "
-		<< sClients[index]->mId << endl;
+	    cout << "Removed client session, id: " << sClients[index]->mId << endl;
 	    sClients.erase(sClients.begin() + index);
-	    SessionThread::UnlockMutex((const char *) c->mName);
+	    SessionThread::UnlockMutex(c->mId.c_str());
 	    delete c;
 	    break;
 	}
 	else if(n < 0) {
-	    cerr << "Error while receiving message from client: " << c->mName << endl;
+	    cerr << "Error while receiving message from client: " << c->mId << endl;
 	}
 	else {
 	    //Message received.
-	    //snprintf(message, sizeof message, "<%s>: %s", c->mName, buffer);
-	    //snprintf(message, sizeof message, "%s", buffer);
 	    c->HandleMessage(string(buffer));
 	}
     }
@@ -200,10 +167,7 @@ void *SessionClient::HandleSessionClient(void *args) {
     return NULL;
 }
 
-/*
-   Should be called when vector<SessionClient> sClients is locked!
-   */
-//Static
+// Static. Should be called when vector<SessionClient> sClients is locked!
 int SessionClient::FindSessionClientIndex(SessionClient *c) {
     for(size_t i=0; i<sClients.size(); i++) {
 	if((sClients[i]->mId) == c->mId) return (int) i;
@@ -213,7 +177,7 @@ int SessionClient::FindSessionClientIndex(SessionClient *c) {
 }
 
 //Static
-void SessionClient::FindSessionClientById(int aId, SessionClient *&c)
+void SessionClient::FindSessionClientById(const string& aId, SessionClient *&c)
 {
     for(size_t i=0; i<sClients.size(); i++) {
 	if((sClients[i]->mId) == aId) {
@@ -253,7 +217,7 @@ void SessionClient::GetId (string& aSessionId)
     aSessionId = ss.str();
 }
 
-void SessionClient::AttachEnv(int aSessionId, const string& aKey)
+void SessionClient::AttachEnv(const string& aSessionId)
 {
     SessionClient* session = NULL;
     FindSessionClientById(aSessionId, session);
@@ -264,7 +228,6 @@ void SessionClient::AttachEnv(int aSessionId, const string& aKey)
 	ss << aSessionId;
 	throw(runtime_error("Session [" + ss.str() + "] for attaching not found"));
     }
-
 }
 
 void SessionClient::DumpCtx() const
@@ -290,38 +253,29 @@ MIface* SessionClient::Call(const string& aSpec, string& aRes)
     string name, sig;
     vector<string> args;
     Ifu::ParseIcSpec(aSpec, name, sig, args);
-    if (name == "GetEnv") {
-	Env* env = GetEnv(0);
-	if (env != NULL) {
-	    aRes = "MEnv#0";
-	}
-    } else if (name == "CreateEnv") {
-	if (args.size() != 1) 
-	    throw (runtime_error("Wrong arguments number"));
+    TBool name_ok = EnvProvider::mIfu.CheckMname(name);
+    if (!name_ok)
+	throw (runtime_error("Wrong method name"));
+    TBool args_ok = EnvProvider::mIfu.CheckMpars(name, args.size());
+    if (!args_ok)
+	throw (runtime_error("Wrong arguments number"));
+    if (name == "CreateEnv") {
 	CreateEnv(args.at(0));
 	aRes = "MEnv#0";
     } else if (name == "GetId") {
-	if (args.size() != 0) 
-	    throw (runtime_error("Wrong arguments number"));
 	GetId(aRes);
     } else if (name == "AttachEnv") {
-	if (args.size() != 1) 
-	    throw (runtime_error("Wrong arguments number"));
-	stringstream ss(args.at(0));
-	int id;
-	ss >> id;
-	AttachEnv(id, "");
+	AttachEnv(args.at(0));
     } else {
-	throw (runtime_error("Unknown method"));
+	throw (runtime_error("Unhandled method: " + name));
     }
     return res;
 }
 
 // Static
-SessionClient* SessionClient::GetSession(int aId)
+SessionClient* SessionClient::GetSession(const string& aId)
 {
     SessionClient* res = NULL;
     FindSessionClientById(aId, res);
     return res;
-    
 }

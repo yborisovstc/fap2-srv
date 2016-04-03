@@ -7,10 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/in.h>
-#include <env.h>
-#include "sthread.h"
 #include "sclient.h"
-#include "sthread.h"
 
 #define PORT 30666
 
@@ -24,7 +21,6 @@ class Server {
         //Socket stuff
         int mServerSock, mClientSock;
         struct sockaddr_in mServerAddr, mClientAddr;
-        char mBuff[256];
 };
 
 #endif
