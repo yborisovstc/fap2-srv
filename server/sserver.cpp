@@ -2,7 +2,18 @@
 
 using namespace std;
 
-Server::Server() {
+Server::Server(int aPort): mPort(aPort)
+{
+    Construct();
+}
+
+Server::Server(): mPort(0)
+{
+    Construct();
+}
+
+void Server::Construct()
+{
     //Initialize static mutex from SessionThread
     SessionThread::InitMutex();
     //For setsock opt (REUSEADDR)
@@ -12,7 +23,7 @@ Server::Server() {
     memset(&mServerAddr, 0, sizeof(sockaddr_in));
     mServerAddr.sin_family = AF_INET;
     mServerAddr.sin_addr.s_addr = INADDR_ANY;
-    mServerAddr.sin_port = htons(PORT);
+    mServerAddr.sin_port = htons(mPort == 0 ? PORT : mPort);
     //Avoid bind error if the socket was not close()'d last time;
     setsockopt(mServerSock,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int));
     if (bind(mServerSock, (struct sockaddr *) &mServerAddr, sizeof(sockaddr_in)) < 0)

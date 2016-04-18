@@ -154,7 +154,7 @@ const MElem* MelemPx::GetMan() const
 
 void MelemPx::SetMan(MElem* aMan) {}
 
-void MelemPx::SetObserver(MCompsObserver* aObserver) {}
+void MelemPx::SetObserver(MAgentObserver* aObserver) {}
 
 vector<MElem*>& MelemPx::Comps() { return FakeComps;}
 

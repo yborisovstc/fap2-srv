@@ -11,16 +11,7 @@ using namespace std;
 
 const int KBufSize = 2048;
 
-EnvProvider::EIfu EnvProvider::mIfu;
-
-// Ifu static initialisation
-EnvProvider::EIfu::EIfu()
-{
-    RegMethod("CreateEnv", 1);
-    RegMethod("AttachEnv", 1);
-    RegMethod("GetId", 0);
-}
-
+#if 0
 
 //Actually allocate sClients
 vector<SessionClient*> SessionClient::sClients;
@@ -29,9 +20,16 @@ SessionClient::SessionClient(): mEnv(NULL), mAttached(NULL)  {
     AddContext("EnvProvider", this);
 }
 
-SessionClient::SessionClient(int sock): mEnv(NULL), mAttached(NULL) {
-    Dispatch(sock);
+SessionClient::SessionClient(int sock): mSock(sock), mEnv(NULL), mAttached(NULL) {
     AddContext("EnvProvider", this);
+    mThread = new SessionThread();
+    // Adding client in Static sClients registry (Critical section!)
+    SessionThread::LockMutex(mId.c_str());
+    SetId(sClients.size());
+    cout << "Adding client with id: " << mId << endl;
+    sClients.push_back(this);
+    SessionThread::UnlockMutex(mId.c_str());
+    mThread->Create((void *) HandleSessionClient, this);
 }
 
 SessionClient::~SessionClient()
@@ -42,12 +40,6 @@ SessionClient::~SessionClient()
     if (mThread != NULL) {
 	delete mThread;
     }
-}
-
-void SessionClient::Dispatch(int sock) {
-    mSock = sock;
-    mThread = new SessionThread();
-    mThread->Create((void *) HandleSessionClient, this);
 }
 
 void SessionClient::SetId(int id) {
@@ -126,45 +118,40 @@ void SessionClient::CreateEnv(const string& aChromo)
 }
 
 //Static
-void *SessionClient::HandleSessionClient(void *args) {
-    //Pointer to accept()'ed SessionClient
+void *SessionClient::HandleSessionClient(void *args)
+{
     SessionClient *c = (SessionClient *) args;
-    char buffer[KBufSize-25];
-    int index;
-    int n;
-    //Add client in Static sClients <vector> (Critical section!)
-    SessionThread::LockMutex(c->mId.c_str());
-    //Before adding the new client, calculate its id. (Now we have the lock)
-    c->SetId(sClients.size());
-    cout << "Adding client with id: " << c->mId << endl;
-    sClients.push_back(c);
-    SessionThread::UnlockMutex(c->mId.c_str());
-    while(1) {
-	memset(buffer, 0, sizeof buffer);
-	n = recv(c->mSock, buffer, sizeof buffer, 0);
-	//SessionClient disconnected?
-	if(n == 0) {
-	    cout << "SessionClient [" << c->mId << "] disconnected" << endl;
-	    close(c->mSock);
-	    //Remove client in Static sClients <vector> (Critical section!)
-	    SessionThread::LockMutex(c->mId.c_str());
-	    index = FindSessionClientIndex(c);
-	    cout << "Removed client session, id: " << sClients[index]->mId << endl;
-	    sClients.erase(sClients.begin() + index);
-	    SessionThread::UnlockMutex(c->mId.c_str());
-	    delete c;
-	    break;
-	}
-	else if(n < 0) {
-	    cerr << "Error while receiving message from client: " << c->mId << endl;
-	}
-	else {
-	    //Message received.
-	    c->HandleMessage(string(buffer));
-	}
-    }
+    c->Run();
     //End thread
     return NULL;
+}
+
+void SessionClient::Run()
+{
+    char buffer[KBufSize-25];
+    int index, n;
+    while (1) {
+	memset(buffer, 0, sizeof buffer);
+	n = recv(mSock, buffer, sizeof buffer, 0);
+	//SessionClient disconnected?
+	if(n == 0) {
+	    cout << "SessionClient [" << mId << "] disconnected" << endl;
+	    close(mSock);
+	    //Remove client in Static sClients <vector> (Critical section!)
+	    SessionThread::LockMutex(mId.c_str());
+	    index = FindSessionClientIndex(this);
+	    cout << "Removed client session, id: " << sClients[index]->mId << endl;
+	    sClients.erase(sClients.begin() + index);
+	    SessionThread::UnlockMutex(mId.c_str());
+	    delete this;
+	    break;
+	} else if (n < 0) {
+	    cerr << "Error while receiving message from client: " << mId << endl;
+	} else {
+	    //Message received.
+	    HandleMessage(string(buffer));
+	}
+    }
 }
 
 // Static. Should be called when vector<SessionClient> sClients is locked!
@@ -279,3 +266,77 @@ SessionClient* SessionClient::GetSession(const string& aId)
     FindSessionClientById(aId, res);
     return res;
 }
+
+#endif
+
+
+
+//#if 0
+
+SessionClient::SessionClient(): CSessionBase()  {
+}
+
+SessionClient::SessionClient(int sock): CSessionBase(sock), mThread(NULL)
+{
+    mThread = new SessionThread();
+    // Adding client in Static sClients registry (Critical section!)
+    SessionThread::LockMutex(mId.c_str());
+    SetId(sClients.size());
+    cout << "Adding client with id: " << mId << endl;
+    sClients.push_back(this);
+    SessionThread::UnlockMutex(mId.c_str());
+    mThread->Create((void*) RunSession, this);
+}
+
+SessionClient::~SessionClient()
+{
+    if (mThread != NULL) {
+	delete mThread;
+    }
+}
+
+void SessionClient::Send(string const& aMsg) {
+    SessionThread::LockMutex("'Send()'");
+    send(mSock, aMsg.c_str(), aMsg.size(), 0);
+    SessionThread::UnlockMutex("'Send()'");
+}
+
+//Static
+void *SessionClient::RunSession(void *args)
+{
+    SessionClient *c = (SessionClient *) args;
+    c->Run();
+    //End thread
+    return NULL;
+}
+
+bool SessionClient::Run()
+{
+    char buffer[KBufSize-25];
+    int index, n;
+    while (1) {
+	memset(buffer, 0, sizeof buffer);
+	n = recv(mSock, buffer, sizeof buffer, 0);
+	//SessionClient disconnected?
+	if (n == 0) {
+	    cout << "SessionClient [" << mId << "] disconnected" << endl;
+	    close(mSock);
+	    //Remove client in Static sClients <vector> (Critical section!)
+	    SessionThread::LockMutex(mId.c_str());
+	    index = FindSessionIndex(this);
+	    cout << "Removed client session, id: " << sClients[index]->mId << endl;
+	    sClients.erase(sClients.begin() + index);
+	    SessionThread::UnlockMutex(mId.c_str());
+	    delete this;
+	    break;
+	} else if (n < 0) {
+	    cerr << "Error while receiving message from client: " << mId << endl;
+	} else {
+	    //Message received.
+	    HandleMessage(string(buffer));
+	}
+    }
+    return false;
+}
+
+//#endif

@@ -31,6 +31,8 @@ class BaseClient {
         void Dispatch();
 	void Disconnect();
 	bool IsReady();
+	static int ParseUri(const string& aUri, string& aScheme, string& aHost, string& aPort);
+	static int GetPortInt(const string& aPort);
     protected:
         static const string LOCAL_HOST;
         static const int KBufSize;

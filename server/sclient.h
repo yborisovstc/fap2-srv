@@ -10,25 +10,29 @@
 #include "sthread.h"
 #include <env.h>
 #include <ifu.h>
+#include "fapcsbase.h"
 
 using namespace std;
 
-class EnvProvider: public MIface {
+
+//#if 0
+class SessionClient : public CSessionBase {
     public:
-	static const char* Type() { return "EnvProvider";};
-	virtual void CreateEnv(const string& aChromo) = 0;
-	virtual void AttachEnv(const string& aSessionId) = 0;
-	virtual void GetId (string& aSessionId) = 0;
+        SessionClient();
+        SessionClient(int sock);
+	virtual ~SessionClient();
+        static void* RunSession(void *args);
     protected:
-	class EIfu: public Ifu {
-	    public:
-		EIfu();
-	};
-	// Interface methods utility
-	static EIfu mIfu;
-
+        virtual void Send(string const& aMsg);
+        virtual bool Run();
+    protected:
+        SessionThread *mThread;
 };
+//#endif
 
+
+
+#if 0
 class SessionClient : public EnvProvider {
     public:
 	// Key of context map: Handle
@@ -47,10 +51,8 @@ class SessionClient : public EnvProvider {
     public:
         SessionClient();
         SessionClient(int sock);
-	~SessionClient();
-        void Dispatch(int sock);
-        void SetId(int id);
-        static void * HandleSessionClient(void *args);
+	virtual ~SessionClient();
+        static void* HandleSessionClient(void *args);
 	// EnvProvider
 	virtual void CreateEnv(const string& aChromo);
 	virtual void AttachEnv(const string& aSessionId);
@@ -58,10 +60,12 @@ class SessionClient : public EnvProvider {
 	virtual MIface* Call(const string& aSpec, string& aRes);
 	virtual string Uid() const;
 	virtual string Mid() const;
-    private:
-        void HandleMessage(const string& aMsg);
+    protected:
+        virtual void HandleMessage(const string& aMsg);
+        virtual void Send(string const& aMsg);
+        virtual void Run();
+        void SetId(int id);
         void Send(string const& msg, const string& msg_args);
-        void Send(string const& aMsg);
         static int FindSessionClientIndex(SessionClient *c);
         static void FindSessionClientById(const string& mId, SessionClient *&c);
 	void AddContext(const string& aHandle, MIface* aPtr);
@@ -70,4 +74,6 @@ class SessionClient : public EnvProvider {
 	void DumpCtx() const;
 	static SessionClient* GetSession(const string& aId);
 };
+#endif
+
 #endif

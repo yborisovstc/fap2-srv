@@ -16,9 +16,12 @@ using namespace std;
 class Server {
     public:
         Server();
+        Server(int aPort);
+	void Construct();
         void AcceptAndDispatch();
     private:
         //Socket stuff
+	int mPort;
         int mServerSock, mClientSock;
         struct sockaddr_in mServerAddr, mClientAddr;
 };

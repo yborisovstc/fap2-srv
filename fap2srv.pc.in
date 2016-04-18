@@ -7,5 +7,5 @@ Name: fap2srv
 Description: Discrete events system (DES) distributed model engine
 Version: @VERSION@
 Requires: 
-Libs: -lfap2da -lfap2client
+Libs: -lfap2da -lfap2client -lfap2srv
 Cflags: -I${includedir}/fap2da                       

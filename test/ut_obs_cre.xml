@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+
+<!-- Unit test for ceation of remote env with bidirectional  Vertex
+     communication. "Down" and "Up" remote env agent are used
+     -->
+
+
+<!DOCTYPE node SYSTEM "../etc/objspec.dtd"> 
+
+<node id="test" parent="Vert">
+    <node id="v1" parent="Vert"/>
+    <node id="v2" parent="Vert"/>
+    <node id="prop1" parent="Prop">
+	<cont val="Hello!"/>
+    </node>
+</node>
+

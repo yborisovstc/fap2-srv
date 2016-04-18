@@ -6,6 +6,7 @@ AM_INIT_AUTOMAKE([-Wall])
 AC_CONFIG_FILES([
 		 Makefile
 		 server/Makefile
+		 srvexe/Makefile
 		 client/Makefile
 		 dmas/Makefile
 		 test/Makefile

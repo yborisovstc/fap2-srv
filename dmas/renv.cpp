@@ -79,8 +79,9 @@ BaseClient* RenvClient::GetClient()
 	client->Connect(mHostUri);
 	assert(!mRmtSID.empty());
 	string resp;
-	TBool rr = client->Request("EnvProvider", "AttachEnv,1," + mRmtSID, resp);
-	if (rr) {
+	//TBool rr = client->Request("EnvProvider", "AttachEnv,1," + mRmtSID, resp);
+	//if (rr) {
+	if (true) {
 	    res = client;
 	    mClients.push_back(client);
 	} else {
@@ -380,17 +381,21 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
     TBool res = mRenvClient.Request("EnvProvider", "CreateEnv,1," + spec, env);
     if (res) {
 	// Get current session id
-	string sid;
-	res = iEnv->GetEVar("SID", sid);
+	//string sid;
+	//res = iEnv->GetEVar("SID", sid);
+	string eid;
+	res = iEnv->GetEVar("EID", eid);
 	if (res) {
 	    string resp;
 	    // Set session id and this Uid to remote env as PrimarySid and PrimaryUid
-	    res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
+	    //res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
+	    res = mRenvClient.Request(env, "SetEVar,1,PrimaryEID," + eid, resp);
 	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryUid," + GetUri(), resp);
 	    string rsid;
-	    res = res && mRenvClient.Request(env, "GetEVar,1,SID", rsid);
-	    if (res) {
-		mRenvClient.SetRmtSID(rsid);
+	    //res = res && mRenvClient.Request(env, "GetEVar,1,SID", rsid);
+	    //if (res) {
+	    if (true) {
+		//mRenvClient.SetRmtSID(rsid);
 		// Create remote model
 		res = mRenvClient.Request(env, "ConstructSystem", resp);
 		if (res) {
@@ -556,8 +561,9 @@ TBool ARenvu::Request(const string& aContext, const string& aReq, string& aResp)
 
 void ARenvu::Connect()
 {
-    string psid, puid;
-    TBool res = iEnv->GetEVar("PrimarySID", psid);
+    string psid, puid, peid;
+    //TBool res = iEnv->GetEVar("PrimarySID", psid);
+    TBool res = iEnv->GetEVar("PrimaryEID", peid);
     res = res && iEnv->GetEVar("PrimaryUid", puid);
     if (res) {
 	try {
@@ -567,13 +573,14 @@ void ARenvu::Connect()
 	    Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed");
 	}
 	if (res) {
-	    mRenvClient.SetRmtSID(psid);
+	    //mRenvClient.SetRmtSID(psid);
 	    string resp;
-	    res = mRenvClient.Request("EnvProvider", "AttachEnv,1," + psid, resp);
+	    //res = mRenvClient.Request("EnvProvider", "AttachEnv,1," + psid, resp);
+	    //if (res) {
 	    if (res) {
 		// Get primary env agent
 		string root, pagt;
-		res = mRenvClient.Request("MEnv#0", "Root", root);
+		res = mRenvClient.Request(peid, "Root", root);
 		res = res && mRenvClient.Request(root, "GetNode,1," + puid, pagt);
 		if (res) {
 		    mConnected = ETrue;

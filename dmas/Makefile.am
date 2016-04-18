@@ -19,8 +19,8 @@ libfap2da_la_SOURCES = \
                        mvertpx.cpp \
                        daapxprov.h \
                        daapxprov.cpp \
-                       elempx.h \
-                       elempx.cpp
+                       mcobspx.h \
+                       mcobspx.cpp
 
 include_HEADERS = \
 		  mipxprov.h \

@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include "../client/bclient.h"
 #include "../server/requests.h"
+#include "../server/sserver.h"
 #include <sys/types.h>
 #include <signal.h>
 #include <env.h>
@@ -729,6 +730,189 @@ void Ut_Syst::test_Syst_Cre()
 
 
     client->Disconnect();
+    delete client;
+}
+
+
+
+/* Test suite to verify agents observer support
+*/
+class Ut_Obs : public CPPUNIT_NS::TestFixture
+{
+    CPPUNIT_TEST_SUITE(Ut_Obs);
+    CPPUNIT_TEST(test_Obs_Cre);
+    CPPUNIT_TEST_SUITE_END();
+    public:
+    class Ut_Obs_Ago: public MAgentObserver
+    {
+	public:
+	    Ut_Obs_Ago();
+	    virtual ~Ut_Obs_Ago();
+	public:
+	    virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);
+	    virtual void OnCompAdding(MElem& aComp);
+	    virtual TBool OnCompChanged(MElem& aComp);
+	    virtual TBool OnContentChanged(MElem& aComp);
+	    virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
+	    // From MIface	
+	    virtual MIface* Call(const string& aSpec, string& aRes);
+	    virtual string Mid() const;
+    };
+    public:
+    virtual void setUp();
+    virtual void tearDown();
+    private:
+    static void* RunBackSrv(void *args);
+    private:
+    void test_Obs_Cre();
+    private:
+    Server* mBSrv;
+    Ut_Obs_Ago* mAgo;
+    pthread_t mTid;
+    static const int BSRV_PORT;
+    static const string BSRV_PORT_S;
+};
+
+const int Ut_Obs::BSRV_PORT = 30678;
+const string Ut_Obs::BSRV_PORT_S = "30678";
+
+CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_Obs, "Ut_Obs");
+
+void Ut_Obs::Ut_Obs_Ago::OnCompDeleting(MElem& aComp, TBool aSoft)
+{
+}
+
+void Ut_Obs::Ut_Obs_Ago::OnCompAdding(MElem& aComp)
+{
+}
+
+TBool Ut_Obs::Ut_Obs_Ago::OnCompChanged(MElem& aComp)
+{
+    return true;
+}
+
+TBool Ut_Obs::Ut_Obs_Ago::OnContentChanged(MElem& aComp)
+{
+    return true;
+}
+
+TBool Ut_Obs::Ut_Obs_Ago::OnCompRenamed(MElem& aComp, const string& aOldName)
+{
+    return true;
+}
+
+Ut_Obs::Ut_Obs_Ago::Ut_Obs_Ago()
+{
+}
+
+
+Ut_Obs::Ut_Obs_Ago::~Ut_Obs_Ago()
+{
+}
+
+string Ut_Obs::Ut_Obs_Ago::Mid() const
+{
+    return string();
+}
+
+MIface* Ut_Obs::Ut_Obs_Ago::Call(const string& aSpec, string& aRes)
+{
+    MIface* res = NULL;
+    string name, sig;
+    vector<string> args;
+    Ifu::ParseIcSpec(aSpec, name, sig, args);
+    TBool name_ok = mIfu.CheckMname(name);
+    if (!name_ok) {
+	CPPUNIT_ASSERT_MESSAGE("Wrong method name", false);
+    }
+    TBool args_ok = mIfu.CheckMpars(name, args.size());
+    if (!args_ok) {
+	CPPUNIT_ASSERT_MESSAGE("Wrong arguments number", false);
+    }
+    if (name == "OnCompDeleting") {
+	cout << "OnCompDeleting: " << args.at(0) << endl;
+    } else if (name == "OnCompAdding") {
+	cout << "[AgentObserver] OnCompAdding: " << args.at(0) << endl;
+    } else {
+	CPPUNIT_ASSERT_MESSAGE("Unhandled method", false);
+    }
+    return res;
+}
+
+
+// static
+void* Ut_Obs::RunBackSrv(void *args)
+{
+    Ut_Obs* self = (Ut_Obs*) args;
+    self->mBSrv->AcceptAndDispatch();
+    return NULL;
+}
+
+void Ut_Obs::setUp()
+{
+    mBSrv = new Server(BSRV_PORT);
+    mAgo = new Ut_Obs_Ago();
+}
+
+void Ut_Obs::tearDown()
+{
+    delete mAgo;
+    delete mBSrv;
+}
+
+// Test of creation model and connecting to observer
+void Ut_Obs::test_Obs_Cre()
+{
+    printf("\n === Test of Creating remote model and connecting agent observer\n");
+    // Create back server
+    int th = pthread_create(&this->mTid, NULL, (void *(*)(void *))RunBackSrv, this);
+    // Add Agent Observer to server resources
+    CSessionBase::AddSContext("AObs_1", mAgo);
+    // Create client session 
+    BaseClient* client = new BaseClient();
+    // Wait until server run
+    bool srv_run = WaitSrv();
+    CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
+    try {
+	client->Connect("");
+    } catch (exception& e) {
+	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
+    }
+    printf("Client connected to the server\n");
+    // Creating model
+    string cenv;
+    bool res;
+    // Checking env id
+    string sid;
+    res = client->Request("EnvProvider", "GetId", sid);
+    printf("Getting session1 id -- Response: %s\n", sid.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Gettng session1 id failed: " + sid, res);
+    // Create primary model env remotelly
+    string cspec;
+    string resp;
+    ReadCspec("ut_obs_cre.xml", cspec);
+    res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + cspec, cenv);
+    printf("Creating env: %s\n", cenv.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating env failed: " + cenv, res);
+    // Construct primary model
+    printf("Started creating model");
+    res = client->Request(cenv, "ConstructSystem", resp);
+    printf("Creating model: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating model failed: " + resp, res);
+    // Getting root
+    string root;
+    res = client->Request(cenv, "Root", root);
+    printf("Getting root: %s\n", root.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
+    // Requesting to connect observer
+    string aobs_uri = "socks://localhost:" + BSRV_PORT_S + "/AObs_1#"; 
+    res = client->Request(root, "SetObserver,1," + aobs_uri, resp);
+    printf("Connecting observer: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Connecting observer failed: " + resp, res);
+    // Adding new component to the root
+    res = client->Request(root, "Mutate,1,<node><node id=\"node_1\" parent=\"Elem\"></node></node>,false,true,true", resp);
+    printf("Adding new component to the root: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Adding new component to the root failed: " + resp, res);
     delete client;
 }
 

@@ -9,9 +9,7 @@ libfap2client_la_SOURCES = \
 		       ../server/requests.h \
 		       ../server/requests.cpp
 
-#fap2_client_SOURCES = \
-#                       client_test_main.cpp \
-#                       bclient.h \
-#                       bclient.cpp
+include_HEADERS = \
+		  bclient.h
 
 libfap2client_la_LDFLAGS = -rdynamic -no-undefined

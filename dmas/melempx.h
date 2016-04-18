@@ -52,7 +52,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetMan();
 	virtual const MElem* GetMan() const;
 	virtual void SetMan(MElem* aMan);
-	virtual void SetObserver(MCompsObserver* aObserver);
+	virtual void SetObserver(MAgentObserver* aObserver);
 	virtual vector<MElem*>& Comps();
 	virtual const vector<MElem*>& Comps() const;
 	virtual MElem* GetComp(const string& aParent, const string& aName);
