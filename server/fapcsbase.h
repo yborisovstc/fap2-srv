@@ -81,6 +81,7 @@ class CSessionBase : public EnvProvider
 	virtual string Mid() const;
         static void FindSessionById(const string& mId, CSessionBase *&c);
 	static void AddSContext(const string& aHandle, MIface* aPtr);
+	static void RmSContext(MIface* aPtr);
     protected:
         virtual void HandleMessage(const string& aMsg);
         virtual void Send(string const& aMsg);
@@ -89,7 +90,6 @@ class CSessionBase : public EnvProvider
         void Send(string const& msg, const string& msg_args);
         static int FindSessionIndex(CSessionBase *c);
 	void AddContext(const string& aHandle, MIface* aPtr);
-	void RmSContext(MIface* aPtr);
 	MIface* GetContext(const string& aHandle, bool aShared = false);
 	// Debug
 	void DumpCtx() const;

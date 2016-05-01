@@ -2,6 +2,7 @@
 #include "../client/bclient.h"
 #include "../server/requests.h"
 #include "../server/sserver.h"
+#include "../server/sclient.h"
 #include <sys/types.h>
 #include <signal.h>
 #include <env.h>
@@ -438,10 +439,27 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(rroot, "GetMan", resp);
     printf("Getting remote root owner: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote root owner failed: " + resp, res);
+    // Getting remote root absolute URI
+    string rroot_uri;
+    res = client->Request(rroot, "GetUri,1", rroot_uri);
+    printf("Getting remote root absolute URI: %s\n", rroot_uri.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root absolute URI failed: " + rroot_uri, res);
     // Getting upper node via remote root
     res = client->Request(rroot, "GetNode,1,/*", resp);
     printf("Getting root via remote root: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting root via remote root failed: " + resp, res);
+    // Getting remote root comps count
+    res = client->Request(rroot, "CompsCount,1", resp);
+    printf("Getting remote root comps count: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root comps count failed: " + resp, res);
+    // Getting remote root compa#0
+    res = client->Request(rroot, "GetComp,1,0", resp);
+    printf("Getting remote root comp#0: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root comp#0: " + resp, res);
+    // Getting remote root compa#1
+    res = client->Request(rroot, "GetComp,1,1", resp);
+    printf("Getting remote root comp#1: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root comp#1: " + resp, res);
     // Getting remote remote_node_1
     string rnode1;
     res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1", rnode1);
@@ -457,6 +475,11 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(rnode1, string("DoGetObj,1,") + MVert::Type(), rnode1_vert);
     printf("Getting MVert iface of remote remote_node_1: %s\n", rnode1_vert.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of remote remote_node_1 failed: " + rnode1_vert, res);
+    // Getting remote_node_1 URI relative to remote root
+    string rnode1_ruri;
+    res = client->Request(rnode1, "GetUri#2,1," + rroot_uri, rnode1_ruri);
+    printf("Getting remote_node_1 URI relative to remote root: %s\n", rnode1_ruri.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root URI relative to remote_node_1 failed: " + rnode1_ruri, res);
     // Getting remote remote_node_2 created from remote parent (from primary env)
     string rnode2;
     res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);

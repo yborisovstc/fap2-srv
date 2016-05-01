@@ -96,6 +96,8 @@ MIface* MelemPx::Call(const string& aSpec, string& aRes)
 	GetCont(aRes, args.at(0));
     } else if (name == "GetUri") {
 	aRes = GetUri(NULL, ETrue);
+    } else if (name == "GetUri#2") {
+	mMgr->Request(mContext, aSpec, aRes);
     } else if (name == "DoGetObj") {
 	res = (MIface*) DoGetObj(args.at(0).c_str());
     } else if (name == "GetIfi") {
@@ -110,6 +112,12 @@ MIface* MelemPx::Call(const string& aSpec, string& aRes)
 	mMgr->Request(mContext, aSpec, aRes);
     } else if (name == "UnregIfProv") {
 	mMgr->Request(mContext, aSpec, aRes);
+    } else if (name == "OnCompAdding") {
+	mMgr->Request(mContext, aSpec, aRes);
+    } else if (name == "CompsCount") {
+	mMgr->Request(mContext, aSpec, aRes);
+    } else if (name == "GetComp") {
+	res = (MIface*) NewMElemProxyRequest(aSpec);
     } else {
 	throw (runtime_error("Unhandled method: " + name));
     }
@@ -156,7 +164,10 @@ void MelemPx::SetMan(MElem* aMan) {}
 
 void MelemPx::SetObserver(MAgentObserver* aObserver) {}
 
-vector<MElem*>& MelemPx::Comps() { return FakeComps;}
+vector<MElem*>& MelemPx::Comps()
+{ 
+    return FakeComps;
+}
 
 const vector<MElem*>& MelemPx::Comps() const { return FakeComps;}
 
@@ -241,9 +252,26 @@ void MelemPx::GetRUri(GUri& aUri, MElem* aTop) {}
 
 string MelemPx::GetUri(MElem* aTop, TBool aShort) const
 {
-    __ASSERT(aTop == NULL);
     string res;
-    mMgr->Request(mContext, "GetUri,1", res);
+    if (aTop == NULL) {
+	TBool rres = mMgr->Request(mContext, "GetUri,1", res);
+	if (!rres) {
+	    Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetUri] request failed: %s",
+		    Uid().c_str(), res.c_str());
+	}
+    } else {
+	string base;
+	TBool rres = mMgr->Request(mContext, "GetUri,1", base);
+	if (!rres) {
+	    Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetUri] failed on getting base: %s",
+		    Uid().c_str(), base.c_str());
+	}
+	rres = mMgr->Request(mContext, "GetUri#2,1," + base, res);
+	if (!rres) {
+	    Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetUri %s] failed on GetUri#2 request: %s",
+		    Uid().c_str(), base.c_str(), res.c_str());
+	}
+    }
     return res;
 }
 
@@ -303,7 +331,19 @@ TInt MelemPx::GetCapacity() const {return 0;}
 
 TBool MelemPx::IsHeirOf(const string& aParent) const {return false;}
 
-MElem* MelemPx::GetComp(const string& aParent, const string& aName) {};
+TInt MelemPx::CompsCount() const
+{
+    TInt res = 0;
+    string resp;
+    TBool rr = mMgr->Request(mContext, "CompsCount", resp);
+    if (rr)
+	res = Ifu::ToInt(resp);
+    return res;
+}
+
+MElem* MelemPx::GetComp(const string& aParent, const string& aName)
+{
+};
 
 MElem* MelemPx::GetComp(const string& aParent, const string& aName) const {};
 
@@ -409,7 +449,18 @@ void MelemPx::OnParentMutated(MElem* aParent, const ChromoNode& aMut) {};
 
 void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft) {}
 
-void  MelemPx::OnCompAdding(MElem& aComp) {}
+void  MelemPx::OnCompAdding(MElem& aComp)
+{
+    string resp;
+    string req("OnCompAdding,1,");
+    string uri = aComp.GetUri(NULL, ETrue);
+    req += uri;
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [OnCompAdding %s] request failed: %s",
+		Uid().c_str(), uri.c_str(), resp.c_str());
+    }
+}
 
 TBool  MelemPx::OnCompChanged(MElem& aComp) { return false;}
 
@@ -525,7 +576,10 @@ void MelemPx::DumpCmDeps() const {};
 
 MElem* MelemPx::GetNodeS(const char* aUri) {};
 
-MElem* MelemPx::GetComp(TInt aInd) {};
+MElem* MelemPx::GetComp(TInt aInd)
+{
+    return NewMElemProxyRequest(string("GetComp,1,") + Ifu::FromInt(aInd));
+};
 
 void *MelemPx::DoGetObj(const char *aName)
 {
@@ -558,7 +612,7 @@ TBool MelemPx::RegisterChild(const string& aChildUri)
 
 string MelemPx::Uid() const
 {
-    return GetContext();
+    return "Px%" + GetContext();
 }
 
 string MelemPx::Mid() const

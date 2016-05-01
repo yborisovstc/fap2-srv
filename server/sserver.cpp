@@ -1,4 +1,5 @@
 #include "sserver.h"
+#include "sclient.h"
 
 using namespace std;
 

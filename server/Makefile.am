@@ -17,6 +17,7 @@ libfap2srv_la_SOURCES = \
 
 include_HEADERS = \
 		  requests.h \
+		  sserver.h \
 		  fapcsbase.h
 
 libfap2srv_la_LDFLAGS=  -L../client/.libs/ -lfap2client -L../dmas/.libs -lfap2da -lrt -Wl,--no-as-needed

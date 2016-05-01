@@ -109,6 +109,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void DumpMcDeps() const;
 	virtual void DumpCmDeps() const;
 	virtual MElem* GetNodeS(const char* aUri);
+	virtual TInt CompsCount() const;
 	virtual MElem* GetComp(TInt aInd);
 	virtual void SaveChromo(const char* aPath) const;
     public:

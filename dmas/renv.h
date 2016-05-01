@@ -74,14 +74,14 @@ class ARenv: public Elem, public MProxyMgr
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName = string()); 
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
 	//virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse);
-	virtual Iterator NodesLoc_Begin(const GUri::TElem& aElem, TBool aInclRm = EFalse);
-	virtual Iterator NodesLoc_End(const GUri::TElem& aElem, TBool aInclRm = EFalse);
+	//virtual Iterator NodesLoc_Begin(const GUri::TElem& aElem, TBool aInclRm = EFalse);
+	//virtual Iterator NodesLoc_End(const GUri::TElem& aElem, TBool aInclRm = EFalse);
 	// From MMutable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	// From MProxyMgr
 	virtual TBool Request(const string& aContext, const string& aReq, string& aResp);
     protected:
-	void AddElemRmt(const ChromoNode& aSpec, TBool aRunTime = EFalse, TBool aTrialMode = EFalse);
+	void AddElemRmt(const ChromoNode& aSpec, TBool aRunTime = EFalse, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
     protected:
 	string mRenvUri;
 	RenvClient mRenvClient;

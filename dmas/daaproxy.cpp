@@ -80,6 +80,8 @@ void* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& aPxType)
 	    px = GetProxy(resp);
 	}
 	res = px->GetIface(aPxType);
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s", Uid().c_str(), aCallSpec.c_str(), resp.c_str());
     }
     return res;
 }
@@ -108,3 +110,4 @@ bool DaaProxy::Request(const string& aContext, const string& aReq, string& aResp
     // Just redirect to mgr
     return mMgr->Request(aContext, aReq, aResp);
 }
+

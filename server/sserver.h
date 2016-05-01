@@ -7,7 +7,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/in.h>
-#include "sclient.h"
 
 #define PORT 30666
 

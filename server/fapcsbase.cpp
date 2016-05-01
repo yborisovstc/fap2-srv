@@ -273,6 +273,7 @@ void CSessionBase::AddContext(const string& aHandle, MIface* aPtr)
 {
     TCtxKey key(aHandle);
     TCtx& ctx = (mAttached == NULL) ?  mCtx : mAttached->mCtx;
+    //assert(ctx.count(key) == 0);
     /*
     if (ctx.count(key) > 0) {
 	throw(runtime_error("Context already exists"));

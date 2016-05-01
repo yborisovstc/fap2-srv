@@ -77,8 +77,8 @@ BaseClient* RenvClient::GetClient()
 	BaseClient* client = new BaseClient();
 	assert(client != NULL);
 	client->Connect(mHostUri);
-	assert(!mRmtSID.empty());
-	string resp;
+	//assert(!mRmtSID.empty());
+	//string resp;
 	//TBool rr = client->Request("EnvProvider", "AttachEnv,1," + mRmtSID, resp);
 	//if (rr) {
 	if (true) {
@@ -238,6 +238,14 @@ ARenv::ARenv(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
 }
 
 ARenv::~ARenv() {
+    // Plainly delete all comps and clear comps registry. There is only one comp - proxy. 
+    // It doesn't have relation // comp-owner established, so the base agent mechanism of
+    // comps removal will not work (it assumes that comp notifies owner OnCompDeleting).
+    for (vector<MElem*>::reverse_iterator it = iComps.rbegin(); it != iComps.rend(); it++) {
+	MElem* comp = *it;
+	delete comp;
+    };
+    iComps.clear();
     for (vector<DaaProxy*>::iterator it = mProxies.begin(); it != mProxies.end(); it++) {
 	DaaProxy* px = *it;
 	delete px;
@@ -336,7 +344,7 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 	} else {
 	    TNodeType rnotype = rno.Type();
 	    if (rnotype == ENt_Node) {
-		AddElemRmt(rno, aRunTime, aTrialMode);
+		AddElemRmt(rno, aRunTime, aTrialMode, aCtx);
 	    }
 	    else if (rnotype == ENt_Change) {
 		ChangeAttr(rno, aRunTime, aCheckSafety, aTrialMode);
@@ -361,6 +369,7 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
     }
 }
 
+/*
 Elem::Iterator ARenv::NodesLoc_Begin(const GUri::TElem& aId, TBool aInclRm)
 {
     return Iterator(new CompsIter(*this, aId));
@@ -370,9 +379,10 @@ Elem::Iterator ARenv::NodesLoc_End(const GUri::TElem& aId, TBool aInclRm)
 {
     return Iterator(new CompsIter(*this, aId, ETrue));
 }
+*/
 
 
-void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode)
+void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode, const MElem* aCtx)
 {
     string env;
     string spec;
@@ -380,16 +390,15 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
     // Create remote env
     TBool res = mRenvClient.Request("EnvProvider", "CreateEnv,1," + spec, env);
     if (res) {
-	// Get current session id
-	//string sid;
-	//res = iEnv->GetEVar("SID", sid);
-	string eid;
-	res = iEnv->GetEVar("EID", eid);
+	// Get current server uri
+	string sid, eid;
+	res = iEnv->GetEVar("SID", sid);
+	res = res && iEnv->GetEVar("EID", eid);
 	if (res) {
 	    string resp;
-	    // Set session id and this Uid to remote env as PrimarySid and PrimaryUid
-	    //res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
-	    res = mRenvClient.Request(env, "SetEVar,1,PrimaryEID," + eid, resp);
+	    // Set server id, env id and this agent Uid to remote env as PrimarySid and PrimaryUid
+	    res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
+	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryEID," + eid, resp);
 	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryUid," + GetUri(), resp);
 	    string rsid;
 	    //res = res && mRenvClient.Request(env, "GetEVar,1,SID", rsid);
@@ -407,7 +416,13 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
 			Logger()->Write(MLogRec::EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
 			// Create proxy for remote root, bind proxy to component
 			MelemPx* px = new MelemPx(iEnv, this, rroot);
-			mRroot = px;
+			res = AppendComp(px);
+			//mRroot = px;
+			if (!aRunTime) {
+			    // Copy just top node, not recursivelly, ref ds_daa_chrc_va
+			    ChromoNode chn = iChromo->Root().AddChild(aSpec, ETrue, EFalse);
+			    NotifyNodeMutated(aSpec, aCtx);
+			}
 		    } else {
 			Logger()->Write(MLogRec::EErr, this, "Failed getting remote env root, resp: %s", rroot.c_str());
 		    }
@@ -443,11 +458,13 @@ string ARenvu::PEType()
 ARenvu::ARenvu(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse)
 {
     SetParent(Type());
+    Connect();
 }
 
 ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse)
 {
     SetParent(Elem::PEType());
+    // Connect(); Don't connect if creating just native agent
 }
 
 ARenvu::~ARenvu() {
@@ -562,12 +579,12 @@ TBool ARenvu::Request(const string& aContext, const string& aReq, string& aResp)
 void ARenvu::Connect()
 {
     string psid, puid, peid;
-    //TBool res = iEnv->GetEVar("PrimarySID", psid);
-    TBool res = iEnv->GetEVar("PrimaryEID", peid);
+    TBool res = iEnv->GetEVar("PrimarySID", psid);
+    res = res && iEnv->GetEVar("PrimaryEID", peid);
     res = res && iEnv->GetEVar("PrimaryUid", puid);
     if (res) {
 	try {
-	    mRenvClient.Connect("");
+	    mRenvClient.Connect(psid);
 	    res = ETrue;
 	} catch (exception& e) {
 	    Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed");
