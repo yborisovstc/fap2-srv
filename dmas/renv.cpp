@@ -5,93 +5,6 @@
 #include "melempx.h"
 
 
-RenvClient::RenvClient()
-{
-    // Create primary client session
-    BaseClient* client = new BaseClient();
-    mClients.push_back(client);
-}
-
-RenvClient::~RenvClient()
-{
-    Disconnect();
-}
-
-void RenvClient::Connect(const string& aHostUri)
-{
-    // Connect primary client
-    BaseClient* client = mClients.at(0);
-    assert(client != NULL);
-    if (client != NULL) {
-	client->Connect(aHostUri);
-	mHostUri = aHostUri;
-    }
-}
-
-void RenvClient::Disconnect()
-{
-    for (TClients::iterator it = mClients.begin(); it != mClients.end(); it++) {
-	BaseClient* client = *it;
-	client->Disconnect();
-	delete client;
-    }
-    mClients.clear();
-}
-
-bool RenvClient::Request(const string& aRequest, string& aResponse)
-{
-    bool res = false;
-    BaseClient* client = GetClient();
-    if (client != NULL) {
-	res = client->Request(aRequest, aResponse);
-    }
-    return res;
-}
-
-bool RenvClient::Request(const string& aReqId, const string& aReqArgs, string& aResponse)
-{
-    string req(aReqId);
-    req.append(RequestIPC::REQ_SEPARATOR);
-    req.append(aReqArgs);
-    return Request(req, aResponse);
-}
-
-void RenvClient::SetRmtSID(const string& aSID)
-{
-    assert(mRmtSID.empty());
-    mRmtSID = aSID;
-}
-
-BaseClient* RenvClient::GetClient()
-{
-    BaseClient* res = NULL;
-    // Search client ready for request
-    for (TClients::iterator it = mClients.begin(); it != mClients.end() && res == NULL; it++) {
-	BaseClient* client = *it;
-	if (client->IsReady()) {
-	    res = client;
-	}
-    }
-    // If no one client hasn't found then create new one
-    if (res == NULL) {
-	BaseClient* client = new BaseClient();
-	assert(client != NULL);
-	client->Connect(mHostUri);
-	//assert(!mRmtSID.empty());
-	//string resp;
-	//TBool rr = client->Request("EnvProvider", "AttachEnv,1," + mRmtSID, resp);
-	//if (rr) {
-	if (true) {
-	    res = client;
-	    mClients.push_back(client);
-	} else {
-	    delete client;
-	}
-    }
-    return res;
-}
-
-
 ARenv::CompsIter::CompsIter(ARenv& aElem, GUri::TElem aId, TBool aToEnd): iElem(aElem), iId(aId), mEnd(aToEnd)
 {
     char rel = SRel();
@@ -230,11 +143,13 @@ string ARenv::PEType()
 ARenv::ARenv(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL)
 {
     SetParent(Type());
+    mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
 }
 
 ARenv::ARenv(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
 {
     SetParent(Elem::PEType());
+    mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
 }
 
 ARenv::~ARenv() {
@@ -246,10 +161,7 @@ ARenv::~ARenv() {
 	delete comp;
     };
     iComps.clear();
-    for (vector<DaaProxy*>::iterator it = mProxies.begin(); it != mProxies.end(); it++) {
-	DaaProxy* px = *it;
-	delete px;
-    }
+    delete mPxMgr;
 }
 
 void *ARenv::DoGetObj(const char *aName)
@@ -332,8 +244,7 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 	    MElem* ftarg = GetNode(rno.Attr(ENa_Targ));
 	    // Mutation is not local, propagate downward
 	    if (ftarg != NULL) {
-		ChromoNode& troot = ftarg->Mutation().Root();
-		ChromoNode madd = troot.AddChild(rno, ETrue, ETrue);
+		ChromoNode madd = ftarg->AppendMutation(rno);
 		madd.RmAttr(ENa_Targ);
 		// Redirect the mut to target: no run-time to keep the mut in internal nodes
 		// Propagate till target owning comp if run-time to keep hidden all muts from parent 
@@ -400,11 +311,11 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
 	    res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
 	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryEID," + eid, resp);
 	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryUid," + GetUri(), resp);
+	    // Set session Id
 	    string rsid;
-	    //res = res && mRenvClient.Request(env, "GetEVar,1,SID", rsid);
-	    //if (res) {
-	    if (true) {
-		//mRenvClient.SetRmtSID(rsid);
+	    res = res && mRenvClient.Request(env, "GetEVar,1,SSID", rsid);
+	    if (res) {
+		mRenvClient.SetRmtSID(rsid);
 		// Create remote model
 		res = mRenvClient.Request(env, "ConstructSystem", resp);
 		if (res) {
@@ -415,12 +326,12 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
 		    if (res) {
 			Logger()->Write(MLogRec::EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
 			// Create proxy for remote root, bind proxy to component
-			MelemPx* px = new MelemPx(iEnv, this, rroot);
+			MelemPx* px = new MelemPx(iEnv, mPxMgr, rroot);
 			res = AppendComp(px);
 			//mRroot = px;
 			if (!aRunTime) {
 			    // Copy just top node, not recursivelly, ref ds_daa_chrc_va
-			    ChromoNode chn = iChromo->Root().AddChild(aSpec, ETrue, EFalse);
+			    iChromo->Root().AddChild(aSpec, ETrue, EFalse);
 			    NotifyNodeMutated(aSpec, aCtx);
 			}
 		    } else {
@@ -440,12 +351,6 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
     }
 }
 
-TBool ARenv::Request(const string& aContext, const string& aReq, string& aResp)
-{
-    return mRenvClient.Request(aContext, aReq, aResp);
-}
-
-
 
 
 
@@ -455,23 +360,23 @@ string ARenvu::PEType()
     return Elem::PEType() + GUri::KParentSep + Type();
 }
 
-ARenvu::ARenvu(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse)
+ARenvu::ARenvu(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse),
+    mPxMgr(NULL)
 {
     SetParent(Type());
+    mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
     Connect();
 }
 
-ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse)
+ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse), mPxMgr(NULL)
 {
     SetParent(Elem::PEType());
     // Connect(); Don't connect if creating just native agent
+    mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
 }
 
 ARenvu::~ARenvu() {
-    for (vector<DaaProxy*>::iterator it = mProxies.begin(); it != mProxies.end(); it++) {
-	DaaProxy* px = *it;
-	delete px;
-    }
+    delete mPxMgr;
 }
 
 void *ARenvu::DoGetObj(const char *aName)
@@ -534,8 +439,7 @@ void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheck
 	    MElem* ftarg = GetNode(rno.Attr(ENa_Targ));
 	    // Mutation is not local, propagate downward
 	    if (ftarg != NULL) {
-		ChromoNode& troot = ftarg->Mutation().Root();
-		ChromoNode madd = troot.AddChild(rno, ETrue, ETrue);
+		ChromoNode madd = ftarg->AppendMutation(rno);
 		madd.RmAttr(ENa_Targ);
 		// Redirect the mut to target: no run-time to keep the mut in internal nodes
 		// Propagate till target owning comp if run-time to keep hidden all muts from parent 
@@ -571,11 +475,6 @@ void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheck
     }
 }
 
-TBool ARenvu::Request(const string& aContext, const string& aReq, string& aResp)
-{
-    return mRenvClient.Request(aContext, aReq, aResp);
-}
-
 void ARenvu::Connect()
 {
     string psid, puid, peid;
@@ -601,7 +500,7 @@ void ARenvu::Connect()
 		res = res && mRenvClient.Request(root, "GetNode,1," + puid, pagt);
 		if (res) {
 		    mConnected = ETrue;
-		    MelemPx* px = new MelemPx(iEnv, this, pagt);
+		    MelemPx* px = new MelemPx(iEnv, mPxMgr, pagt);
 		    if (px != NULL) {
 			iMan = px;
 		    }

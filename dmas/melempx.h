@@ -6,6 +6,7 @@
 #include <chromo.h>
 #include <ifu.h>
 
+class TMut;
 /*
  * MElem proxy
  */
@@ -35,8 +36,8 @@ class MelemPx : public DaaProxy, public MElem
 	MelemPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~MelemPx();
     public:
-	virtual void *GetIface(const string& aName);
-	virtual const void *GetIface(const string& aName) const;
+	virtual MIface* GetIface(const string& aName);
+	virtual const MIface* GetIface(const string& aName) const;
 	// From MProxyMgr
 	virtual bool Request(const string& aContext, const string& aReq, string& aResp);
 	// From MIface	
@@ -121,12 +122,13 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TBool RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	virtual const MChromo& Chromos() const;
 	virtual MChromo& Chromos();
-	virtual MChromo& Mutation();
 	virtual auto_ptr<MChromo> GetFullChromo() const;
 	virtual string GetChromoSpec() const;
 	virtual void SetMutation(const ChromoNode& aMuta);
 	virtual TBool AppendMutation(const string& aFileName);
 	virtual ChromoNode AppendMutation(const ChromoNode& aMuta);
+	virtual ChromoNode AppendMutation(TNodeType aType);
+	virtual void AppendMutation(const TMut& aMut);
 	virtual TMDeps& GetMDeps();
 	virtual void AddMDep(MElem* aNode, const ChromoNode& aMut, TNodeAttr aAttr);
 	virtual void AddCMDep(const ChromoNode& aMut, TNodeAttr aAttr, MElem* aNode);

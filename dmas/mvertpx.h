@@ -21,8 +21,8 @@ class MvertPx : public DaaProxy, public MVert
 	MvertPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~MvertPx();
     public:
-	virtual void *GetIface(const string& aName);
-	virtual const void *GetIface(const string& aName) const;
+	virtual MIface* GetIface(const string& aName);
+	virtual const MIface* GetIface(const string& aName) const;
 	// From MVert
 	static const char* Type() { return "MVert";};
 	virtual TBool Connect(MVert* aPair);
@@ -30,7 +30,7 @@ class MvertPx : public DaaProxy, public MVert
 	virtual TInt PairsCount() const;
 	virtual MVert* GetPair(TInt aInd) const;
 	virtual TBool IsPair(const MVert* aPair) const;
-	virtual void *MVert_DoGetObj(const char *aName);
+	virtual MIface* MVert_DoGetObj(const char *aName);
     public:
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);
@@ -44,8 +44,8 @@ class MedgePx : public DaaProxy, public MEdge
 	MedgePx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~MedgePx();
     public:
-	virtual void *GetIface(const string& aName);
-	virtual const void *GetIface(const string& aName) const;
+	virtual MIface* GetIface(const string& aName);
+	virtual const MIface* GetIface(const string& aName) const;
 	// From MEdge
 	virtual string EdgeName() const;
 	virtual string EdgeUri() const;
@@ -70,8 +70,8 @@ class MCompatCheckerPx : public DaaProxy, public MCompatChecker
 	MCompatCheckerPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~MCompatCheckerPx();
     public:
-	virtual void *GetIface(const string& aName);
-	virtual const void *GetIface(const string& aName) const;
+	virtual MIface* GetIface(const string& aName);
+	virtual const MIface* GetIface(const string& aName) const;
 	// From MCompatChecker
 	virtual TBool IsCompatible(MElem* aPair, TBool aExt = EFalse);
 	virtual MElem* GetExtd();
@@ -90,8 +90,8 @@ class MPropPx : public DaaProxy, public MProp
 	MPropPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~MPropPx();
     public:
-	virtual void *GetIface(const string& aName);
-	virtual const void *GetIface(const string& aName) const;
+	virtual MIface* GetIface(const string& aName);
+	virtual const MIface* GetIface(const string& aName) const;
 	// From MProp
 	virtual const string& Value() const;
     public:

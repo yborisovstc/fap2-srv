@@ -411,6 +411,16 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(cenv, "Root", root);
     printf("Getting root: %s\n", root.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
+    // Getting local native agent Elem
+    string lelem;
+    res = client->Request(root, "GetNode,1,Elem", lelem);
+    printf("Getting local native agent Elem: %s\n", lelem.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting local native agent Elem failed: " + lelem, res);
+    // Getting local native agent Elem URI
+    string lelem_uri;
+    res = client->Request(lelem, "GetUri,1", lelem_uri);
+    printf("Getting local native agent Elem URI: %s\n", lelem_uri.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting local native agent Elem URI failed: " + lelem_uri, res);
     // Getting local node v2
     string v2;
     res = client->Request(root, "GetNode,1,./v2", v2);
@@ -451,7 +461,7 @@ void Ut_Bidir::test_Bidir_Cre()
     // Getting remote root comps count
     res = client->Request(rroot, "CompsCount,1", resp);
     printf("Getting remote root comps count: %s\n", resp.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Getting remote root comps count failed: " + resp, res);
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root comps count failed: " + resp, res && resp == "2");
     // Getting remote root compa#0
     res = client->Request(rroot, "GetComp,1,0", resp);
     printf("Getting remote root comp#0: %s\n", resp.c_str());
@@ -465,6 +475,19 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1", rnode1);
     printf("Getting remote remote_node_1: %s\n", rnode1.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_1 failed: " + rnode1, res);
+    // Adding new node remote_node_3 to renv_root
+    string req = Ifu::CombineIcSpec("AppendMutation", "1", "node,id:remote_node_3,parent:Elem");
+    res = client->Request(rroot, req, resp);
+    printf("Adding new node remote_node_3 to renv_root, setting mut: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Adding new node remote_node_3 to renv_root, setting mut: " + resp, res);
+    res = client->Request(rroot, "Mutate#2,1,false,true,true", resp);
+    printf("Adding new node remote_node_3 to renv_root, mutation: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Adding new node remote_node_3 to renv_root, mutation: " + resp, res);
+    // Checking new node addition
+    string rnode3;
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_3", rnode3);
+    printf("Getting remote remote_node_3: %s\n", rnode3.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_3 failed: " + rnode3, res);
     // Getting URI of remote remote_node_1
     string rnode1_uri;
     res = client->Request(rnode1, "GetUri,1", rnode1_uri);
@@ -479,12 +502,27 @@ void Ut_Bidir::test_Bidir_Cre()
     string rnode1_ruri;
     res = client->Request(rnode1, "GetUri#2,1," + rroot_uri, rnode1_ruri);
     printf("Getting remote_node_1 URI relative to remote root: %s\n", rnode1_ruri.c_str());
-    CPPUNIT_ASSERT_MESSAGE("Getting remote root URI relative to remote_node_1 failed: " + rnode1_ruri, res);
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root URI relative to remote_node_1 failed: " + rnode1_ruri, res && rnode1_ruri == "./remote_node_1");
     // Getting remote remote_node_2 created from remote parent (from primary env)
     string rnode2;
     res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);
     printf("Getting remote remote_node_2: %s\n", rnode2.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_2 failed: " + rnode2, res);
+    // Getting remote native agent Elem
+    string relem;
+    res = client->Request(rroot, "GetNode,1,Elem", relem);
+    printf("Getting remote native agent Elem: %s\n", relem.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote native agent Elem failed: " + relem, res);
+    // Getting remote native agent Elem URI
+    string relem_uri;
+    res = client->Request(relem, "GetUri,1", relem_uri);
+    printf("Getting remote native agent Elem URI: %s\n", relem_uri.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote native agent Elem URI failed: " + relem_uri, res);
+    // Getting remote native node URI relative to remote root 
+    string relem_ruri;
+    res = client->Request(relem, "GetUri#2,1," + rroot_uri, relem_ruri);
+    printf("Getting remote native node URI relative to remote root: %s\n", relem_ruri.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote native node URI relative to remote root failed: " + relem_ruri, res && relem_ruri == "Elem");
 
     client->Disconnect();
     delete client;

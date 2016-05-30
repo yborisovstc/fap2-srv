@@ -1,3 +1,4 @@
+#include <errno.h>
 #include <stdexcept> 
 #include "fapcsbase.h"
 #include "requests.h"
@@ -135,8 +136,10 @@ void CSessionBase::HandleMessage(const string& aMsg) {
 	}
 	if (ctx == NULL) {
 	    Send(RequestIPC::RES_ERROR, RequestIPC::RES_ERROR_CTX_NOTFOUND);
+	    cout << " --> ERR, " << "Ctx not found" << endl;
 	} else if (ctxid_end == string::npos) {
 	    Send(RequestIPC::RES_ERROR, RequestIPC::RES_ERROR_NOCSPEC);
+	    cout << " --> ERR, " << "Ctx spec is missing" << endl;
 	} else {
 	    size_t cspec_beg = ctxid_end + 1;
 	    string cspec = aMsg.substr(cspec_beg);
@@ -146,14 +149,17 @@ void CSessionBase::HandleMessage(const string& aMsg) {
 	    try {
 		new_ctx = ctx->Call(cspec, cres);
 	    } catch (exception& e) {
+		cout << " --> ERR, " << e.what() << endl;
 		Send(RequestIPC::RES_ERROR, e.what());
 		return;
 	    }
 	    if (new_ctx != NULL) {
 		string uid = new_ctx->Uid();
 		AddContext(uid, new_ctx);
+		cout << " --> OK, " << uid << endl;
 		Send(RequestIPC::RES_OK, uid);
 	    } else {
+		cout << " --> OK, " << (cres.empty() ? RequestIPC::RES_OK_NONE : cres) << endl;
 		Send(RequestIPC::RES_OK, cres.empty() ? RequestIPC::RES_OK_NONE : cres);
 	    }
 	}
@@ -166,7 +172,10 @@ void CSessionBase::Send(string const& msg, const string& msg_args) {
 }
 
 void CSessionBase::Send(string const& aMsg) {
-    send(mSock, aMsg.c_str(), aMsg.size(), 0);
+    ssize_t res = send(mSock, aMsg.c_str(), aMsg.size(), 0);
+    if (res == -1) {
+	cout << "ERROR: " << errno;
+    }
 }
 
 void CSessionBase::CreateEnv(const string& aChromo)
@@ -182,7 +191,7 @@ void CSessionBase::CreateEnv(const string& aChromo)
     }
     string uid("MEnv#" + mId);
     // Adding session Id into env variables
-    mEnv->SetEVar("SID", mId);
+    mEnv->SetEVar("SSID", mId);
     // Adding env UID into env variables
     mEnv->SetEVar("EID", uid);
     DaaProv* daaprov = new DaaProv("DaaProv", mEnv);
@@ -286,7 +295,7 @@ MIface* CSessionBase::GetContext(const string& aHandle, bool aShared)
 {
     MIface* res = NULL;
     TCtxKey key(aHandle);
-    TCtx& ctx = aShared ?  mSCtx : mCtx;
+    TCtx& ctx = aShared ?  mSCtx : ((mAttached == NULL) ?  mCtx : mAttached->mCtx);
     if (ctx.count(key) > 0) {
 	res = ctx.at(key);
     }
@@ -348,8 +357,8 @@ MIface* CSessionBase::Call(const string& aSpec, string& aRes)
     } else if (name == "GetId") {
 	GetId(aRes);
     } else if (name == "AttachEnv") {
-	throw (runtime_error("Unhandled method: " + name));
-	//AttachEnv(args.at(0));
+	//throw (runtime_error("Unhandled method: " + name));
+	AttachEnv(args.at(0));
     } else if (name == "CreateAgtObserver") {
 	//CreateAgtObserver();
     } else {

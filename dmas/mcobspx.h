@@ -3,7 +3,7 @@
 
 #include <menv.h>
 #include <melem.h>
-#include "mproxy.h"
+#include "daaproxy.h"
 #include "../client/bclient.h"
 
 
@@ -31,7 +31,7 @@ inline MLogRec* EIfacePx::Logger() const {return mEnv ? mEnv->Logger(): NULL; }
 /*
  * Components observer proxy
  */
-class MCobsPx: public EIfacePx, public MAgentObserver
+class MCobsPx: public DaaProxy, public MAgentObserver
 {
     public:
 	MCobsPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
@@ -61,16 +61,17 @@ class CobsPxMgr: public MExtIfProv, public MProxyMgr
 	CobsPxMgr();
 	virtual ~CobsPxMgr();
 	void Connect(const string& aSrvUri);
-	EIfacePx* CreateProxy(const string& aId, MProxyMgr* aMgr, const string& aContext) const;
-	EIfacePx* GetProxy(const string& aContext) const;
+	MProxy* GetProxy(const string& aContext) const;
 	// From MProxyMgr
+	virtual MProxy* CreateProxy(const string& aId, const string& aContext);
 	virtual bool Request(const string& aContext, const string& aReq, string& aResp);
+	virtual string Oid() const;
 	// From MExtIfProv
 	virtual MIface* GetEIface(const string& aIfaceId, const string& aIfaceType);
 	virtual void SetEnv(MEnv* aEnv);
     protected:
 	TBool IsCached(const string& aContext) const;
-	void RegProxy(EIfacePx* aProxy);
+	void RegProxy(MProxy* aProxy);
     protected:
 	MEnv* mEnv;
 	string mBackSrvUri;
@@ -78,7 +79,7 @@ class CobsPxMgr: public MExtIfProv, public MProxyMgr
 	string mBackUid;
 	BaseClient mBsClient;
 	bool mIsConnected;
-	map<string, EIfacePx*> mProxies;
+	map<string, MProxy*> mProxies;
 };
 
 #endif

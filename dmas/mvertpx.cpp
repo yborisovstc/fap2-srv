@@ -44,38 +44,41 @@ void MvertPx::Disconnect(MVert* aPair)
 {
 }
 
-void *MvertPx::GetIface(const string& aName)
+MIface* MvertPx::GetIface(const string& aName)
 {
-    void *res = NULL;
+    MIface* res = NULL;
     if (aName == MVert::Type()) {
 	res = (MVert*) this;
     }
     return res;
 }
 
-const void *MvertPx::GetIface(const string& aName) const
+const MIface* MvertPx::GetIface(const string& aName) const
 {
-    const void *res = NULL;
+    const MIface* res = NULL;
     if (aName == MVert::Type()) {
 	res = (const MVert*) this;
     }
     return res;
 }
 
-void *MvertPx::MVert_DoGetObj(const char *aName)
+MIface* MvertPx::MVert_DoGetObj(const char *aName)
 {
     return NewProxyRequest(string("MVert_DoGetObj,1,") + aName, aName);
 }
 
-string MvertPx::Uid() const
-{
-    return GetContext();
-}
-
 string MvertPx::Mid() const
 {
-    return string();
+    return mMgr->Oid();
 }
+
+string MvertPx::Uid() const
+{
+    string res;
+    Ifu::CombineUid(Mid(), GetContext(), res);
+    return res;
+}
+
 
 TInt MvertPx::PairsCount() const
 {
@@ -129,18 +132,18 @@ MIface* MedgePx::Call(const string& aSpec, string& aRes)
     return res;
 }
 
-void *MedgePx::GetIface(const string& aName)
+MIface* MedgePx::GetIface(const string& aName)
 {
-    void *res = NULL;
+    MIface* res = NULL;
     if (aName == MEdge::Type()) {
 	res = (MEdge*) this;
     }
     return res;
 }
 
-const void *MedgePx::GetIface(const string& aName) const
+const MIface* MedgePx::GetIface(const string& aName) const
 {
-    const void *res = NULL;
+    const MIface* res = NULL;
     if (aName == MEdge::Type()) {
 	res = (const MEdge*) this;
     }
@@ -180,10 +183,12 @@ MVert* MedgePx::Pair(const MVert* aPoint)
 
 MVert* MedgePx::Point1() const
 {
+    return (MVert*) NewProxyRequest("Point1,0", MVert::Type());
 }
 
 MVert* MedgePx::Point2() const
 {
+    return (MVert*) NewProxyRequest("Point2,0", MVert::Type());
 }
 
 MVert* MedgePx::Ref1() const
@@ -196,12 +201,14 @@ MVert* MedgePx::Ref2() const
 
 string MedgePx::Uid() const
 {
-    return GetContext();
+    string res;
+    Ifu::CombineUid(Mid(), GetContext(), res);
+    return res;
 }
 
 string MedgePx::Mid() const
 {
-    return string();
+    return mMgr->Oid();
 }
 
 string MedgePx::EdgeUri() const
@@ -240,7 +247,7 @@ MIface* MCompatCheckerPx::Call(const string& aSpec, string& aRes)
     } else if (name == "IsCompatible") {
 	TBool rr = mMgr->Request(mContext, aSpec, aRes);
     } else {
-	throw (runtime_error("Unhandled method: " + name));
+	mMgr->Request(mContext, aSpec, aRes);
     }
 
     return res;
@@ -248,12 +255,14 @@ MIface* MCompatCheckerPx::Call(const string& aSpec, string& aRes)
 
 string MCompatCheckerPx::Uid() const
 {
-    return GetContext();
+    string res;
+    Ifu::CombineUid(Mid(), GetContext(), res);
+    return res;
 }
 
 string MCompatCheckerPx::Mid() const
 {
-    return string();
+    return mMgr->Oid();
 }
 
 TBool MCompatCheckerPx::IsCompatible(MElem* aPair, TBool aExt)
@@ -283,18 +292,18 @@ MCompatChecker::TDir MCompatCheckerPx::GetDir() const
     return res;
 }
 
-void *MCompatCheckerPx::GetIface(const string& aName)
+MIface* MCompatCheckerPx::GetIface(const string& aName)
 {
-    void *res = NULL;
+    MIface* res = NULL;
     if (aName == MCompatChecker::Type()) {
 	res = (MCompatChecker*) this;
     }
     return res;
 }
 
-const void *MCompatCheckerPx::GetIface(const string& aName) const
+const MIface* MCompatCheckerPx::GetIface(const string& aName) const
 {
-    const void *res = NULL;
+    const MIface* res = NULL;
     if (aName == MCompatChecker::Type()) {
 	res = (const MCompatChecker*) this;
     }
@@ -336,12 +345,14 @@ MIface* MPropPx::Call(const string& aSpec, string& aRes)
 
 string MPropPx::Uid() const
 {
-    return GetContext();
+    string res;
+    Ifu::CombineUid(Mid(), GetContext(), res);
+    return res;
 }
 
 string MPropPx::Mid() const
 {
-    return string();
+    return mMgr->Oid();
 }
 
 const string& MPropPx::Value() const
@@ -351,18 +362,18 @@ const string& MPropPx::Value() const
     return mValue;
 }
 
-void *MPropPx::GetIface(const string& aName)
+MIface* MPropPx::GetIface(const string& aName)
 {
-    void *res = NULL;
+    MIface* res = NULL;
     if (aName == MProp::Type()) {
 	res = (MProp*) this;
     }
     return res;
 }
 
-const void *MPropPx::GetIface(const string& aName) const
+const MIface* MPropPx::GetIface(const string& aName) const
 {
-    const void *res = NULL;
+    const MIface* res = NULL;
     if (aName == MProp::Type()) {
 	res = (const MProp*) this;
     }

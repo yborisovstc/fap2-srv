@@ -17,7 +17,7 @@ const string& EIfacePx::GetContext() const
 }
 
 
-MCobsPx::MCobsPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): EIfacePx(aEnv, aMgr, aContext)
+MCobsPx::MCobsPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): DaaProxy(aEnv, aMgr, aContext)
 {
 }
 
@@ -138,9 +138,9 @@ MIface* CobsPxMgr::GetEIface(const string& aIfaceId, const string& aIfaceType)
 	    Connect(uri.Scheme() + "://" + uri.Authority());
 	}
     }
-    EIfacePx* px = NULL;
+    MProxy* px = NULL;
     if (!IsCached(aIfaceId)) {
-	px = CreateProxy(aIfaceType, this, uri.Path());
+	px = CreateProxy(aIfaceType, uri.Path());
 	RegProxy(px);
     } else {
 	px = GetProxy(aIfaceId);
@@ -166,11 +166,11 @@ void CobsPxMgr::Connect(const string& aSrvUri)
 }
 
 
-EIfacePx* CobsPxMgr::CreateProxy(const string& aId, MProxyMgr* aMgr, const string& aContext) const
+MProxy* CobsPxMgr::CreateProxy(const string& aId, const string& aContext)
 {
-    EIfacePx* res = NULL;
+    MProxy* res = NULL;
     if (aId == MAgentObserver::Type()) {
-	res = new MCobsPx(mEnv, aMgr, aContext);
+	res = new MCobsPx(mEnv, this, aContext);
     } else {
 	__ASSERT(EFalse);
     }
@@ -182,14 +182,19 @@ TBool CobsPxMgr::IsCached(const string& aContext) const
     return mProxies.count(aContext) > 0;
 }
 
-EIfacePx* CobsPxMgr::GetProxy(const string& aContext) const
+MProxy* CobsPxMgr::GetProxy(const string& aContext) const
 {
     __ASSERT(IsCached(aContext));
     return mProxies.at(aContext);
 }
 
-void CobsPxMgr::RegProxy(EIfacePx* aProxy)
+void CobsPxMgr::RegProxy(MProxy* aProxy)
 {
     __ASSERT(!IsCached(aProxy->GetContext()));
-    mProxies.insert(pair<string, EIfacePx*>(aProxy->GetContext(), aProxy));
+    mProxies.insert(pair<string, MProxy*>(aProxy->GetContext(), aProxy));
+}
+
+string CobsPxMgr::Oid() const
+{
+    return string();
 }

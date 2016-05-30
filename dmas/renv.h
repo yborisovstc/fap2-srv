@@ -6,36 +6,10 @@
 #include "melempx.h"
 
 /*
- * Remote environment client. Provides set of clients session to same remote environment
- * This allows to avoid interaction deadlock in case of cyclyc requests, ref ds_pa_msra
- */
-class RenvClient
-{
-    public:
-	typedef vector<BaseClient*> TClients;
-    public:
-	RenvClient();
-	~RenvClient();
-	void SetRmtSID(const string& aSID);
-	void Connect(const string& aHostUri);
-	void Disconnect();
-	bool Request(const string& aRequest, string& aResponse);
-	bool Request(const string& aReqId, const string& aReqArgs, string& aResponse);
-    protected:
-	BaseClient* GetClient();
-    protected:
-	TClients mClients;
-	// Session ID of remote environment
-	string mRmtSID;
-	string mHostUri;
-};
-
-
-/*
  * Remote environment agent. Supports of interacting to lower layer models part,
  * so is "bottom" remote env engine.
  */
-class ARenv: public Elem, public MProxyMgr
+class ARenv: public Elem
 {
     public:
 	class CompsIter: public MIterImpl {
@@ -78,21 +52,19 @@ class ARenv: public Elem, public MProxyMgr
 	//virtual Iterator NodesLoc_End(const GUri::TElem& aElem, TBool aInclRm = EFalse);
 	// From MMutable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
-	// From MProxyMgr
-	virtual TBool Request(const string& aContext, const string& aReq, string& aResp);
     protected:
 	void AddElemRmt(const ChromoNode& aSpec, TBool aRunTime = EFalse, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
     protected:
 	string mRenvUri;
 	RenvClient mRenvClient;
-	vector<DaaProxy*> mProxies;
+	DaaPxMgr* mPxMgr;
 	MelemPx* mRroot;
 };
 
 /*
  * Remote environment "upper" agent. Supports of interacting to upper layer models part
  */
-class ARenvu: public Elem, public MProxyMgr
+class ARenvu: public Elem
 {
     public:
 	static const char* Type() { return "ARenvu";};
@@ -109,15 +81,13 @@ class ARenvu: public Elem, public MProxyMgr
 	//virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse);
 	// From MMutable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
-	// From MProxyMgr
-	virtual TBool Request(const string& aContext, const string& aReq, string& aResp);
     protected:
 	void Connect();
     protected:
 	RenvClient mRenvClient;
-	vector<DaaProxy*> mProxies;
 	MelemPx* mRroot;
 	TBool mConnected;
+	DaaPxMgr* mPxMgr;
 };
 
 

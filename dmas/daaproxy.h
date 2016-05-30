@@ -5,40 +5,89 @@
 #include "menv.h"
 #include "mlog.h"
 #include <map>
+#include <bclient.h>
+
+
+/*
+ * Remote environment client. Provides set of clients session to same remote environment
+ * This allows to avoid interaction deadlock in case of cyclyc requests, ref ds_pa_msra
+ */
+class RenvClient
+{
+    public:
+	typedef vector<BaseClient*> TClients;
+    public:
+	RenvClient();
+	~RenvClient();
+	void SetRmtSID(const string& aSID);
+	void Connect(const string& aHostUri);
+	void Disconnect();
+	bool Request(const string& aRequest, string& aResponse);
+	bool Request(const string& aReqId, const string& aReqArgs, string& aResponse);
+    protected:
+	BaseClient* GetClient();
+    protected:
+	TClients mClients;
+	// Session ID of remote environment
+	string mRmtSID;
+	string mHostUri;
+};
+
+
+
+class DaaProxy;
+
+/*
+ * Proxy manager
+ */
+class DaaPxMgr: public MProxyMgr
+{
+    public:
+	typedef map<string, DaaProxy*> TPxs;
+    public:
+	DaaPxMgr(MEnv* aEnv, MElem* aOwner, RenvClient& aRenvClient);
+	virtual ~DaaPxMgr();
+    public:
+	// From MProxyMgr
+	virtual MProxy* CreateProxy(const string& aId, const string& aContext);
+	virtual TBool Request(const string& aContext, const string& aReq, string& aResp);
+	virtual string Oid() const;
+    protected:
+	void RegProxy(DaaProxy* aProxy);
+	TBool IsCached(const string& aContext) const;
+	DaaProxy* GetProxy(const string& aContext) const;
+	inline MLogRec* Logger() const;
+    protected:
+	MEnv* mEnv;
+	MElem* mOwner;
+	TPxs mProxies;
+	RenvClient& mRenvClient;
+};
+
+inline MLogRec* DaaPxMgr::Logger() const {return mEnv ? mEnv->Logger(): NULL; }
+
 
 /*
  * Proxy base
  */
-
-class DaaProxy : public MProxy, public MProxyMgr
+class DaaProxy : public MProxy
 {
     public:
 	DaaProxy(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
 	virtual ~DaaProxy();
 	// From MProxy
 	virtual const string& GetContext() const;
-	// From MProxyMgr
-	virtual bool Request(const string& aContext, const string& aReq, string& aResp);
-	// From MIface	
-	virtual string Uid() const;
-	virtual string Mid() const;
-    public:
-	virtual DaaProxy* CreateProxy(const string& aId, MProxyMgr* aMgr, const string& aContext) const;
-	virtual void *GetIface(const string& aName);
-	virtual const void *GetIface(const string& aName) const;
+	virtual MIface* GetIface(const string& aName);
+	virtual const MIface* GetIface(const string& aName) const;
     protected:
-	TBool IsCached(const string& aContext) const;
-	void RegProxy(DaaProxy* aProxy);
-	DaaProxy* GetProxy(const string& aContext) const;
 	inline MProvider* Provider() const;
 	inline MLogRec* Logger() const;
-	void* NewProxyRequest(const string& aCallSpec, const string& aPxType);
-	const void* NewProxyRequest(const string& aCallSpec, const string& aPxType) const;
+	MIface* NewProxyRequest(const string& aCallSpec, const string& aPxType);
+	const MIface* NewProxyRequest(const string& aCallSpec, const string& aPxType) const;
     protected:
 	MEnv* mEnv;
 	MProxyMgr* mMgr;
 	string mContext;
-	map<string, DaaProxy*> mProxies;
 };
 
 inline MProvider* DaaProxy::Provider() const {return mEnv ? mEnv->Provider(): NULL; }

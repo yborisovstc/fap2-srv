@@ -119,7 +119,7 @@ MIface* MelemPx::Call(const string& aSpec, string& aRes)
     } else if (name == "GetComp") {
 	res = (MIface*) NewMElemProxyRequest(aSpec);
     } else {
-	throw (runtime_error("Unhandled method: " + name));
+	mMgr->Request(mContext, aSpec, aRes);
     }
     return res;
 }
@@ -174,41 +174,22 @@ const vector<MElem*>& MelemPx::Comps() const { return FakeComps;}
 MElem* MelemPx::GetNode(const string& aUri, TBool aInclRm) 
 { 
     MElem* res = NULL;
-    string resp;
-    TBool rres = mMgr->Request(mContext, "GetNode,1," + aUri, resp);
-    if (rres) {
-	if (!IsCached(resp)) {
-	    MelemPx* px = new MelemPx(mEnv, this, resp);
-	    RegProxy(px);
-	    res = px;
-	} else {
-	    res = dynamic_cast<MElem*>(GetProxy(resp));
-	}
-    } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetNode %s] request failed", Uid().c_str(), aUri.c_str());
-    }
+    string cspec = "GetNode,1," + aUri;
+    res = NewMElemProxyRequest(cspec);
     return res;
 }
 
-MElem* MelemPx::GetNode(const GUri& aUri, TBool aInclRm) { return NULL;}
+MElem* MelemPx::GetNode(const GUri& aUri, TBool aInclRm)
+{
+    return GetNode(aUri.GetUri(ETrue), aInclRm);
+}
 
 MElem* MelemPx::GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere, TBool aInclRm)
 { 
     MElem* res = NULL;
     string suri = aUri.GetUri(aPathBase);
-    string resp;
-    TBool rres = mMgr->Request(mContext, "GetNode#2,1," + suri + "," + Ifu::FromBool(aAnywhere) + "," + Ifu::FromBool(aInclRm) , resp);
-    if (rres) {
-	if (!IsCached(resp)) {
-	    MelemPx* px = new MelemPx(mEnv, this, resp);
-	    RegProxy(px);
-	    res = px;
-	} else {
-	    res = dynamic_cast<MElem*>(GetProxy(resp));
-	}
-    } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetNode %s] request failed", Uid().c_str(), suri.c_str());
-    }
+    string cspec = "GetNode#2,1," + suri + "," + Ifu::FromBool(aAnywhere) + "," + Ifu::FromBool(aInclRm);
+    res = NewMElemProxyRequest(cspec);
     return res;
 }
 
@@ -237,7 +218,18 @@ TBool MelemPx::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName
  
 TBool MelemPx::MoveNode(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode) {return false;}
 
-void MelemPx::Mutate(TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
+void MelemPx::Mutate(TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
+{
+    string req = Ifu::CombineIcSpec("Mutate#2", "1");
+    Ifu::AddIcSpecArg(req, aRunTimeOnly);
+    Ifu::AddIcSpecArg(req, aCheckSafety);
+    Ifu::AddIcSpecArg(req, aTrialMode);
+    string resp;
+    TBool rres = mMgr->Request(mContext, req, resp);
+    if (!rres) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [Mutate#2] failed: %s", Uid().c_str(), resp.c_str());
+    }
+}
 
 void MelemPx::Mutate(const ChromoNode& aMutsRoot, TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
 
@@ -248,7 +240,11 @@ void MelemPx::GetUri(GUri& aUri, MElem* aTop) const
     aUri.Prepend(guri);
 }
 
-void MelemPx::GetRUri(GUri& aUri, MElem* aTop) {}
+void MelemPx::GetRUri(GUri& aUri, MElem* aTop)
+{
+    string res = GetRUri(aTop);
+    aUri = GUri(res);
+}
 
 string MelemPx::GetUri(MElem* aTop, TBool aShort) const
 {
@@ -261,12 +257,15 @@ string MelemPx::GetUri(MElem* aTop, TBool aShort) const
 	}
     } else {
 	string base;
+	/*
 	TBool rres = mMgr->Request(mContext, "GetUri,1", base);
 	if (!rres) {
 	    Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetUri] failed on getting base: %s",
 		    Uid().c_str(), base.c_str());
 	}
-	rres = mMgr->Request(mContext, "GetUri#2,1," + base, res);
+	*/
+	base = aTop->GetUri();
+	TBool rres = mMgr->Request(mContext, "GetUri#2,1," + base, res);
 	if (!rres) {
 	    Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetUri %s] failed on GetUri#2 request: %s",
 		    Uid().c_str(), base.c_str(), res.c_str());
@@ -275,7 +274,16 @@ string MelemPx::GetUri(MElem* aTop, TBool aShort) const
     return res;
 }
 
-string MelemPx::GetRUri(MElem* aTop) {return string();}
+string MelemPx::GetRUri(MElem* aTop) {
+    string base = aTop->GetUri();
+    string res;
+    TBool rres = mMgr->Request(mContext, "GetRUri,1," + base, res);
+    if (!rres) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetRUri %s] request failed: %s",
+		Uid().c_str(), base.c_str(), res.c_str());
+    }
+    return res;
+}
 
 TBool MelemPx::RebaseUri(const GUri& aUri, const MElem* aBase, GUri& aRes) {return false;}
 
@@ -291,7 +299,15 @@ MElem* MelemPx::GetUpperAowner() {return NULL;}
 
 MElem* MelemPx::GetCommonOwner(MElem* aElem) {return NULL;}
 
-TBool MelemPx::IsRemoved() const {return false;}
+TBool MelemPx::IsRemoved() const
+{
+    TBool res = EFalse;
+    string resp;
+    TBool rr = mMgr->Request(mContext, "IsRemoved", resp);
+    if (rr) 
+	res = Ifu::ToBool(resp);
+    return res;
+}
 
 void MelemPx::SetRemoved() {}
 
@@ -329,7 +345,15 @@ TBool MelemPx::HasInherDeps(const MElem* aScope) const {return false;}
 
 TInt MelemPx::GetCapacity() const {return 0;}
 
-TBool MelemPx::IsHeirOf(const string& aParent) const {return false;}
+TBool MelemPx::IsHeirOf(const string& aParent) const
+{
+    TBool res = EFalse;
+    string resp;
+    TBool rr = mMgr->Request(mContext, "IsHeirOf,1," + aParent, resp);
+    if (rr) 
+	res = Ifu::ToBool(resp);
+    return res;
+}
 
 TInt MelemPx::CompsCount() const
 {
@@ -402,13 +426,27 @@ const MChromo&  MelemPx::Chromos() const { return *mChromo;}
 
 MChromo&  MelemPx::Chromos() { return *mChromo;}
 
-MChromo&  MelemPx::Mutation() { return *mChromo;}
-
 void  MelemPx::SetMutation(const ChromoNode& aMuta) {}
 
 TBool  MelemPx::AppendMutation(const string& aFileName) { return false;}
 
 ChromoNode  MelemPx::AppendMutation(const ChromoNode& aMuta) { return ChromoNode(); }
+
+ChromoNode MelemPx::AppendMutation(TNodeType aType)
+{
+    return ChromoNode();
+}
+
+void MelemPx::AppendMutation(const TMut& aMut)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("AppendMutation", "1", aMut);
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (!rr) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [AppendMutation] request failed: %s",
+		Uid().c_str(), resp.c_str());
+    }
+}
 
 TMDeps&  MelemPx::GetMDeps() { return mMDeps;}
 
@@ -470,7 +508,21 @@ TBool  MelemPx::OnCompRenamed(MElem& aComp, const string& aOldName) { return fal
 
 
 
-TBool  MelemPx::IsComp(const MElem* aElem) const { return false;}
+TBool  MelemPx::IsComp(const MElem* aElem) const
+{
+    TBool res = EFalse;
+    string resp;
+    string req("IsComp,1,");
+    req += aElem->GetUri(NULL, ETrue);
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+    return res;
+}
 
 TBool  MelemPx::MoveComp(MElem* aComp, MElem* aDest) { return false;}
 
@@ -523,6 +575,7 @@ void*  MelemPx::GetSIfiC(const string& aName, Base* aRequestor)
     return GetSIfi(aName, &ctx);
 }
 
+// TODO [YB] To use ctx operator string() for serialization of ctx
 void*  MelemPx::GetSIfi(const string& aName, const RqContext* aCtx)
 {
     void* res = NULL;
@@ -532,6 +585,7 @@ void*  MelemPx::GetSIfi(const string& aName, const RqContext* aCtx)
     const RqContext* cct(aCtx);
     while (cct != NULL) {
 	Base* rq = cct->Requestor();
+	if (rq == NULL) break;
 	MElem* re = rq->GetObj(re);
 	string reuri = re->GetUri(NULL, ETrue);
 	req += reuri + Ifu::KArraySep;
@@ -610,28 +664,31 @@ TBool MelemPx::RegisterChild(const string& aChildUri)
     return EFalse;
 }
 
-string MelemPx::Uid() const
-{
-    return "Px%" + GetContext();
-}
-
 string MelemPx::Mid() const
 {
-    return string();
+    return mMgr->Oid();
 }
 
-void *MelemPx::GetIface(const string& aName)
+string MelemPx::Uid() const
 {
-    void *res = NULL;
+    string res;
+    Ifu::CombineUid(Mid(), GetContext(), res);
+    return res;
+}
+
+
+MIface* MelemPx::GetIface(const string& aName)
+{
+    MIface* res = NULL;
     if (aName == MElem::Type()) {
 	res = (MElem*) this;
     }
     return res;
 }
 
-const void *MelemPx::GetIface(const string& aName) const
+const MIface* MelemPx::GetIface(const string& aName) const
 {
-    const void *res = NULL;
+    const MIface* res = NULL;
     if (aName == MElem::Type()) {
 	res = (const MElem*) this;
     }
