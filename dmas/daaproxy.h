@@ -5,7 +5,7 @@
 #include "menv.h"
 #include "mlog.h"
 #include <map>
-#include <bclient.h>
+#include "../client/bclient.h"
 
 
 /*

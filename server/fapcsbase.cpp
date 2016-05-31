@@ -3,6 +3,7 @@
 #include "fapcsbase.h"
 #include "requests.h"
 #include <stdlib.h>
+#include <unistd.h>
 #include <ifu.h>
 #include <guri.h>
 #include <sstream>
