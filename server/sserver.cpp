@@ -43,6 +43,8 @@ void Server::AcceptAndDispatch() {
             cerr << "Error on accept";
         } else {
             new SessionClient(sock);
+	    cout << "Server [p:" << htons(mServerAddr.sin_port) <<
+		"], accepted client [p:" << htons(mClientAddr.sin_port) << "]" << endl;
         }
     }
 }

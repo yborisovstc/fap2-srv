@@ -106,7 +106,7 @@ TBool MCobsPx::OnCompRenamed(MElem& aComp, const string& aOldName)
 
 
 
-CobsPxMgr::CobsPxMgr(): mIsConnected(false)
+CobsPxMgr::CobsPxMgr(): mEnv(NULL), mIsConnected(false)
 {
 }
 

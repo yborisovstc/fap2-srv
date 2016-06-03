@@ -38,12 +38,18 @@ void RenvClient::Disconnect()
     mClients.clear();
 }
 
+// TODO [YB] There is still the threads unsafety: it is possible that
+// one thread gets the client and starts requesting it (but client status
+// is still ready) whereas another thread gets same client - assert will
+// happen in BaseClient::Request. To consider safe solution
 bool RenvClient::Request(const string& aRequest, string& aResponse)
 {
     bool res = false;
     BaseClient* client = GetClient();
     if (client != NULL) {
+	//cout << "Client [" << client << "] sent: " << aRequest << endl;
 	res = client->Request(aRequest, aResponse);
+	//cout << "Client [" << client << "] received: " << aResponse << endl;
     }
     return res;
 }

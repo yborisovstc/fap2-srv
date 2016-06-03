@@ -98,8 +98,9 @@ bool BaseClient::Request(const string& aRequest, string& aResponse)
     bool is_ready = false;
     pthread_mutex_lock(&mMutex);
     is_ready = (mState == St_Ready);
-    pthread_mutex_unlock(&mMutex);
     assert(is_ready);
+    mState = St_Requesting;
+    pthread_mutex_unlock(&mMutex);
     bool res = true;
     int n = send(mServerSock, aRequest.c_str(), aRequest.size(), 0);
     if (n < 0) {
@@ -108,9 +109,6 @@ bool BaseClient::Request(const string& aRequest, string& aResponse)
 	aResponse = "Error writing to socket";
 	return res;
     }
-    pthread_mutex_lock(&mMutex);
-    mState = St_Requesting;
-    pthread_mutex_unlock(&mMutex);
     char buffer[KBufSize];
     bzero(buffer, KBufSize);
     n = recv(mServerSock, buffer, sizeof buffer, 0);
