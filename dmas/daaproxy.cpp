@@ -222,9 +222,26 @@ const MIface* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& a
     const MIface* res = NULL;
     string resp;
     TBool rres = mMgr->Request(mContext, aCallSpec, resp);
-    if (rres && resp != RequestIPC::RES_OK_NONE) {
-	MProxy* px = mMgr->CreateProxy(aPxType, resp);
-	res = px->GetIface(aPxType);
+    if (rres) {
+	if (resp != RequestIPC::RES_OK_NONE) {
+	    // Checking if UID is of local Iface to avoid px duplication, ref ds_daa_pxdup
+	    TBool isloc = EFalse;
+	    string oid, iid;
+	    Ifu::ParseUid(resp, oid, iid);
+	    if (!Ifu::IsSimpleIid(iid)) {
+		MIface* ifc = mEnv->IfaceResolver()->GetIfaceByUid(iid);
+		if (ifc != NULL) {
+		    res = ifc;
+		    isloc = ETrue;
+		}
+	    }
+	    if (!isloc) {
+		MProxy* px = mMgr->CreateProxy(aPxType, resp);
+		res = px->GetIface(aPxType);
+	    }
+	}
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s", mContext.c_str(), aCallSpec.c_str(), resp.c_str());
     }
     return res;
 }

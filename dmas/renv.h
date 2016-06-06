@@ -78,9 +78,6 @@ class ARenvu: public Elem
 	// From MElem
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName = string()); 
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
-	//virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse);
-	// From MMutable
-	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
     protected:
 	void Connect();
     protected:

@@ -402,79 +402,6 @@ TBool ARenvu::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
     return res;
 }
 
-void ARenvu::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
-{
-    const ChromoNode& mroot = aMutSpec;
-    if (mroot.Begin() == mroot.End()) return;
-    TInt tord = 0;
-    TInt lim = 0;
-    TBool isattached = EFalse;
-    if (EN_MUT_LIM) {
-	tord = iEnv->ChMgr()->GetSpecMaxOrder();
-	lim = iEnv->ChMgr()->GetLim();
-	isattached = IsChromoAttached();
-    }
-    for (ChromoNode::Const_Iterator rit = mroot.Begin(); rit != mroot.End(); rit++)
-    {
-	ChromoNode rno = (*rit);
-	// Omit inactive mutations
-	if (iEnv->ChMgr()->EnableOptimization() && rno.AttrExists(ENa_Inactive)) {
-	    if (!aRunTime) {
-		iChromo->Root().AddChild(rno);
-	    }
-	    continue;
-	}
-	Logger()->SetContextMutId(rno.LineId());
-	TInt order = rno.GetOrder();
-	// Avoiding mutations above limit. Taking into account only attached chromos.
-	if (EN_MUT_LIM && isattached && tord > 0 && order > tord - lim) {
-	    if (!aRunTime && !aTrialMode) {
-		iChromo->Root().AddChild(rno);
-	    }
-	    continue;
-	}
-	if (rno.AttrExists(ENa_Targ)) {
-	    // Targeted mutation, propagate downward, i.e redirect to comp owning the target
-	    // ref ds_mut_osm_linchr_lce
-	    MElem* ftarg = GetNode(rno.Attr(ENa_Targ));
-	    // Mutation is not local, propagate downward
-	    if (ftarg != NULL) {
-		ChromoNode madd = ftarg->AppendMutation(rno);
-		madd.RmAttr(ENa_Targ);
-		// Redirect the mut to target: no run-time to keep the mut in internal nodes
-		// Propagate till target owning comp if run-time to keep hidden all muts from parent 
-		ftarg->Mutate(EFalse, aCheckSafety, aTrialMode, aRunTime ? GetCompOwning(ftarg) : aCtx);
-	    } else {
-		Logger()->Write(MLogRec::EErr, this, "Cannot find target node [%s]", rno.Attr(ENa_Targ).c_str());
-	    }
-	} else {
-	    TNodeType rnotype = rno.Type();
-	    if (rnotype == ENt_Node) {
-		AddElem(rno, aRunTime, aTrialMode);
-	    }
-	    else if (rnotype == ENt_Change) {
-		ChangeAttr(rno, aRunTime, aCheckSafety, aTrialMode);
-	    }
-	    else if (rnotype == ENt_Cont) {
-		DoMutChangeCont(rno, aRunTime, aCheckSafety, aTrialMode);
-	    }
-	    else if (rnotype == ENt_Move) {
-		MoveNode(rno, aRunTime, aTrialMode);
-	    }
-	    else if (rnotype == ENt_Import) {
-		ImportNode(rno, aRunTime, aTrialMode);
-	    }
-	    else if (rnotype == ENt_Rm) {
-		RmNode(rno, aRunTime, aCheckSafety, aTrialMode);
-	    }
-	    else {
-		Logger()->Write(MLogRec::EErr, this, "Mutating - unknown mutation type [%d]", rnotype);
-	    }
-	    Logger()->SetContextMutId();
-	}
-    }
-}
-
 void ARenvu::Connect()
 {
     string psid, puid, peid;
@@ -489,11 +416,12 @@ void ARenvu::Connect()
 	    Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed");
 	}
 	if (res) {
-	    //mRenvClient.SetRmtSID(psid);
+	    string rsid;
+	    res = mRenvClient.Request("EnvProvider", "GetId,1", rsid);
 	    string resp;
 	    //res = mRenvClient.Request("EnvProvider", "AttachEnv,1," + psid, resp);
-	    //if (res) {
 	    if (res) {
+		mRenvClient.SetRmtSID(rsid);
 		// Get primary env agent
 		string root, pagt;
 		res = mRenvClient.Request(peid, "Root", root);
@@ -509,10 +437,10 @@ void ARenvu::Connect()
 		    Logger()->Write(MLogRec::EErr, this, "Primary agent access failed: %s", resp.c_str());
 		}
 	    } else {
-		Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: cannot attach to env#%s", psid.c_str());
+		Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: missing primary session id");
 	    }
 	}
     } else {
-	Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: missing primary session id");
+	Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: missing primary env ids");
     }
 }

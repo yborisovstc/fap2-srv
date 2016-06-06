@@ -52,6 +52,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TBool IsProvided() const;
 	virtual MElem* GetMan();
 	virtual const MElem* GetMan() const;
+	virtual void GetCRoot(TMut& aMut) const;
 	virtual void SetMan(MElem* aMan);
 	virtual void SetObserver(MAgentObserver* aObserver);
 	virtual vector<MElem*>& Comps();
@@ -143,8 +144,8 @@ class MelemPx : public DaaProxy, public MElem
 	virtual ChromoNode GetLocalForwardCCDep(MElem* aOwner, const ChromoNode& aMut) const;
 	virtual TBool CompactChromo();
 	virtual TBool CompactChromo(const ChromoNode& aNode);
-	virtual void OnNodeMutated(const MElem* aNode, const ChromoNode& aMut, const MElem* aCtx);
-	virtual void OnParentMutated(MElem* aParent, const ChromoNode& aMut);
+	virtual void OnNodeMutated(const MElem* aNode, const TMut& aMut, const MElem* aCtx);
+	virtual void OnParentMutated(MElem* aParent, const TMut& aMut);
     public:
 	// MCompsObserver
 	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);
