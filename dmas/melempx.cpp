@@ -233,10 +233,12 @@ TBool MelemPx::MoveNode(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMod
 
 void MelemPx::Mutate(TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
 {
+    string ctx = aCtx->GetUri(NULL, ETrue);
     string req = Ifu::CombineIcSpec("Mutate#2", "1");
     Ifu::AddIcSpecArg(req, aRunTimeOnly);
     Ifu::AddIcSpecArg(req, aCheckSafety);
     Ifu::AddIcSpecArg(req, aTrialMode);
+    Ifu::AddIcSpecArg(req, ctx);
     string resp;
     TBool rres = mMgr->Request(mContext, req, resp);
     if (!rres) {
@@ -342,13 +344,41 @@ void MelemPx::GetRank(Rank& aRank, const ChromoNode& aMut) const {}
 void MelemPx::GetCompRank(Rank& aRank, const MElem* aComp) const {};
 
 TInt MelemPx::GetCompLrank(const MElem* aComp) const
-{};
+{
+    TInt res = -1;
+    string resp;
+    string req = Ifu::CombineIcSpec("GetCompLrank", "1");
+    string uri = aComp->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToInt(resp);
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: Request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+    return res;
+}
  
-MElem* MelemPx::GetCompOwning(const string& aParent, MElem* aElem) {return NULL;}
+MElem* MelemPx::GetCompOwning(const string& aParent, MElem* aElem)
+{return NULL;}
 
-MElem* MelemPx::GetCompOwning(MElem* aElem) {return NULL;}
+MElem* MelemPx::GetCompOwning(MElem* aElem)
+{
+    string req = Ifu::CombineIcSpec("GetCompOwning", "1");
+    string uri = aElem->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    MElem* res = NewMElemProxyRequest(req);
+    return res;
+}
 
-const MElem* MelemPx::GetCompOwning(const MElem* aElem) const {};
+const MElem* MelemPx::GetCompOwning(const MElem* aElem) const
+{
+    string req = Ifu::CombineIcSpec("GetCompOwning", "1");
+    string uri = aElem->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    return NewMElemProxyRequest(req);
+}
 
 TBool MelemPx::IsInheritedComp(const MElem* aNode) const {return false;}
 
@@ -411,6 +441,10 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
     MElem* heir = NULL;
     if (IsProvided()) {
 	heir = Provider()->CreateNode(Name(), aName, aMan, mEnv);
+	// Using "light" one-way relation on creation phase, ref. ds_daa_hunv
+	MElem* hprnt = heir->GetParent();
+	hprnt->RemoveChild(heir);
+	heir->SetParent(hprnt);
     }
     else {
 	MElem* parent = GetParent();
@@ -420,6 +454,10 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 	if (parent->IsProvided()) {
 	    // Parent is Agent - native element. Create via provider
 	    heir = Provider()->CreateNode(EType(), aName, owner, mEnv);
+	    // Using "light" one-way relation on creation phase, ref. ds_daa_hunv
+	    MElem* hprnt = heir->GetParent();
+	    hprnt->RemoveChild(heir);
+	    heir->SetParent(hprnt);
 	}
 	else {
 	    heir = parent->CreateHeir(aName, owner);
@@ -438,9 +476,10 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 	// Relocate heir to hier from which the request of creating heir came
 	heir->SetMan(NULL);
 	heir->SetMan(aMan);
-	// Re-adopte the child
-	parent->RemoveChild(heir);
-	AppendChild(heir);
+	// Re-adopt the child, obtain real parent of child (it can be local native agent but not parent's proxy), ref. ds_daa_hhb
+	// Using "light" one-way relation on creation phase, ref. ds_daa_hunv
+	heir->SetParent(NULL);
+	heir->SetParent(this);
 	delete chr;
     }
     return heir;
@@ -458,9 +497,17 @@ void  MelemPx::SetMutation(const ChromoNode& aMuta) {}
 
 TBool  MelemPx::AppendMutation(const string& aFileName) { return false;}
 
+// TODO [YB] This is short-term solutin only. We need to avoid using tree-type mutations
+// in base agent APIs. To migrate to pure OSM solution, ref ds_daa_ttm 
 ChromoNode  MelemPx::AppendMutation(const ChromoNode& aMuta)
 {
-    return ChromoNode();
+    string resp;
+    string req = Ifu::CombineIcSpec("AppendMutation#2", "1", aMuta);
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (!rr) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [AppendMutation#2] request failed: %s",
+		Uid().c_str(), resp.c_str());
+    }
 }
 
 ChromoNode MelemPx::AppendMutation(TNodeType aType)
@@ -489,7 +536,20 @@ void  MelemPx::RemoveMDep(const TMDep& aDep, const MElem* aContext) {}
 
 TBool  MelemPx::RmCMDep(const ChromoNode& aMut, TNodeAttr aAttr, const MElem* aContext) { return false;}
 
-TBool  MelemPx::IsChromoAttached() const { return false;}
+TBool  MelemPx::IsChromoAttached() const
+{
+    TBool res = EFalse;
+    string resp;
+    string req("IsChromoAttached,1");
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+    return res;
+}
 
 auto_ptr<MChromo> MelemPx::GetFullChromo() const {};
 
@@ -545,9 +605,31 @@ void  MelemPx::OnCompAdding(MElem& aComp)
     }
 }
 
-TBool  MelemPx::OnCompChanged(MElem& aComp) { return false;}
+TBool  MelemPx::OnCompChanged(MElem& aComp)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("OnCompChanged", "1");
+    string uri = aComp.GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+}
 
-TBool  MelemPx::OnContentChanged(MElem& aComp) { return false;}
+TBool  MelemPx::OnContentChanged(MElem& aComp)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("OnContentChanged", "1");
+    string uri = aComp.GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+}
 
 TBool  MelemPx::OnCompRenamed(MElem& aComp, const string& aOldName) { return false;}
 
@@ -569,12 +651,35 @@ TBool  MelemPx::IsComp(const MElem* aElem) const
     return res;
 }
 
-TBool  MelemPx::MoveComp(MElem* aComp, MElem* aDest) { return false;}
+TBool  MelemPx::AppendComp(MElem* aComp)
+{
+    TBool res = EFalse;
+    string resp;
+    string req = Ifu::CombineIcSpec("AppendComp", "1");
+    string uri = aComp->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool rres = mMgr->Request(mContext, req, resp);
+    if (rres) {
+	res = Ifu::ToBool(resp);
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+    return res;
+}
 
-TBool  MelemPx::MoveComp(MElem* aComp, const ChromoNode& aDest) { return false;}
-
-TBool  MelemPx::AppendComp(MElem* aComp) { return false;}
-
+void MelemPx::RemoveComp(MElem* aComp)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("RemoveComp", "1");
+    string uri = aComp->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool rres = mMgr->Request(mContext, req, resp);
+    if (!rres) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+}
 
 // MParent
 	
@@ -584,16 +689,36 @@ TBool  MelemPx::OnChildRenamed(MElem* aComp, const string& aOldName) { return fa
 
 TBool  MelemPx::AppendChild(MElem* aChild)
 {
-    return EFalse;
-    string uri = aChild->GetUri(this, ETrue);
-    TBool res = RegisterChild(uri);
+    TBool res = EFalse;
+    string resp;
+    string req = Ifu::CombineIcSpec("AppendChild", "1");
+    string uri = aChild->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool rres = mMgr->Request(mContext, req, resp);
+    if (rres) {
+	res = Ifu::ToBool(resp);
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
     if (res) {
 	aChild->SetParent(this);
     }
     return res;
 }
 
-void  MelemPx::RemoveChild(MElem* aChild) {}
+void  MelemPx::RemoveChild(MElem* aChild)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("RemoveChild", "1");
+    string uri = aChild->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool rres = mMgr->Request(mContext, req, resp);
+    if (!rres) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+}
 
 
 // MChild
@@ -704,11 +829,6 @@ string MelemPx::GetChromoSpec() const
     return resp;
 }
 
-TBool MelemPx::RegisterChild(const string& aChildUri)
-{
-    return EFalse;
-}
-
 string MelemPx::Mid() const
 {
     return mMgr->Oid();
@@ -780,4 +900,8 @@ void MelemPx::UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem*
     req += Ifu::KRinvSep;
     req += inv;
     TBool rr = mMgr->Request(mContext, req, resp);
+}
+
+void MelemPx::DumpChilds() const
+{
 }

@@ -114,6 +114,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TInt CompsCount() const;
 	virtual MElem* GetComp(TInt aInd);
 	virtual void SaveChromo(const char* aPath) const;
+	virtual void DumpChilds() const;
     public:
 	// MMUtable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
@@ -156,15 +157,13 @@ class MelemPx : public DaaProxy, public MElem
     public:
 	// MOwner
 	virtual TBool IsComp(const MElem* aElem) const;
-	virtual TBool MoveComp(MElem* aComp, MElem* aDest);
-	virtual TBool MoveComp(MElem* aComp, const ChromoNode& aDest);
 	virtual TBool AppendComp(MElem* aComp);
+	virtual void RemoveComp(MElem* aComp);
     public:
 	// MParent
 	virtual void OnChildDeleting(MElem* aChild);
 	virtual TBool OnChildRenamed(MElem* aComp, const string& aOldName);
 	virtual TBool AppendChild(MElem* aChild);
-	virtual TBool RegisterChild(const string& aChildUri);
 	virtual void RemoveChild(MElem* aChild);
     public:
 	// MChild
