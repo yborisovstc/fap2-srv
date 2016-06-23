@@ -28,5 +28,6 @@ class MProxyMgr
 	virtual bool Request(const string& aContext, const string& aReq, string& aResp) = 0;
 	// Object Id
 	virtual string Oid() const = 0;
+	virtual void OnProxyDeleting(const MProxy* aProxy) = 0;
 };
 #endif

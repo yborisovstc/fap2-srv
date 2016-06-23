@@ -46,6 +46,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual string Mid() const;
     public:
 	// From MElem
+	virtual void Delete();
 	virtual void *DoGetObj(const char *aName);
 	virtual const string EType(TBool aShort = ETrue) const;
 	virtual const string& Name() const;
@@ -188,15 +189,6 @@ class MelemPx : public DaaProxy, public MElem
 	Chromo* mChromo;
 	TMDeps mMDeps;
 	string mName;
-	/*
-	   protected:
-	   class EIfu: public Ifu {
-	   public:
-	   EIfu();
-	   };
-	// Interface methods utility
-	static EIfu mIfu;
-	*/
 };
 
 #endif 

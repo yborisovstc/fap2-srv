@@ -52,8 +52,10 @@ class DaaPxMgr: public MProxyMgr
 	virtual MProxy* CreateProxy(const string& aId, const string& aContext);
 	virtual TBool Request(const string& aContext, const string& aReq, string& aResp);
 	virtual string Oid() const;
+	virtual void OnProxyDeleting(const MProxy* aProxy);
     protected:
 	void RegProxy(DaaProxy* aProxy);
+	void UnregProxy(const DaaProxy* aProxy);
 	TBool IsCached(const string& aContext) const;
 	DaaProxy* GetProxy(const string& aContext) const;
 	inline MLogRec* Logger() const;

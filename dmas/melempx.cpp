@@ -61,6 +61,17 @@ MelemPx::~MelemPx()
     delete mChromo;
 }
 
+void MelemPx::Delete()
+{
+    string resp;
+    string req("Delete,1");
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (!rr) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+}
+
 bool MelemPx::Request(const string& aContext, const string& aReq, string& aResp)
 {
     // Just redirect to mgr
@@ -590,7 +601,19 @@ void MelemPx::OnParentMutated(MElem* aParent, const TMut& aMut) {};
 
 
 
-void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft) {}
+void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("OnCompDeleting", "1");
+    string uri = aComp.GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    Ifu::AddIcSpecArg(req, Ifu::FromBool(aSoft));
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+}
 
 void  MelemPx::OnCompAdding(MElem& aComp)
 {
@@ -683,7 +706,18 @@ void MelemPx::RemoveComp(MElem* aComp)
 
 // MParent
 	
-void  MelemPx::OnChildDeleting(MElem* aChild) {}
+void  MelemPx::OnChildDeleting(MElem* aChild)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("OnChildDeleting", "1");
+    string uri = aChild->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+}
 
 TBool  MelemPx::OnChildRenamed(MElem* aComp, const string& aOldName) { return false;}
 
@@ -697,12 +731,12 @@ TBool  MelemPx::AppendChild(MElem* aChild)
     TBool rres = mMgr->Request(mContext, req, resp);
     if (rres) {
 	res = Ifu::ToBool(resp);
+	if (res) {
+	    aChild->SetParent(this);
+	}
     } else {
 	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
-    }
-    if (res) {
-	aChild->SetParent(this);
     }
     return res;
 }
@@ -730,11 +764,24 @@ MElem*  MelemPx::GetParent()
 
 const MElem*  MelemPx::GetParent() const { return NULL;}
 
-void  MelemPx::OnParentDeleting(MElem* aParent) {}
+void  MelemPx::OnParentDeleting(MElem* aParent)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("OnParentDeleting", "1");
+    string uri = aParent->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
+}
 
 void  MelemPx::SetParent(const string& aParent) {}
 
-void  MelemPx::SetParent(MElem* aParent) {}
+void  MelemPx::SetParent(MElem* aParent)
+{
+}
 
 
 // MIfProv

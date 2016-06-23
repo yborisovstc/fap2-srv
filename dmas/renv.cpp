@@ -153,12 +153,13 @@ ARenv::ARenv(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
 }
 
 ARenv::~ARenv() {
+    // Remove the comps first before proxies to support normal deletion of model, ref ds_daa_powrd
     // Plainly delete all comps and clear comps registry. There is only one comp - proxy. 
     // It doesn't have relation // comp-owner established, so the base agent mechanism of
     // comps removal will not work (it assumes that comp notifies owner OnCompDeleting).
     for (vector<MElem*>::reverse_iterator it = iComps.rbegin(); it != iComps.rend(); it++) {
 	MElem* comp = *it;
-	delete comp;
+	comp->Delete();
     };
     iComps.clear();
     delete mPxMgr;
@@ -326,7 +327,10 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
 		    if (res) {
 			Logger()->Write(MLogRec::EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
 			// Create proxy for remote root, bind proxy to component
-			MelemPx* px = new MelemPx(iEnv, mPxMgr, rroot);
+			//MelemPx* px = new MelemPx(iEnv, mPxMgr, rroot);
+			MProxy* mpx = mPxMgr->CreateProxy(MElem::Type(), rroot);
+			MElem* px = (MElem*) mpx->GetIface(MElem::Type());
+			//MelemPx* px = dynamic_cast<MelemPx*>(mpx);
 			res = AppendComp(px);
 			//mRroot = px;
 			if (!aRunTime) {
@@ -375,7 +379,19 @@ ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL),
     mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
 }
 
-ARenvu::~ARenvu() {
+ARenvu::~ARenvu()
+{
+    // Remove the comps first before proxies to support normal deletion of model, ref ds_daa_powrd
+    vector<MElem*>::reverse_iterator it = iComps.rbegin();
+    while (it != iComps.rend()) {
+	delete *it;
+	it = iComps.rbegin();
+    }
+    iComps.clear();
+    if (iMan != NULL) {
+	iMan->OnCompDeleting(*this, EFalse);
+	iMan = NULL;
+    }
     delete mPxMgr;
 }
 

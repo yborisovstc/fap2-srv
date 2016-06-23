@@ -198,3 +198,22 @@ string CobsPxMgr::Oid() const
 {
     return string();
 }
+
+void CobsPxMgr::OnProxyDeleting(const MProxy* aProxy)
+{
+    // Unregister proxy
+    UnregProxy(aProxy);
+}
+
+void CobsPxMgr::UnregProxy(const MProxy* aProxy)
+{
+    TBool found = EFalse;
+    for (map<string, MProxy*>::iterator it = mProxies.begin(); it != mProxies.end(); it++) {
+	if (it->second == aProxy) {
+	    mProxies.erase(it);
+	    found = ETrue;
+	    break;
+	}
+    }
+    __ASSERT(found);
+}

@@ -82,7 +82,17 @@ string MvertPx::Uid() const
 
 TInt MvertPx::PairsCount() const
 {
-    assert(false);
+    TInt res = 0;
+    string resp;
+    string req = Ifu::CombineIcSpec("PairsCount", "1");
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToInt(resp);
+    } else {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    } 
+    return res;
 }
 
 MVert* MvertPx::GetPair(TInt aInd) const

@@ -66,12 +66,14 @@ class CobsPxMgr: public MExtIfProv, public MProxyMgr
 	virtual MProxy* CreateProxy(const string& aId, const string& aContext);
 	virtual bool Request(const string& aContext, const string& aReq, string& aResp);
 	virtual string Oid() const;
+	virtual void OnProxyDeleting(const MProxy* aProxy);
 	// From MExtIfProv
 	virtual MIface* GetEIface(const string& aIfaceId, const string& aIfaceType);
 	virtual void SetEnv(MEnv* aEnv);
     protected:
 	TBool IsCached(const string& aContext) const;
 	void RegProxy(MProxy* aProxy);
+	void UnregProxy(const MProxy* aProxy);
     protected:
 	MEnv* mEnv;
 	string mBackSrvUri;

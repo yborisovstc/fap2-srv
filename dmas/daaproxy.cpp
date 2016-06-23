@@ -141,6 +141,19 @@ void DaaPxMgr::RegProxy(DaaProxy* aProxy)
     mProxies.insert(pair<string, DaaProxy*>(aProxy->GetContext(), aProxy));
 }
 
+void DaaPxMgr::UnregProxy(const DaaProxy* aProxy)
+{
+    TBool found = EFalse;
+    for (TPxs::iterator it = mProxies.begin(); it != mProxies.end(); it++) {
+	if (it->second == aProxy) {
+	    mProxies.erase(it);
+	    found = ETrue;
+	    break;
+	}
+    }
+    __ASSERT(found);
+}
+
 TBool DaaPxMgr::IsCached(const string& aContext) const
 {
     return mProxies.count(aContext) > 0;
@@ -162,6 +175,12 @@ string DaaPxMgr::Oid() const
     return mOwner->GetUri(mEnv->Root()->GetMan(), ETrue);
 }
 
+void DaaPxMgr::OnProxyDeleting(const MProxy* aProxy)
+{
+    // Unregister proxy
+    const DaaProxy* px = dynamic_cast<const DaaProxy*>(aProxy);
+    UnregProxy(px);
+}
 
 
 
@@ -171,6 +190,7 @@ DaaProxy::DaaProxy(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): mEnv(aE
 
 DaaProxy::~DaaProxy()
 {
+    mMgr->OnProxyDeleting(this);
 }
 
 const string& DaaProxy::GetContext() const
