@@ -81,9 +81,11 @@ class DaaProxy : public MProxy
 	virtual const string& GetContext() const;
 	virtual MIface* GetIface(const string& aName);
 	virtual const MIface* GetIface(const string& aName) const;
+	virtual string GetUid() const;
     protected:
 	inline MProvider* Provider() const;
 	inline MLogRec* Logger() const;
+	TBool Request(const string& aReq, string& aResp);
 	MIface* NewProxyRequest(const string& aCallSpec, const string& aPxType);
 	const MIface* NewProxyRequest(const string& aCallSpec, const string& aPxType) const;
     protected:
@@ -95,5 +97,6 @@ class DaaProxy : public MProxy
 inline MProvider* DaaProxy::Provider() const {return mEnv ? mEnv->Provider(): NULL; }
 
 inline MLogRec* DaaProxy::Logger() const {return mEnv ? mEnv->Logger(): NULL; }
+
 
 #endif 

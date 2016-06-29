@@ -151,7 +151,7 @@ void DaaPxMgr::UnregProxy(const DaaProxy* aProxy)
 	    break;
 	}
     }
-    __ASSERT(found);
+    //__ASSERT(found); It is possible that proxy isn't owned by manager
 }
 
 TBool DaaPxMgr::IsCached(const string& aContext) const
@@ -167,7 +167,8 @@ DaaProxy* DaaPxMgr::GetProxy(const string& aContext) const
 
 TBool DaaPxMgr::Request(const string& aContext, const string& aReq, string& aResp)
 {
-    return mRenvClient.Request(aContext, aReq, aResp);
+    TBool res =  mRenvClient.Request(aContext, aReq, aResp);
+    return res;
 }
 
 string DaaPxMgr::Oid() const
@@ -206,6 +207,11 @@ MIface* DaaProxy::GetIface(const string& aName)
 const MIface* DaaProxy::GetIface(const string& aName) const
 {
     return NULL;
+}
+
+string DaaProxy::GetUid() const
+{
+    return string();
 }
 
 MIface* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& aPxType)
@@ -266,3 +272,12 @@ const MIface* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& a
     return res;
 }
 
+TBool DaaProxy::Request(const string& aReq, string& aResp)
+{
+    TBool res = mMgr->Request(mContext, aReq, aResp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+		GetUid().c_str(), aReq.c_str(), aResp.c_str());
+    }
+    return res;
+}

@@ -365,14 +365,15 @@ string ARenvu::PEType()
 }
 
 ARenvu::ARenvu(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse),
-    mPxMgr(NULL)
+    mPxMgr(NULL), mRlog(NULL), mLogObsbl(NULL)
 {
     SetParent(Type());
     mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
     Connect();
 }
 
-ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse), mPxMgr(NULL)
+ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse), mPxMgr(NULL),
+    mRlog(NULL), mLogObsbl(NULL)
 {
     SetParent(Elem::PEType());
     // Connect(); Don't connect if creating just native agent
@@ -391,6 +392,12 @@ ARenvu::~ARenvu()
     if (iMan != NULL) {
 	iMan->OnCompDeleting(*this, EFalse);
 	iMan = NULL;
+    }
+    if (mLogObsbl != NULL) {
+	mLogObsbl->RemoveLogObserver(this);
+    }
+    if (mRlog != NULL) {
+	delete mRlog;
     }
     delete mPxMgr;
 }
@@ -437,6 +444,23 @@ void ARenvu::Connect()
 	    string resp;
 	    //res = mRenvClient.Request("EnvProvider", "AttachEnv,1," + psid, resp);
 	    if (res) {
+		// Get primary env
+		string rlog;
+		// Get logger of primary env
+		res = mRenvClient.Request(peid, "Logger,1", rlog);
+		if (res) {
+		    MlogrecPx* px = new MlogrecPx(iEnv, mPxMgr, rlog);
+		    if (px != NULL) {
+			mRlog = px;
+			mRlog->Write(TLog(EInfo, this) + "Remote root created: " + Name());
+			if (Logger()->AddLogObserver(this)) {
+			    mLogObsbl = Logger();
+			}
+		    }
+		    // Create proxy for primary uid
+		} else {
+		    Logger()->Write(TLog(EErr, this) + "Primary logger access failed: " + resp);
+		}
 		mRenvClient.SetRmtSID(rsid);
 		// Get primary env agent
 		string root, pagt;
@@ -460,3 +484,27 @@ void ARenvu::Connect()
 	Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: missing primary env ids");
     }
 }
+
+void ARenvu::AddObservable(MLogRec* aObservable)
+{
+}
+
+void ARenvu::RemoveObservable(MLogRec* aObservable)
+{
+}
+
+void ARenvu::OnLogAdded(long aTimeStamp, MLogRec::TLogRecCtg aCtg, const MElem* aNode, const std::string& aContent, TInt aMutId)
+{
+}
+
+void ARenvu::OnLogAdded(const TLog& aLog)
+{
+    if (mRlog != NULL) {
+	mRlog->Write(aLog);
+    }
+}
+
+void ARenvu::OnLogRecDeleting(MLogRec* aLogRec)
+{
+}
+

@@ -4,6 +4,7 @@
 #include <elem.h>
 #include <bclient.h>
 #include "melempx.h"
+#include "mlogrecpx.h"
 
 /*
  * Remote environment agent. Supports of interacting to lower layer models part,
@@ -64,7 +65,7 @@ class ARenv: public Elem
 /*
  * Remote environment "upper" agent. Supports of interacting to upper layer models part
  */
-class ARenvu: public Elem
+class ARenvu: public Elem, public MLogObserver
 {
     public:
 	static const char* Type() { return "ARenvu";};
@@ -78,6 +79,12 @@ class ARenvu: public Elem
 	// From MElem
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName = string()); 
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
+	// From MLogObserver
+	virtual void AddObservable(MLogRec* aObservable);
+	virtual void RemoveObservable(MLogRec* aObservable);
+	virtual void OnLogAdded(long aTimeStamp, MLogRec::TLogRecCtg aCtg, const MElem* aNode, const std::string& aContent, TInt aMutId = 0);
+	virtual void OnLogAdded(const TLog& aLog);
+	virtual void OnLogRecDeleting(MLogRec* aLogRec);
     protected:
 	void Connect();
     protected:
@@ -85,6 +92,8 @@ class ARenvu: public Elem
 	MelemPx* mRroot;
 	TBool mConnected;
 	DaaPxMgr* mPxMgr;
+	MlogrecPx* mRlog;
+	MLogRec* mLogObsbl; // Log observable
 };
 
 

@@ -19,6 +19,8 @@ libfap2da_la_SOURCES = \
                        mvertpx.cpp \
                        daapxprov.h \
                        daapxprov.cpp \
+                       mlogrecpx.h \
+                       mlogrecpx.cpp \
                        mcobspx.h \
                        mcobspx.cpp
 

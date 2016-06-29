@@ -44,6 +44,7 @@ class EnvProvider: public MIface
 	virtual void CreateEnv(const string& aChromo) = 0;
 	virtual void AttachEnv(const string& aSessionId) = 0;
 	virtual void GetId(string& aSessionId) = 0;
+	virtual MEnv* GetEnv() = 0;
 	//virtual void CreateAgtObserver() = 0;
     protected:
 	class EIfu: public Ifu { public: EIfu(); };
@@ -75,6 +76,7 @@ class CSessionBase : public EnvProvider
 	virtual void CreateEnv(const string& aChromo);
 	virtual void AttachEnv(const string& aSessionId);
 	virtual void GetId (string& aSessionId);
+	virtual MEnv* GetEnv();
 	//virtual void CreateAgtObserver();
 	virtual MIface* Call(const string& aSpec, string& aRes);
 	virtual string Uid() const;

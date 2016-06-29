@@ -87,6 +87,7 @@ EnvProvider::EIfu::EIfu()
     RegMethod("CreateEnv", 1);
     RegMethod("AttachEnv", 1);
     RegMethod("GetId", 0);
+    RegMethod("GetEnv", 0);
 //    RegMethod("CreateAgtObserver", 0);
 }
 
@@ -310,6 +311,11 @@ void CSessionBase::GetId (string& aSessionId)
     aSessionId = ss.str();
 }
 
+MEnv* CSessionBase::GetEnv()
+{
+    return mEnv;
+}
+
 void CSessionBase::AttachEnv(const string& aSessionId)
 {
     CSessionBase* session = NULL;
@@ -362,6 +368,8 @@ MIface* CSessionBase::Call(const string& aSpec, string& aRes)
 	AttachEnv(args.at(0));
     } else if (name == "CreateAgtObserver") {
 	//CreateAgtObserver();
+    } else if (name == "GetEnv") {
+	res = GetEnv();
     } else {
 	throw (runtime_error("Unhandled method: " + name));
     }
