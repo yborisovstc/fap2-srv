@@ -45,7 +45,7 @@ class ARenv: public Elem
 	// From Base
 	virtual void *DoGetObj(const char *aName);
 	// From MElem
-	virtual void GetCont(string& aCont, const string& aName=string()); 
+	virtual TBool GetCont(string& aValue, const string& aName=string()) const; 
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName = string()); 
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
 	//virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse);

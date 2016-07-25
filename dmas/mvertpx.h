@@ -57,6 +57,8 @@ class MedgePx : public DaaProxy, public MEdge
 	virtual MVert* Point2() const;
 	virtual MVert* Ref1() const;
 	virtual MVert* Ref2() const;
+	virtual void SetPoint1(const string& aRef);
+	virtual void SetPoint2(const string& aRef);
     public:
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);

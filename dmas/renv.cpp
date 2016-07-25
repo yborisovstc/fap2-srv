@@ -203,9 +203,10 @@ TBool ARenv::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
     return res;
 }
 
-void ARenv::GetCont(string& aCont, const string& aName)
+TBool ARenv::GetCont(string& aCont, const string& aName) const
 {
     aCont = mRenvUri;
+    return ETrue;
 }
 
 void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)

@@ -812,8 +812,8 @@ class Ut_Obs : public CPPUNIT_NS::TestFixture
 	public:
 	    virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);
 	    virtual void OnCompAdding(MElem& aComp);
-	    virtual TBool OnCompChanged(MElem& aComp);
-	    virtual TBool OnContentChanged(MElem& aComp);
+	    virtual TBool OnCompChanged(MElem& aComp, const string& aName=string());
+	    virtual TBool OnContentChanged(MElem& aComp, const string& aName=string());
 	    virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
 	    // From MIface	
 	    virtual MIface* Call(const string& aSpec, string& aRes);
@@ -847,12 +847,12 @@ void Ut_Obs::Ut_Obs_Ago::OnCompAdding(MElem& aComp)
 {
 }
 
-TBool Ut_Obs::Ut_Obs_Ago::OnCompChanged(MElem& aComp)
+TBool Ut_Obs::Ut_Obs_Ago::OnCompChanged(MElem& aComp, const string& aName)
 {
     return true;
 }
 
-TBool Ut_Obs::Ut_Obs_Ago::OnContentChanged(MElem& aComp)
+TBool Ut_Obs::Ut_Obs_Ago::OnContentChanged(MElem& aComp, const string& aName)
 {
     return true;
 }

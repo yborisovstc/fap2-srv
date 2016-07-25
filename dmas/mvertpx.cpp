@@ -228,6 +228,13 @@ string MedgePx::EdgeUri() const
     return resp;
 }
 
+void MedgePx::SetPoint1(const string& aRef)
+{
+}
+
+void MedgePx::SetPoint2(const string& aRef)
+{
+}
 
 
 MCompatCheckerPx::MCompatCheckerPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): DaaProxy(aEnv, aMgr, aContext)

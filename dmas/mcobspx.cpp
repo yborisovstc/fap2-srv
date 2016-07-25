@@ -83,7 +83,7 @@ void MCobsPx::OnCompAdding(MElem& aComp)
     }
 }
 
-TBool MCobsPx::OnCompChanged(MElem& aComp)
+TBool MCobsPx::OnCompChanged(MElem& aComp, const string& aContName)
 {
     string resp;
     string uri = aComp.GetUri(NULL, ETrue);
@@ -94,7 +94,7 @@ TBool MCobsPx::OnCompChanged(MElem& aComp)
     return true;
 }
 
-TBool MCobsPx::OnContentChanged(MElem& aComp)
+TBool MCobsPx::OnContentChanged(MElem& aComp, const string& aContName)
 {
     return true;
 }

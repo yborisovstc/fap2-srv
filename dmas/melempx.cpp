@@ -224,17 +224,20 @@ MElem* MelemPx::GetRoot() const
 
 MElem* MelemPx::GetInhRoot() const { return NULL;}
 
-TInt MelemPx::GetContCount() const { return 0;}
+TInt MelemPx::GetContCount(const string& aName) const
+{ return 0;}
 
 TBool MelemPx::IsContChangeable(const string& aName) const {return false;}
  
 // TODO [YB] Needs to return call status
-void MelemPx::GetCont(string& aCont, const string& aName)
+TBool MelemPx::GetCont(string& aCont, const string& aName) const
 {
+    __ASSERT(EFalse); // To implement
     mMgr->Request(mContext, "GetCont,1," + aName, aCont);
+    return EFalse;
 }
  
-TBool MelemPx::GetCont(TInt aInd, string& aName, string& aCont) const {return false;}
+TBool MelemPx::GetCont(TInt aInd, string& aName, string& aCont, const string& aOwnerName) const {return false;}
 
 string MelemPx::GetContent(const string& aName) const {};
 
@@ -628,12 +631,13 @@ void  MelemPx::OnCompAdding(MElem& aComp)
     }
 }
 
-TBool  MelemPx::OnCompChanged(MElem& aComp)
+TBool  MelemPx::OnCompChanged(MElem& aComp, const string& aContName)
 {
     string resp;
     string req = Ifu::CombineIcSpec("OnCompChanged", "1");
     string uri = aComp.GetUri(NULL, ETrue);
     Ifu::AddIcSpecArg(req, uri);
+    Ifu::AddIcSpecArg(req, aContName);
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
 	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
@@ -641,7 +645,7 @@ TBool  MelemPx::OnCompChanged(MElem& aComp)
     }
 }
 
-TBool  MelemPx::OnContentChanged(MElem& aComp)
+TBool  MelemPx::OnContentChanged(MElem& aComp, const string& aContName)
 {
     string resp;
     string req = Ifu::CombineIcSpec("OnContentChanged", "1");
@@ -950,5 +954,9 @@ void MelemPx::UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem*
 }
 
 void MelemPx::DumpChilds() const
+{
+}
+
+void MelemPx::DumpCntVal() const
 {
 }

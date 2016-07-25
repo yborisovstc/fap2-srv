@@ -33,12 +33,10 @@
 
 
     <glossary> <title>Glossary</title> 
-
 	<glossentry id="gls_cp"><glossterm>CP</glossterm> <acronym>CP</acronym>
 	    <glossdef> <para>Connection Point</para> <para>
 		    Element that is used as endpoint of connections between systems.  
 		    </para></glossdef> </glossentry>
-
     </glossary>
     
     <sect1 id="ds_apis"> <title>Server APIs</title>

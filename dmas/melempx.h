@@ -65,10 +65,10 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse, TBool aInclRm = EFalse);
 	virtual MElem* GetRoot() const;
 	virtual MElem* GetInhRoot() const;
-	virtual TInt GetContCount() const;
+	virtual TInt GetContCount(const string& aName = string()) const;
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
-	virtual void GetCont(string& aCont, const string& aName=string()); 
-	virtual TBool GetCont(TInt aInd, string& aName, string& aCont) const;
+	virtual TBool GetCont(string& aValue, const string& aName=string()) const; 
+	virtual TBool GetCont(TInt aInd, string& aName, string& aCont, const string& aOwnerName = string()) const;
 	virtual string GetContent(const string& aName=string()) const;
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName=string()); 
 	virtual TBool MoveNode(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode = EFalse);
@@ -116,6 +116,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetComp(TInt aInd);
 	virtual void SaveChromo(const char* aPath) const;
 	virtual void DumpChilds() const;
+	virtual void DumpCntVal() const;
     public:
 	// MMUtable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
@@ -152,8 +153,8 @@ class MelemPx : public DaaProxy, public MElem
 	// MCompsObserver
 	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);
 	virtual void OnCompAdding(MElem& aComp);
-	virtual TBool OnCompChanged(MElem& aComp);
-	virtual TBool OnContentChanged(MElem& aComp);
+	virtual TBool OnCompChanged(MElem& aComp, const string& aContName = string());
+	virtual TBool OnContentChanged(MElem& aComp, const string& aContName = string());
 	virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
     public:
 	// MOwner
