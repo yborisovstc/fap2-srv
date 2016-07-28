@@ -237,7 +237,11 @@ TBool MelemPx::GetCont(string& aCont, const string& aName) const
     return EFalse;
 }
  
-TBool MelemPx::GetCont(TInt aInd, string& aName, string& aCont, const string& aOwnerName) const {return false;}
+string MelemPx::GetContComp(const string& aOwnerName, TInt aInd) const
+{
+    __ASSERT(false);
+    return string();
+}
 
 string MelemPx::GetContent(const string& aName) const {};
 
@@ -960,3 +964,9 @@ void MelemPx::DumpChilds() const
 void MelemPx::DumpCntVal() const
 {
 }
+
+TBool MelemPx::ContValueExists(const string& aName) const
+{
+    __ASSERT(EFalse);
+}
+

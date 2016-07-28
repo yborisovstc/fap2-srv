@@ -313,8 +313,7 @@ void Ut_Renva::test_Renva_Cre()
     string l1node1_name = l1node1->Name(); 
     CPPUNIT_ASSERT_MESSAGE("Wrong name of l1node1", l1node1_name == "renv_l1node1");
     // Gettng content
-    string l1node1_cont;
-    l1node1->GetCont(l1node1_cont);
+    string l1node1_cont = l1node1->GetContent();
     CPPUNIT_ASSERT_MESSAGE("Wrong content of l1node1", l1node1_cont == "Hello!");
 
     delete iEnv;
