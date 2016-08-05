@@ -243,7 +243,7 @@ string MelemPx::GetContComp(const string& aOwnerName, TInt aInd) const
     return string();
 }
 
-string MelemPx::GetContent(const string& aName) const {};
+string MelemPx::GetContent(const string& aName, TBool aFull) const {};
 
 TBool MelemPx::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName) {return false;}
  
@@ -970,3 +970,7 @@ TBool MelemPx::ContValueExists(const string& aName) const
     __ASSERT(EFalse);
 }
 
+void MelemPx::DumpComps() const
+{
+    __ASSERT(EFalse);
+}
