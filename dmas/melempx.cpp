@@ -227,6 +227,11 @@ MElem* MelemPx::GetInhRoot() const { return NULL;}
 TInt MelemPx::GetContCount(const string& aName) const
 { return 0;}
 
+TBool MelemPx::ContentExists(const string& aName) const
+{
+    return false;
+}
+
 TBool MelemPx::IsContChangeable(const string& aName) const {return false;}
  
 // TODO [YB] Needs to return call status

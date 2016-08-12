@@ -66,6 +66,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetRoot() const;
 	virtual MElem* GetInhRoot() const;
 	virtual TInt GetContCount(const string& aName = string()) const;
+	virtual TBool ContentExists(const string& aName) const;
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
 	virtual TBool ContValueExists(const string& aName=string()) const;
 	virtual TBool GetCont(string& aValue, const string& aName=string()) const; 
