@@ -67,8 +67,8 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetInhRoot() const;
 	virtual TInt GetContCount(const string& aName = string()) const;
 	virtual TBool ContentExists(const string& aName) const;
-	virtual TBool IsContChangeable(const string& aName = string()) const; 
 	virtual TBool ContValueExists(const string& aName=string()) const;
+	virtual TBool IsContOfCategory(const string& aName, const string& aCategory) const; 
 	virtual TBool GetCont(string& aValue, const string& aName=string()) const; 
 	virtual string GetContComp(const string& aOwnerName, TInt aInd) const;
 	virtual string GetContent(const string& aName=string(), TBool aFull = EFalse) const; 
@@ -119,7 +119,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void SaveChromo(const char* aPath) const;
 	virtual void DumpChilds() const;
 	virtual void DumpComps() const;
-	virtual void DumpCntVal() const;
+	virtual void DumpContent() const;
     public:
 	// MMUtable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);

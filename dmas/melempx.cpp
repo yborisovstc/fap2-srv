@@ -232,8 +232,6 @@ TBool MelemPx::ContentExists(const string& aName) const
     return false;
 }
 
-TBool MelemPx::IsContChangeable(const string& aName) const {return false;}
- 
 // TODO [YB] Needs to return call status
 TBool MelemPx::GetCont(string& aCont, const string& aName) const
 {
@@ -966,13 +964,19 @@ void MelemPx::DumpChilds() const
 {
 }
 
-void MelemPx::DumpCntVal() const
+void MelemPx::DumpContent() const
 {
 }
 
 TBool MelemPx::ContValueExists(const string& aName) const
 {
     __ASSERT(EFalse);
+}
+
+TBool MelemPx::IsContOfCategory(const string& aName, const string& aCategory) const
+{
+    __ASSERT(EFalse);
+    return EFalse;
 }
 
 void MelemPx::DumpComps() const
