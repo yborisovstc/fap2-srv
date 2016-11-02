@@ -652,10 +652,10 @@ TBool  MelemPx::OnCompChanged(MElem& aComp, const string& aContName)
     }
 }
 
-TBool  MelemPx::OnContentChanged(MElem& aComp, const string& aContName)
+TBool  MelemPx::OnChanged(MElem& aComp)
 {
     string resp;
-    string req = Ifu::CombineIcSpec("OnContentChanged", "1");
+    string req = Ifu::CombineIcSpec("OnChanged", "1");
     string uri = aComp.GetUri(NULL, ETrue);
     Ifu::AddIcSpecArg(req, uri);
     TBool res = mMgr->Request(mContext, req, resp);
@@ -980,6 +980,11 @@ TBool MelemPx::IsContOfCategory(const string& aName, const string& aCategory) co
 }
 
 void MelemPx::DumpComps() const
+{
+    __ASSERT(EFalse);
+}
+
+string MelemPx::GetAssociatedData(const string& aUri) const
 {
     __ASSERT(EFalse);
 }

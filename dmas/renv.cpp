@@ -194,7 +194,7 @@ TBool ARenv::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
 	}
 	if (res) {
 	    if (aRtOnly) {
-		iMan->OnContentChanged(*this);
+		iMan->OnChanged(*this);
 	    } else {
 		iMan->OnCompChanged(*this);
 	    }

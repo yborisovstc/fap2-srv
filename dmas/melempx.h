@@ -120,6 +120,8 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void DumpChilds() const;
 	virtual void DumpComps() const;
 	virtual void DumpContent() const;
+	// Visual client debugging, ref ds_visdbg
+	virtual string GetAssociatedData(const string& aUri) const;
     public:
 	// MMUtable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
@@ -157,7 +159,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);
 	virtual void OnCompAdding(MElem& aComp);
 	virtual TBool OnCompChanged(MElem& aComp, const string& aContName = string());
-	virtual TBool OnContentChanged(MElem& aComp, const string& aContName = string());
+	virtual TBool OnChanged(MElem& aComp);
 	virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
     public:
 	// MOwner

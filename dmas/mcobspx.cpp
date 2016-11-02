@@ -94,7 +94,7 @@ TBool MCobsPx::OnCompChanged(MElem& aComp, const string& aContName)
     return true;
 }
 
-TBool MCobsPx::OnContentChanged(MElem& aComp, const string& aContName)
+TBool MCobsPx::OnChanged(MElem& aComp)
 {
     return true;
 }
