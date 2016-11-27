@@ -69,11 +69,11 @@ MIface* MCobsPx::Call(const string& aSpec, string& aRes)
     return res;
 }
 
-void MCobsPx::OnCompDeleting(MElem& aComp, TBool aSoft)
+void MCobsPx::OnCompDeleting(MElem& aComp, TBool aSoft, TBool aModif)
 {
 }
 
-void MCobsPx::OnCompAdding(MElem& aComp)
+void MCobsPx::OnCompAdding(MElem& aComp, TBool aModif)
 {
     string resp;
     string uri = aComp.GetUri(NULL, ETrue);
@@ -83,7 +83,7 @@ void MCobsPx::OnCompAdding(MElem& aComp)
     }
 }
 
-TBool MCobsPx::OnCompChanged(MElem& aComp, const string& aContName)
+TBool MCobsPx::OnCompChanged(MElem& aComp, const string& aContName, TBool aModif)
 {
     string resp;
     string uri = aComp.GetUri(NULL, ETrue);

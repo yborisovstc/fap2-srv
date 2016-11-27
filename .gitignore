@@ -61,5 +61,6 @@ lcov_report
 install-root
 
 # binaries
-grayb-client
-grayb-srv
+server/fap2-srv
+srvexe/fap2-srv
+test/ut-fap2srv-lib

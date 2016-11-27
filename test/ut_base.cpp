@@ -809,9 +809,9 @@ class Ut_Obs : public CPPUNIT_NS::TestFixture
 	    Ut_Obs_Ago();
 	    virtual ~Ut_Obs_Ago();
 	public:
-	    virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);
-	    virtual void OnCompAdding(MElem& aComp);
-	    virtual TBool OnCompChanged(MElem& aComp, const string& aName=string());
+	    virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue, TBool aModif = EFalse);
+	    virtual void OnCompAdding(MElem& aComp, TBool aModif = EFalse);
+	    virtual TBool OnCompChanged(MElem& aComp, const string& aName=string(), TBool aModif = EFalse);
 	    virtual TBool OnChanged(MElem& aComp);
 	    virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
 	    // From MIface	
@@ -838,15 +838,15 @@ const string Ut_Obs::BSRV_PORT_S = "30678";
 
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_Obs, "Ut_Obs");
 
-void Ut_Obs::Ut_Obs_Ago::OnCompDeleting(MElem& aComp, TBool aSoft)
+void Ut_Obs::Ut_Obs_Ago::OnCompDeleting(MElem& aComp, TBool aSoft, TBool aModif)
 {
 }
 
-void Ut_Obs::Ut_Obs_Ago::OnCompAdding(MElem& aComp)
+void Ut_Obs::Ut_Obs_Ago::OnCompAdding(MElem& aComp, TBool aModif)
 {
 }
 
-TBool Ut_Obs::Ut_Obs_Ago::OnCompChanged(MElem& aComp, const string& aName)
+TBool Ut_Obs::Ut_Obs_Ago::OnCompChanged(MElem& aComp, const string& aName, TBool aModif)
 {
     return true;
 }

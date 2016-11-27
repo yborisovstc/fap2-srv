@@ -611,7 +611,7 @@ void MelemPx::OnParentMutated(MElem* aParent, const TMut& aMut) {};
 
 
 
-void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft)
+void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft, TBool aModif)
 {
     string resp;
     string req = Ifu::CombineIcSpec("OnCompDeleting", "1");
@@ -625,7 +625,7 @@ void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft)
     }
 }
 
-void  MelemPx::OnCompAdding(MElem& aComp)
+void  MelemPx::OnCompAdding(MElem& aComp, TBool aModif)
 {
     string resp;
     string req("OnCompAdding,1,");
@@ -638,7 +638,7 @@ void  MelemPx::OnCompAdding(MElem& aComp)
     }
 }
 
-TBool  MelemPx::OnCompChanged(MElem& aComp, const string& aContName)
+TBool  MelemPx::OnCompChanged(MElem& aComp, const string& aContName, TBool aModif)
 {
     string resp;
     string req = Ifu::CombineIcSpec("OnCompChanged", "1");
@@ -685,7 +685,7 @@ TBool  MelemPx::IsComp(const MElem* aElem) const
     return res;
 }
 
-TBool  MelemPx::AppendComp(MElem* aComp)
+TBool  MelemPx::AppendComp(MElem* aComp, TBool aRt)
 {
     TBool res = EFalse;
     string resp;

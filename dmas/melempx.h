@@ -156,15 +156,15 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void OnParentMutated(MElem* aParent, const TMut& aMut);
     public:
 	// MCompsObserver
-	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);
-	virtual void OnCompAdding(MElem& aComp);
-	virtual TBool OnCompChanged(MElem& aComp, const string& aContName = string());
+	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue, TBool aModif = EFalse);
+	virtual void OnCompAdding(MElem& aComp, TBool aModif = EFalse);
+	virtual TBool OnCompChanged(MElem& aComp, const string& aContName = string(), TBool aModif = EFalse);
 	virtual TBool OnChanged(MElem& aComp);
 	virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
     public:
 	// MOwner
 	virtual TBool IsComp(const MElem* aElem) const;
-	virtual TBool AppendComp(MElem* aComp);
+	virtual TBool AppendComp(MElem* aComp, TBool aRt = EFalse);
 	virtual void RemoveComp(MElem* aComp);
     public:
 	// MParent

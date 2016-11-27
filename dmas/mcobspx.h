@@ -41,9 +41,9 @@ class MCobsPx: public DaaProxy, public MAgentObserver
 	virtual MIface* GetIface(const string& aName);
 	virtual const MIface* GetIface(const string& aName) const;
 	// From MCompsObserver
-	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue);
-	virtual void OnCompAdding(MElem& aComp);
-	virtual TBool OnCompChanged(MElem& aComp, const string& aContName = string());
+	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue, TBool aModif = EFalse);
+	virtual void OnCompAdding(MElem& aComp, TBool aModif = EFalse);
+	virtual TBool OnCompChanged(MElem& aComp, const string& aContName = string(), TBool aModif = EFalse);
 	virtual TBool OnChanged(MElem& aComp);
 	virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
 	// From MIface	
