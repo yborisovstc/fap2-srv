@@ -89,7 +89,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetUpperAowner();
 	virtual MElem* GetCommonOwner(MElem* aElem);
 	virtual TBool IsRemoved() const;
-	virtual void SetRemoved();
+	virtual void SetRemoved(TBool aModif);
 	virtual MElem* GetAttachedMgr();
 	virtual const MElem* GetAttachedMgr() const;
 	virtual TBool IsCompAttached(const MElem* aComp) const;
@@ -149,7 +149,6 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void GetMajorDep(TMDep& aDep, TBool aUp = EFalse, TBool aDown = ETrue);
 	virtual TMDep GetMajorDep(TNodeType aMut, MChromo::TDepsLevel aLevel);
 	virtual void GetMajorDep(TMDep& aDep, TNodeType aMut, MChromo::TDPath aDpath, MChromo::TDepsLevel aLevel, TBool aUp = ETrue, TBool aDown = ETrue);
-	virtual ChromoNode GetLocalForwardCCDep(MElem* aOwner, const ChromoNode& aMut) const;
 	virtual TBool CompactChromo();
 	virtual TBool CompactChromo(const ChromoNode& aNode);
 	virtual void OnNodeMutated(const MElem* aNode, const TMut& aMut, const MElem* aCtx);

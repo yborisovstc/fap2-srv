@@ -13,12 +13,12 @@
     <node id="Renv" parent="ARenv">
 	<cont id="Remote_Uid" val="Local"/>
 	<node id="renv_root" parent="ARenvu">
+	    <cont val="Connect"/>
 	    <node id="remote_node_1" parent="Vert">
 	    </node>
 	    <node id="remote_node_2" parent="./../../v1">
 	    </node>
 	</node>
-	<cont  val="Connect" targ="./renv_root"/>
     </node>
 </node>
 

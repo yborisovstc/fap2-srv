@@ -31,6 +31,7 @@ class BaseClient {
         void Dispatch();
 	void Disconnect();
 	bool IsReady();
+	bool IsConnected();
 	static int ParseUri(const string& aUri, string& aScheme, string& aHost, string& aPort);
 	static int GetPortInt(const string& aPort);
     protected:

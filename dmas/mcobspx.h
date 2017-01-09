@@ -46,6 +46,7 @@ class MCobsPx: public DaaProxy, public MAgentObserver
 	virtual TBool OnCompChanged(MElem& aComp, const string& aContName = string(), TBool aModif = EFalse);
 	virtual TBool OnChanged(MElem& aComp);
 	virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
+	virtual void OnCompMutated(const MElem* aNode);
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);
 	virtual string Uid() const;

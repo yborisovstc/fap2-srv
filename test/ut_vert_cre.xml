@@ -12,7 +12,7 @@
     <node id="v2" parent="Vert"/>
     <node id="e1" parent="Edge"/>
     <node id="Renv" parent="ARenv">
-	<cont val="test_remote_env"/>
+	<cont id="Remote_Uid" val="Local"/>
 	<node id="renv_root" parent="ARenvu">
 	    <cont val="Connect"/>
 	    <node id="remote_node_1" parent="Vert">

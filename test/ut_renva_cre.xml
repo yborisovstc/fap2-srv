@@ -10,9 +10,9 @@
     <node id="v1" parent="Vert"/>
     <node id="v2" parent="Vert"/>
     <node id="Renv" parent="ARenv">
-	<cont val="test_remote_env"/>
+	<cont id="Remote_Uid" val="Local"/>
 	    <node id="renv_root" parent="Vert">
-	    <node id="renv_l1node1" parent="Prop">
+	    <node id="renv_l1node1" parent="Vert">
 		<cont val="Hello!"/>
 	    </node>
 	</node>

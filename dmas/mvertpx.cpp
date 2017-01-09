@@ -162,22 +162,43 @@ const MIface* MedgePx::GetIface(const string& aName) const
 
 string MedgePx::EdgeName() const
 {
+    __ASSERT(EFalse); // To implement
 }
 
 TBool MedgePx::ConnectP1(MVert* aPoint)
 {
+    TBool res = EFalse;
+    string resp;
+    MElem* epoint = aPoint->MVert::GetObj(epoint);
+    string puri = epoint->GetUri(NULL, ETrue);
+    TBool rr = mMgr->Request(mContext, "ConnectP1,1," + puri, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    }
+    return res;
 }
 
 TBool MedgePx::ConnectP2(MVert* aPoint)
 {
+    TBool res = EFalse;
+    string resp;
+    MElem* epoint = aPoint->MVert::GetObj(epoint);
+    string puri = epoint->GetUri(NULL, ETrue);
+    TBool rr = mMgr->Request(mContext, "ConnectP2,1," + puri, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    }
+    return res;
 }
 
 void MedgePx::Disconnect(MVert* aPoint)
 {
+    __ASSERT(EFalse); // To implement
 }
 
 void MedgePx::Disconnect()
 {
+    __ASSERT(EFalse); // To implement
 }
 
 /*
@@ -203,10 +224,12 @@ MVert* MedgePx::Point2() const
 
 MVert* MedgePx::Ref1() const
 {
+    return (MVert*) NewProxyRequest("Ref1,0", MVert::Type());
 }
 
 MVert* MedgePx::Ref2() const
 {
+    return (MVert*) NewProxyRequest("Ref2,0", MVert::Type());
 }
 
 string MedgePx::Uid() const
@@ -230,10 +253,12 @@ string MedgePx::EdgeUri() const
 
 void MedgePx::SetPoint1(const string& aRef)
 {
+    __ASSERT(EFalse); // To implement
 }
 
 void MedgePx::SetPoint2(const string& aRef)
 {
+    __ASSERT(EFalse); // To implement
 }
 
 

@@ -24,6 +24,7 @@ class RenvClient
 	void Disconnect();
 	bool Request(const string& aRequest, string& aResponse);
 	bool Request(const string& aReqId, const string& aReqArgs, string& aResponse);
+	bool IsConnected() const;
     protected:
 	BaseClient* GetClient();
     protected:

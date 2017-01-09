@@ -104,6 +104,9 @@ TBool MCobsPx::OnCompRenamed(MElem& aComp, const string& aOldName)
     return true;
 }
 
+void MCobsPx::OnCompMutated(const MElem* aNode)
+{
+}
 
 
 CobsPxMgr::CobsPxMgr(): mEnv(NULL), mIsConnected(false)

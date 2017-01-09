@@ -170,3 +170,12 @@ bool BaseClient::IsReady()
     return res;
 }
 
+bool BaseClient::IsConnected()
+{
+    bool res = false;
+    pthread_mutex_lock(&mMutex);
+    res =  mState != St_Idle;
+    pthread_mutex_unlock(&mMutex);
+    return res;
+}
+

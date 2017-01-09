@@ -38,6 +38,17 @@ void RenvClient::Disconnect()
     mClients.clear();
 }
 
+bool RenvClient::IsConnected() const
+{
+    bool res = false;
+    if (mClients.size() > 0) {
+	BaseClient* client = mClients.at(0);
+	if (client != NULL) {
+	    res = client->IsConnected();
+	}
+    }
+}
+
 // TODO [YB] There is still the threads unsafety: it is possible that
 // one thread gets the client and starts requesting it (but client status
 // is still ready) whereas another thread gets same client - assert will
@@ -173,7 +184,8 @@ TBool DaaPxMgr::Request(const string& aContext, const string& aReq, string& aRes
 
 string DaaPxMgr::Oid() const
 {
-    return mOwner->GetUri(mEnv->Root()->GetMan(), ETrue);
+    // Generating id as relative UID from local root, ref ds_daa_pxdup_birc
+    return mOwner->GetUri(mEnv->Root(), ETrue);
 }
 
 void DaaPxMgr::OnProxyDeleting(const MProxy* aProxy)

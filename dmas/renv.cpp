@@ -134,6 +134,7 @@ MElem*  ARenv::CompsIter::GetElem()
 }
 
 
+const string ARenv::KRemoteUid = "Remote_Uid";
 
 string ARenv::PEType()
 {
@@ -144,12 +145,14 @@ ARenv::ARenv(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aE
 {
     SetParent(Type());
     mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
+    ChangeCont(string(), ETrue, KRemoteUid);
 }
 
 ARenv::ARenv(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
 {
     SetParent(Elem::PEType());
     mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
+    ChangeCont(string(), ETrue, KRemoteUid);
 }
 
 ARenv::~ARenv() {
@@ -184,30 +187,35 @@ TBool ARenv::IsContChangeable(const string& aName) const
 TBool ARenv::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
 {
     TBool res = ETrue;
-    if (aVal != mRenvUri) {
-	mRenvUri = aVal;
-	try {
-	    mRenvClient.Connect("");
-	} catch (exception& e) {
-	    Logger()->Write(MLogRec::EErr, this, "Connecting to [%s] failed", aVal.c_str());
-	    res = EFalse;
-	}
-	if (res) {
-	    if (aRtOnly) {
-		iMan->OnChanged(*this);
-	    } else {
-		iMan->OnCompChanged(*this);
+    if (aName == KRemoteUid) {
+	if (aVal != mRenvUri) {
+	    mRenvUri = aVal;
+	    try {
+		mRenvClient.Connect("");
+	    } catch (exception& e) {
+		Logger()->Write(MLogRec::EErr, this, "Connecting to [%s] failed", aVal.c_str());
+		res = EFalse;
+	    }
+	    if (res) {
+		if (aRtOnly) {
+		    iMan->OnChanged(*this);
+		} else {
+		    iMan->OnCompChanged(*this);
+		}
 	    }
 	}
     }
+    Elem::ChangeCont(aVal, aRtOnly, aName);
     return res;
 }
 
+/*
 TBool ARenv::GetCont(string& aCont, const string& aName) const
 {
     aCont = mRenvUri;
     return ETrue;
 }
+*/
 
 void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
 {
@@ -300,59 +308,64 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
     string env;
     string spec;
     aSpec.ToString(spec);
-    // Create remote env
-    TBool res = mRenvClient.Request("EnvProvider", "CreateEnv,1," + spec, env);
-    if (res) {
-	// Get current server uri
-	string sid, eid;
-	res = iEnv->GetEVar("SID", sid);
-	res = res && iEnv->GetEVar("EID", eid);
+    // Check if client is connected
+    if (mRenvClient.IsConnected()) {
+	// Create remote env
+	TBool res = mRenvClient.Request("EnvProvider", "CreateEnv,1," + spec, env);
 	if (res) {
-	    string resp;
-	    // Set server id, env id and this agent Uid to remote env as PrimarySid and PrimaryUid
-	    res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
-	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryEID," + eid, resp);
-	    res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryUid," + GetUri(), resp);
-	    // Set session Id
-	    string rsid;
-	    res = res && mRenvClient.Request(env, "GetEVar,1,SSID", rsid);
+	    // Get current server uri
+	    string sid, eid;
+	    res = iEnv->GetEVar("SID", sid);
+	    res = res && iEnv->GetEVar("EID", eid);
 	    if (res) {
-		mRenvClient.SetRmtSID(rsid);
-		// Create remote model
-		res = mRenvClient.Request(env, "ConstructSystem", resp);
+		string resp;
+		// Set server id, env id and this agent Uid to remote env as PrimarySid and PrimaryUid
+		res = mRenvClient.Request(env, "SetEVar,1,PrimarySID," + sid, resp);
+		res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryEID," + eid, resp);
+		res = res && mRenvClient.Request(env, "SetEVar,1,PrimaryUid," + GetUri(), resp);
+		// Set session Id
+		string rsid;
+		res = res && mRenvClient.Request(env, "GetEVar,1,SSID", rsid);
 		if (res) {
-		    Logger()->Write(MLogRec::EInfo, this, "Added node to remote env [%s]", mRenvUri.c_str());
-		    // Get remote root
-		    string rroot;
-		    res = mRenvClient.Request(env, "Root", rroot);
+		    mRenvClient.SetRmtSID(rsid);
+		    // Create remote model
+		    res = mRenvClient.Request(env, "ConstructSystem", resp);
 		    if (res) {
-			Logger()->Write(MLogRec::EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
-			// Create proxy for remote root, bind proxy to component
-			//MelemPx* px = new MelemPx(iEnv, mPxMgr, rroot);
-			MProxy* mpx = mPxMgr->CreateProxy(MElem::Type(), rroot);
-			MElem* px = (MElem*) mpx->GetIface(MElem::Type());
-			//MelemPx* px = dynamic_cast<MelemPx*>(mpx);
-			res = AppendComp(px);
-			//mRroot = px;
-			if (!aRunTime) {
-			    // Copy just top node, not recursivelly, ref ds_daa_chrc_va
-			    iChromo->Root().AddChild(aSpec, ETrue, EFalse);
-			    NotifyNodeMutated(aSpec, aCtx);
+			Logger()->Write(MLogRec::EInfo, this, "Added node to remote env [%s]", mRenvUri.c_str());
+			// Get remote root
+			string rroot;
+			res = mRenvClient.Request(env, "Root", rroot);
+			if (res) {
+			    Logger()->Write(MLogRec::EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
+			    // Create proxy for remote root, bind proxy to component
+			    //MelemPx* px = new MelemPx(iEnv, mPxMgr, rroot);
+			    MProxy* mpx = mPxMgr->CreateProxy(MElem::Type(), rroot);
+			    MElem* px = (MElem*) mpx->GetIface(MElem::Type());
+			    //MelemPx* px = dynamic_cast<MelemPx*>(mpx);
+			    res = AppendComp(px);
+			    //mRroot = px;
+			    if (!aRunTime) {
+				// Copy just top node, not recursivelly, ref ds_daa_chrc_va
+				iChromo->Root().AddChild(aSpec, ETrue, EFalse);
+				NotifyNodeMutated(aSpec, aCtx);
+			    }
+			} else {
+			    Logger()->Write(MLogRec::EErr, this, "Failed getting remote env root, resp: %s", rroot.c_str());
 			}
 		    } else {
-			Logger()->Write(MLogRec::EErr, this, "Failed getting remote env root, resp: %s", rroot.c_str());
+			Logger()->Write(MLogRec::EErr, this, "Error adding node to remote env [%s], resp [%s]", mRenvUri.c_str(), resp.c_str());
 		    }
 		} else {
-		    Logger()->Write(MLogRec::EErr, this, "Error adding node to remote env [%s], resp [%s]", mRenvUri.c_str(), resp.c_str());
+		    Logger()->Write(MLogRec::EErr, this, "Error creating remote env [%s]: %s", mRenvUri.c_str(), env.c_str());
 		}
 	    } else {
-		Logger()->Write(MLogRec::EErr, this, "Error creating remote env [%s]: %s", mRenvUri.c_str(), env.c_str());
+		Logger()->Write(MLogRec::EErr, this, "Error creating remote model: session ID isn't set");
 	    }
 	} else {
-	    Logger()->Write(MLogRec::EErr, this, "Error creating remote model: session ID isn't set");
+	    Logger()->Write(MLogRec::EErr, this, "Error creating remote model env: %s", env.c_str());
 	}
-    } else {
-	Logger()->Write(MLogRec::EErr, this, "Error creating remote model env: %s", env.c_str());
+    } else { // Checking client is connected
+	Logger()->Write(MLogRec::EErr, this, "There is no connection to remote env yet. Check content [Remote_Uri] and remote running");
     }
 }
 
@@ -370,7 +383,7 @@ ARenvu::ARenvu(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, 
 {
     SetParent(Type());
     mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
-    Connect();
+    //Connect();
 }
 
 ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse), mPxMgr(NULL),

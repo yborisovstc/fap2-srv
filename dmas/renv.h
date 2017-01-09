@@ -45,12 +45,8 @@ class ARenv: public Elem
 	// From Base
 	virtual void *DoGetObj(const char *aName);
 	// From MElem
-	virtual TBool GetCont(string& aValue, const string& aName=string()) const; 
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName = string()); 
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
-	//virtual MElem* GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere = EFalse);
-	//virtual Iterator NodesLoc_Begin(const GUri::TElem& aElem, TBool aInclRm = EFalse);
-	//virtual Iterator NodesLoc_End(const GUri::TElem& aElem, TBool aInclRm = EFalse);
 	// From MMutable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
     protected:
@@ -60,6 +56,7 @@ class ARenv: public Elem
 	RenvClient mRenvClient;
 	DaaPxMgr* mPxMgr;
 	MelemPx* mRroot;
+	static const string KRemoteUid;
 };
 
 /*

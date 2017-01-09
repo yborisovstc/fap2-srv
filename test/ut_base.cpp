@@ -295,6 +295,8 @@ void Ut_Renva::test_Renva_Cre()
     // Dinamic async agents specific nodes provider
     DaaProv* daaprov = new DaaProv("DaaProv", iEnv);
     iEnv->AddProvider(daaprov);
+    iEnv->SetEVar("SID", "mock_server");
+    iEnv->SetEVar("EID", "Env_0");
     iEnv->ConstructSystem();
     Elem* root = iEnv->Root();
     CPPUNIT_ASSERT_MESSAGE("Fail to get local root", root != 0);
@@ -313,7 +315,7 @@ void Ut_Renva::test_Renva_Cre()
     string l1node1_name = l1node1->Name(); 
     CPPUNIT_ASSERT_MESSAGE("Wrong name of l1node1", l1node1_name == "renv_l1node1");
     // Gettng content
-    string l1node1_cont = l1node1->GetContent();
+    string l1node1_cont = l1node1->GetContent(string(), EFalse);
     CPPUNIT_ASSERT_MESSAGE("Wrong content of l1node1", l1node1_cont == "Hello!");
 
     delete iEnv;
@@ -814,6 +816,7 @@ class Ut_Obs : public CPPUNIT_NS::TestFixture
 	    virtual TBool OnCompChanged(MElem& aComp, const string& aName=string(), TBool aModif = EFalse);
 	    virtual TBool OnChanged(MElem& aComp);
 	    virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
+	    virtual void OnCompMutated(const MElem* aNode);
 	    // From MIface	
 	    virtual MIface* Call(const string& aSpec, string& aRes);
 	    virtual string Mid() const;
@@ -859,6 +862,10 @@ TBool Ut_Obs::Ut_Obs_Ago::OnChanged(MElem& aComp)
 TBool Ut_Obs::Ut_Obs_Ago::OnCompRenamed(MElem& aComp, const string& aOldName)
 {
     return true;
+}
+
+void Ut_Obs::Ut_Obs_Ago::OnCompMutated(const MElem* aNode)
+{
 }
 
 Ut_Obs::Ut_Obs_Ago::Ut_Obs_Ago()

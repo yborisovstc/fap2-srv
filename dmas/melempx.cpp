@@ -184,9 +184,15 @@ void MelemPx::GetCRoot(TMut& aMut) const
     }
 }
 
-void MelemPx::SetMan(MElem* aMan) {}
+// Ignoring. Only one way relation is allowed for the proxy
+void MelemPx::SetMan(MElem* aMan)
+{
+}
 
-void MelemPx::SetObserver(MAgentObserver* aObserver) {}
+void MelemPx::SetObserver(MAgentObserver* aObserver)
+{
+    __ASSERT(false);
+}
 
 vector<MElem*>& MelemPx::Comps()
 { 
@@ -222,14 +228,32 @@ MElem* MelemPx::GetRoot() const
     return ((MelemPx*) this)->NewMElemProxyRequest("GetRoot");
 }
 
-MElem* MelemPx::GetInhRoot() const { return NULL;}
+MElem* MelemPx::GetInhRoot() const
+{
+    __ASSERT(false);
+    return NULL;
+}
 
 TInt MelemPx::GetContCount(const string& aName) const
-{ return 0;}
+{
+    TBool res = EFalse;
+    string resp;
+    TBool rr = mMgr->Request(mContext, "GetContCount,1," + aName, resp);
+    if (rr) {
+	res = Ifu::ToInt(resp);
+    }
+    return res;
+}
 
 TBool MelemPx::ContentExists(const string& aName) const
 {
-    return false;
+    TBool res = EFalse;
+    string resp;
+    TBool rr = mMgr->Request(mContext, "ContentExists,1," + aName, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    }
+    return res;
 }
 
 // TODO [YB] Needs to return call status
@@ -242,11 +266,35 @@ TBool MelemPx::GetCont(string& aCont, const string& aName) const
  
 string MelemPx::GetContComp(const string& aOwnerName, TInt aInd) const
 {
-    __ASSERT(false);
-    return string();
+    string resp;
+    string req = Ifu::CombineIcSpec("GetContComp", "1");
+    Ifu::AddIcSpecArg(req, aOwnerName);
+    Ifu::AddIcSpecArg(req, Ifu::FromInt(aInd));
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+	return string();
+    } else {
+	return resp;
+    }
 }
 
-string MelemPx::GetContent(const string& aName, TBool aFull) const {};
+string MelemPx::GetContent(const string& aName, TBool aFull) const
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("GetContent", "1");
+    Ifu::AddIcSpecArg(req, aName);
+    Ifu::AddIcSpecArg(req, Ifu::FromBool(aFull));
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+	return string();
+    } else {
+	return resp;
+    }
+}
 
 TBool MelemPx::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName) {return false;}
  
@@ -267,7 +315,10 @@ void MelemPx::Mutate(TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, c
     }
 }
 
-void MelemPx::Mutate(const ChromoNode& aMutsRoot, TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
+void MelemPx::Mutate(const ChromoNode& aMutsRoot, TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
+{
+    __ASSERT(false);
+}
 
 void MelemPx::GetUri(GUri& aUri, MElem* aTop) const
 {
@@ -326,15 +377,35 @@ TBool MelemPx::RebaseUri(const GUri& aUri, const MElem* aBase, GUri& aRes) {retu
 
 TBool MelemPx::RebaseUri(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere, const MElem* aBase, GUri& aRes) {return false;}
 
-MElem* MelemPx::GetAowner() {return NULL;}
+MElem* MelemPx::GetAowner()
+{
+    __ASSERT(false);
+    return NULL;
+}
 
-const MElem* MelemPx::GetAowner() const {return NULL;}
+const MElem* MelemPx::GetAowner() const
+{
+    __ASSERT(false);
+    return NULL;
+}
 
-MElem* MelemPx::GetAcompOwning(MElem* aComp) {return NULL;}
+MElem* MelemPx::GetAcompOwning(MElem* aComp)
+{
+    __ASSERT(false);
+    return NULL;
+}
 
-MElem* MelemPx::GetUpperAowner() {return NULL;}
+MElem* MelemPx::GetUpperAowner()
+{
+    __ASSERT(false);
+    return NULL;
+}
 
-MElem* MelemPx::GetCommonOwner(MElem* aElem) {return NULL;}
+MElem* MelemPx::GetCommonOwner(MElem* aElem)
+{
+    __ASSERT(false);
+    return NULL;
+}
 
 TBool MelemPx::IsRemoved() const
 {
@@ -346,23 +417,54 @@ TBool MelemPx::IsRemoved() const
     return res;
 }
 
-void MelemPx::SetRemoved() {}
+void MelemPx::SetRemoved(TBool aModif)
+{
+    __ASSERT(false);
+}
 
-MElem* MelemPx::GetAttachedMgr() {return NULL;}
+MElem* MelemPx::GetAttachedMgr()
+{
+    __ASSERT(false);
+    return NULL;
+}
 
-const MElem* MelemPx::GetAttachedMgr() const {return NULL;}
+const MElem* MelemPx::GetAttachedMgr() const
+{
+    __ASSERT(false);
+    return NULL;
+}
 
-TBool MelemPx::IsAownerOf(const MElem* aElem) const {return false;}
+TBool MelemPx::IsAownerOf(const MElem* aElem) const
+{
+    __ASSERT(false);
+    return false;
+}
 
-TBool MelemPx::ChangeAttr(TNodeAttr aAttr, const string& aVal) {return false;}
+TBool MelemPx::ChangeAttr(TNodeAttr aAttr, const string& aVal)
+{
+    __ASSERT(false);
+    return false;
+}
 
-void MelemPx::ChangeAttr(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
+void MelemPx::ChangeAttr(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
+{
+    __ASSERT(false);
+}
 
-void MelemPx::GetRank(Rank& aRank) const {};
+void MelemPx::GetRank(Rank& aRank) const
+{
+    __ASSERT(false);
+};
 
-void MelemPx::GetRank(Rank& aRank, const ChromoNode& aMut) const {}
+void MelemPx::GetRank(Rank& aRank, const ChromoNode& aMut) const
+{
+    __ASSERT(false);
+}
 
-void MelemPx::GetCompRank(Rank& aRank, const MElem* aComp) const {};
+void MelemPx::GetCompRank(Rank& aRank, const MElem* aComp) const
+{
+    __ASSERT(false);
+};
 
 TInt MelemPx::GetCompLrank(const MElem* aComp) const
 {
@@ -382,7 +484,10 @@ TInt MelemPx::GetCompLrank(const MElem* aComp) const
 }
  
 MElem* MelemPx::GetCompOwning(const string& aParent, MElem* aElem)
-{return NULL;}
+{
+    __ASSERT(false);
+    return NULL;
+}
 
 MElem* MelemPx::GetCompOwning(MElem* aElem)
 {
@@ -401,15 +506,33 @@ const MElem* MelemPx::GetCompOwning(const MElem* aElem) const
     return NewMElemProxyRequest(req);
 }
 
-TBool MelemPx::IsInheritedComp(const MElem* aNode) const {return false;}
+TBool MelemPx::IsInheritedComp(const MElem* aNode) const
+{
+    __ASSERT(false);
+    return false;
+}
 
-MElem* MelemPx::GetCompAowner(const MElem* aComp) {};
+MElem* MelemPx::GetCompAowner(const MElem* aComp)
+{
+    __ASSERT(false);
+};
 
-const MElem* MelemPx::GetCompAowner(const MElem* aComp) const {};
+const MElem* MelemPx::GetCompAowner(const MElem* aComp) const
+{
+    __ASSERT(false);
+};
 
-TBool MelemPx::HasInherDeps(const MElem* aScope) const {return false;}
+TBool MelemPx::HasInherDeps(const MElem* aScope) const
+{
+    __ASSERT(false);
+    return false;
+}
 
-TInt MelemPx::GetCapacity() const {return 0;}
+// TODO [YB] To implement
+TInt MelemPx::GetCapacity() const
+{
+    return 0;
+}
 
 TBool MelemPx::IsHeirOf(const string& aParent) const
 {
@@ -433,9 +556,15 @@ TInt MelemPx::CompsCount() const
 
 MElem* MelemPx::GetComp(const string& aParent, const string& aName)
 {
+    __ASSERT(false);
+    return NULL;
 };
 
-MElem* MelemPx::GetComp(const string& aParent, const string& aName) const {};
+MElem* MelemPx::GetComp(const string& aParent, const string& aName) const
+{
+    __ASSERT(false);
+    return NULL;
+};
 
 TBool MelemPx::IsCompAttached(const MElem* aComp) const
 {
@@ -453,9 +582,16 @@ TBool MelemPx::IsCompAttached(const MElem* aComp) const
     return res;
 }
 
-void MelemPx::DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) {}
+void MelemPx::DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
+{
+    __ASSERT(false);
+}
 
-TBool  MelemPx::DoMutChangeCont(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) { return false;}
+TBool  MelemPx::DoMutChangeCont(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
+{
+    __ASSERT(false);
+    return false;
+}
 
 MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 {
@@ -506,17 +642,32 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
     return heir;
 }
 
-MElem*  MelemPx::AddElem(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode, const MElem* aCtx) {return NULL;}
+MElem*  MelemPx::AddElem(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode, const MElem* aCtx)
+{
+    __ASSERT(false);
+    return NULL;
+}
 
-TBool  MelemPx::RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx) { return false;}
+TBool  MelemPx::RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
+{
+    __ASSERT(false);
+    return false;
+}
 
 const MChromo&  MelemPx::Chromos() const { return *mChromo;}
 
 MChromo&  MelemPx::Chromos() { return *mChromo;}
 
-void  MelemPx::SetMutation(const ChromoNode& aMuta) {}
+void  MelemPx::SetMutation(const ChromoNode& aMuta)
+{
+    __ASSERT(false);
+}
 
-TBool  MelemPx::AppendMutation(const string& aFileName) { return false;}
+TBool  MelemPx::AppendMutation(const string& aFileName)
+{
+    __ASSERT(false);
+    return false;
+}
 
 // TODO [YB] This is short-term solutin only. We need to avoid using tree-type mutations
 // in base agent APIs. To migrate to pure OSM solution, ref ds_daa_ttm 
@@ -533,6 +684,7 @@ ChromoNode  MelemPx::AppendMutation(const ChromoNode& aMuta)
 
 ChromoNode MelemPx::AppendMutation(TNodeType aType)
 {
+    __ASSERT(false);
     return ChromoNode();
 }
 
@@ -549,13 +701,26 @@ void MelemPx::AppendMutation(const TMut& aMut)
 
 TMDeps&  MelemPx::GetMDeps() { return mMDeps;}
 
-void  MelemPx::AddMDep(MElem* aNode, const ChromoNode& aMut, TNodeAttr aAttr) {}
+void  MelemPx::AddMDep(MElem* aNode, const ChromoNode& aMut, TNodeAttr aAttr)
+{
+    __ASSERT(false);
+}
 
-void  MelemPx::AddCMDep(const ChromoNode& aMut, TNodeAttr aAttr, MElem* aNode) {}
+void  MelemPx::AddCMDep(const ChromoNode& aMut, TNodeAttr aAttr, MElem* aNode)
+{
+    __ASSERT(false);
+}
 
-void  MelemPx::RemoveMDep(const TMDep& aDep, const MElem* aContext) {}
+void  MelemPx::RemoveMDep(const TMDep& aDep, const MElem* aContext)
+{
+    __ASSERT(false);
+}
 
-TBool  MelemPx::RmCMDep(const ChromoNode& aMut, TNodeAttr aAttr, const MElem* aContext) { return false;}
+TBool  MelemPx::RmCMDep(const ChromoNode& aMut, TNodeAttr aAttr, const MElem* aContext)
+{
+    __ASSERT(false);
+    return false;
+}
 
 TBool  MelemPx::IsChromoAttached() const
 {
@@ -572,23 +737,49 @@ TBool  MelemPx::IsChromoAttached() const
     return res;
 }
 
-auto_ptr<MChromo> MelemPx::GetFullChromo() const {};
+auto_ptr<MChromo> MelemPx::GetFullChromo() const
+{
+    __ASSERT(false);
+};
 
-void  MelemPx::GetDep(TMDep& aDep, TNodeAttr aAttr, TBool aLocalOnly, TBool aAnyType) const {}
+void  MelemPx::GetDep(TMDep& aDep, TNodeAttr aAttr, TBool aLocalOnly, TBool aAnyType) const
+{
+    __ASSERT(false);
+}
 
-TMDep  MelemPx::GetMajorDep() { return mMDeps.at(0);}
+TMDep MelemPx::GetMajorDep()
+{
+    __ASSERT(false);
+    return mMDeps.at(0);
+}
 
-void  MelemPx::GetMajorDep(TMDep& aDep, TBool aUp, TBool aDown) {}
+void MelemPx::GetMajorDep(TMDep& aDep, TBool aUp, TBool aDown)
+{
+    __ASSERT(false);
+}
 
-TMDep  MelemPx::GetMajorDep(TNodeType aMut, MChromo::TDepsLevel aLevel) { return mMDeps.at(0);}
+TMDep MelemPx::GetMajorDep(TNodeType aMut, MChromo::TDepsLevel aLevel)
+{
+    __ASSERT(false);
+    return mMDeps.at(0);
+}
 
-void  MelemPx::GetMajorDep(TMDep& aDep, TNodeType aMut, MChromo::TDPath aDpath, MChromo::TDepsLevel aLevel, TBool aUp, TBool aDown) {}
+void  MelemPx::GetMajorDep(TMDep& aDep, TNodeType aMut, MChromo::TDPath aDpath, MChromo::TDepsLevel aLevel, TBool aUp, TBool aDown)
+{
+    __ASSERT(false);
+}
 
-ChromoNode  MelemPx::GetLocalForwardCCDep(MElem* aOwner, const ChromoNode& aMut) const { return ChromoNode();}
+TBool  MelemPx::CompactChromo()
+{
+    __ASSERT(false);
+    return false;
+}
 
-TBool  MelemPx::CompactChromo() { return false;}
-
-TBool  MelemPx::CompactChromo(const ChromoNode& aNode) { return false;}
+TBool MelemPx::CompactChromo(const ChromoNode& aNode)
+{
+    __ASSERT(false);
+    return false;
+}
 
 void MelemPx::OnNodeMutated(const MElem* aNode, const TMut& aMut, const MElem* aCtx)
 {
@@ -606,10 +797,10 @@ void MelemPx::OnNodeMutated(const MElem* aNode, const TMut& aMut, const MElem* a
     }
 }
 
-void MelemPx::OnParentMutated(MElem* aParent, const TMut& aMut) {};
-
-
-
+void MelemPx::OnParentMutated(MElem* aParent, const TMut& aMut)
+{
+    __ASSERT(false);
+};
 
 void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft, TBool aModif)
 {
@@ -665,9 +856,11 @@ TBool  MelemPx::OnChanged(MElem& aComp)
     }
 }
 
-TBool  MelemPx::OnCompRenamed(MElem& aComp, const string& aOldName) { return false;}
-
-
+TBool MelemPx::OnCompRenamed(MElem& aComp, const string& aOldName)
+{
+    __ASSERT(false);
+    return false;
+}
 
 TBool  MelemPx::IsComp(const MElem* aElem) const
 {
@@ -730,7 +923,11 @@ void  MelemPx::OnChildDeleting(MElem* aChild)
     }
 }
 
-TBool  MelemPx::OnChildRenamed(MElem* aComp, const string& aOldName) { return false;}
+TBool  MelemPx::OnChildRenamed(MElem* aComp, const string& aOldName)
+{
+    __ASSERT(false);
+    return false;
+}
 
 TBool  MelemPx::AppendChild(MElem* aChild)
 {
@@ -742,9 +939,6 @@ TBool  MelemPx::AppendChild(MElem* aChild)
     TBool rres = mMgr->Request(mContext, req, resp);
     if (rres) {
 	res = Ifu::ToBool(resp);
-	if (res) {
-	    aChild->SetParent(this);
-	}
     } else {
 	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
@@ -773,7 +967,11 @@ MElem*  MelemPx::GetParent()
     return NewMElemProxyRequest("GetParent");
 }
 
-const MElem*  MelemPx::GetParent() const { return NULL;}
+const MElem*  MelemPx::GetParent() const
+{
+    __ASSERT(false);
+    return NULL;
+}
 
 void  MelemPx::OnParentDeleting(MElem* aParent)
 {
@@ -788,10 +986,22 @@ void  MelemPx::OnParentDeleting(MElem* aParent)
     }
 }
 
-void  MelemPx::SetParent(const string& aParent) {}
+void  MelemPx::SetParent(const string& aParent)
+{
+    __ASSERT(false);
+}
 
 void  MelemPx::SetParent(MElem* aParent)
 {
+    string resp;
+    string req = Ifu::CombineIcSpec("SetParent", "1");
+    string uri = aParent->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    TBool res = mMgr->Request(mContext, req, resp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+		Uid().c_str(), req.c_str(), resp.c_str());
+    }
 }
 
 
@@ -823,7 +1033,11 @@ void*  MelemPx::GetSIfi(const string& aName, const RqContext* aCtx)
     return res;
 }
 
-void*  MelemPx::GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert) { return NULL;}
+void*  MelemPx::GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert)
+{
+    __ASSERT(false);
+    return NULL;
+}
 
 MElem::TIfRange  MelemPx::GetIfi(const string& aName, const RqContext* aCtx)
 {
@@ -852,11 +1066,17 @@ MElem::TIfRange  MelemPx::GetIfi(const string& aName, const RqContext* aCtx)
 
 // Debugging
 
-void MelemPx::DumpMcDeps() const {};
+void MelemPx::DumpMcDeps() const
+{
+};
 
-void MelemPx::DumpCmDeps() const {};
+void MelemPx::DumpCmDeps() const
+{};
 
-MElem* MelemPx::GetNodeS(const char* aUri) {};
+MElem* MelemPx::GetNodeS(const char* aUri)
+{
+    __ASSERT(false);
+};
 
 MElem* MelemPx::GetComp(TInt aInd)
 {
@@ -962,15 +1182,23 @@ void MelemPx::UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem*
 
 void MelemPx::DumpChilds() const
 {
+    __ASSERT(false);
 }
 
 void MelemPx::DumpContent() const
 {
+    __ASSERT(false);
 }
 
 TBool MelemPx::ContValueExists(const string& aName) const
 {
-    __ASSERT(EFalse);
+    TBool res = EFalse;
+    string resp;
+    TBool rr = mMgr->Request(mContext, "ContValueExists,1," + aName, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    }
+    return res;
 }
 
 TBool MelemPx::IsContOfCategory(const string& aName, const string& aCategory) const
