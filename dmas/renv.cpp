@@ -254,8 +254,8 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 	    MElem* ftarg = GetNode(rno.Attr(ENa_Targ));
 	    // Mutation is not local, propagate downward
 	    if (ftarg != NULL) {
-		ChromoNode madd = ftarg->AppendMutation(rno);
-		madd.RmAttr(ENa_Targ);
+		rno.RmAttr(ENa_Targ);
+		ftarg->AppendMutation(rno);
 		// Redirect the mut to target: no run-time to keep the mut in internal nodes
 		// Propagate till target owning comp if run-time to keep hidden all muts from parent 
 		ftarg->Mutate(EFalse, aCheckSafety, aTrialMode, aRunTime ? GetCompOwning(ftarg) : aCtx);

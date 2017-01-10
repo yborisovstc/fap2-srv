@@ -44,7 +44,7 @@ You must have the libcppunit-1.13 and development headers installed to build.
 AC_SUBST(LIBCPPU_CFLAGS)
 AC_SUBST(LIBCPPU_LIBS)
 
-CXXFLAGS="-std=c++11"
+CXXFLAGS="-std=c++11 -Wno-maybe-uninitialized -Wno-uninitialized"
 
 if test x$debug = xyes; then
     CXXFLAGS="$CXXFLAGS -g -O0"

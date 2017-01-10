@@ -13,7 +13,7 @@ vector<MElem*> FakeComps;
 MelemPx::IfIter::IfIter(MelemPx* aHost, const string& aIfName, const TICacheRCtx& aReq, int aInd): mHost(aHost), mIfName(aIfName), mReq(aReq), mInd(aInd)
 {}
 
-MelemPx::IfIter::IfIter(const IfIter& aIt): mHost(aIt.mHost), mInd(aIt.mInd), mIfName(aIt.mIfName) {}
+MelemPx::IfIter::IfIter(const IfIter& aIt): mHost(aIt.mHost), mIfName(aIt.mIfName), mInd(aIt.mInd) {}
 
 MElem::MIfIter& MelemPx::IfIter::operator=(const MIfIter& aIt)
 {
@@ -148,7 +148,7 @@ const MElem* MelemPx::NewMElemProxyRequest(const string& aCallSpec) const
 const string MelemPx::EType(TBool aShort) const
 {
     string resp;
-    TBool rr = mMgr->Request(mContext, "EType,1," + Ifu::FromBool(aShort), resp);
+    mMgr->Request(mContext, "EType,1," + Ifu::FromBool(aShort), resp);
     return resp;
 }
 
@@ -675,11 +675,7 @@ ChromoNode  MelemPx::AppendMutation(const ChromoNode& aMuta)
 {
     string resp;
     string req = Ifu::CombineIcSpec("AppendMutation#2", "1", aMuta);
-    TBool rr = mMgr->Request(mContext, req, resp);
-    if (!rr) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [AppendMutation#2] request failed: %s",
-		Uid().c_str(), resp.c_str());
-    }
+    mMgr->Request(mContext, req, resp);
 }
 
 ChromoNode MelemPx::AppendMutation(TNodeType aType)
@@ -737,7 +733,7 @@ TBool  MelemPx::IsChromoAttached() const
     return res;
 }
 
-auto_ptr<MChromo> MelemPx::GetFullChromo() const
+unique_ptr<MChromo> MelemPx::GetFullChromo() const
 {
     __ASSERT(false);
 };
@@ -831,29 +827,31 @@ void  MelemPx::OnCompAdding(MElem& aComp, TBool aModif)
 
 TBool  MelemPx::OnCompChanged(MElem& aComp, const string& aContName, TBool aModif)
 {
+    TBool res = EFalse;
     string resp;
     string req = Ifu::CombineIcSpec("OnCompChanged", "1");
     string uri = aComp.GetUri(NULL, ETrue);
     Ifu::AddIcSpecArg(req, uri);
     Ifu::AddIcSpecArg(req, aContName);
-    TBool res = mMgr->Request(mContext, req, resp);
-    if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
-		Uid().c_str(), req.c_str(), resp.c_str());
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
     }
+    return res;
 }
 
 TBool  MelemPx::OnChanged(MElem& aComp)
 {
+    TBool res = EFalse;
     string resp;
     string req = Ifu::CombineIcSpec("OnChanged", "1");
     string uri = aComp.GetUri(NULL, ETrue);
     Ifu::AddIcSpecArg(req, uri);
-    TBool res = mMgr->Request(mContext, req, resp);
-    if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
-		Uid().c_str(), req.c_str(), resp.c_str());
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
     }
+    return res;
 }
 
 TBool MelemPx::OnCompRenamed(MElem& aComp, const string& aOldName)
@@ -1104,7 +1102,11 @@ string MelemPx::GetChromoSpec() const
 {
     string resp;
     TBool rr = mMgr->Request(mContext, "GetChromoSpec", resp);
-    return resp;
+    if (rr) {
+	return resp;
+    } else {
+	return string();
+    }
 }
 
 string MelemPx::Mid() const
@@ -1159,7 +1161,7 @@ void MelemPx::UnregIfReq(const string& aIfName, const TICacheRCtx& aCtx)
     string ctx;
     EIfu::FromCtx(aCtx, ctx);
     req += ctx;
-    TBool rr = mMgr->Request(mContext, req, resp);
+    mMgr->Request(mContext, req, resp);
 }
 
 void MelemPx::UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem* aProv, TBool aInv)
@@ -1177,7 +1179,7 @@ void MelemPx::UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem*
     string inv = Ifu::FromBool(aInv);
     req += Ifu::KRinvSep;
     req += inv;
-    TBool rr = mMgr->Request(mContext, req, resp);
+    mMgr->Request(mContext, req, resp);
 }
 
 void MelemPx::DumpChilds() const

@@ -481,7 +481,7 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(rroot, req, resp);
     printf("Adding new node remote_node_3 to renv_root, setting mut: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Adding new node remote_node_3 to renv_root, setting mut: " + resp, res);
-    res = client->Request(rroot, "Mutate#2,1,false,true,true", resp);
+    res = client->Request(rroot, "Mutate#2,1,false,true,true," + root, resp);
     printf("Adding new node remote_node_3 to renv_root, mutation: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Adding new node remote_node_3 to renv_root, mutation: " + resp, res);
     // Checking new node addition

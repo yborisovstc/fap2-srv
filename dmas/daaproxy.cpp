@@ -47,6 +47,7 @@ bool RenvClient::IsConnected() const
 	    res = client->IsConnected();
 	}
     }
+    return res;
 }
 
 // TODO [YB] There is still the threads unsafety: it is possible that
@@ -179,6 +180,10 @@ DaaProxy* DaaPxMgr::GetProxy(const string& aContext) const
 TBool DaaPxMgr::Request(const string& aContext, const string& aReq, string& aResp)
 {
     TBool res =  mRenvClient.Request(aContext, aReq, aResp);
+    if (!res) {
+	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s", aContext.c_str(),
+		aReq.c_str(), aResp.c_str());
+    }
     return res;
 }
 
@@ -287,9 +292,5 @@ const MIface* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& a
 TBool DaaProxy::Request(const string& aReq, string& aResp)
 {
     TBool res = mMgr->Request(mContext, aReq, aResp);
-    if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
-		GetUid().c_str(), aReq.c_str(), aResp.c_str());
-    }
     return res;
 }

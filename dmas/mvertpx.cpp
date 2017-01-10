@@ -248,7 +248,7 @@ string MedgePx::EdgeUri() const
 {
     string resp;
     TBool rr = mMgr->Request(mContext, "EdgeUri", resp);
-    return resp;
+    return rr ? resp : string();
 }
 
 void MedgePx::SetPoint1(const string& aRef)
@@ -285,9 +285,9 @@ MIface* MCompatCheckerPx::Call(const string& aSpec, string& aRes)
     if (name == "GetExtd") {
 	res = (MIface*) NewProxyRequest(aSpec, MElem::Type());
     } else if (name == "GetDir") {
-	TBool rr = mMgr->Request(mContext, aSpec, aRes);
+	mMgr->Request(mContext, aSpec, aRes);
     } else if (name == "IsCompatible") {
-	TBool rr = mMgr->Request(mContext, aSpec, aRes);
+	mMgr->Request(mContext, aSpec, aRes);
     } else {
 	mMgr->Request(mContext, aSpec, aRes);
     }
@@ -330,7 +330,9 @@ MCompatChecker::TDir MCompatCheckerPx::GetDir() const
     TDir res = ERegular;
     string resp;
     TBool rr = mMgr->Request(mContext, "GetDir,1", resp);
-    res = (TDir) Ifu::ToInt(resp);
+    if (rr) {
+	res = (TDir) Ifu::ToInt(resp);
+    }
     return res;
 }
 
@@ -377,7 +379,7 @@ MIface* MPropPx::Call(const string& aSpec, string& aRes)
     if (!args_ok) 
 	    throw (runtime_error("Wrong arguments number"));
     if (name == "Value") {
-	TBool rr = mMgr->Request(mContext, aSpec, aRes);
+	mMgr->Request(mContext, aSpec, aRes);
     } else {
 	throw (runtime_error("Unhandled method: " + name));
     }
@@ -400,7 +402,11 @@ string MPropPx::Mid() const
 const string& MPropPx::Value() const
 {
     MPropPx* self = (MPropPx*) this;
-    TBool rr = mMgr->Request(mContext, "Value,1", self->mValue);
+    string resp;
+    TBool rr = mMgr->Request(mContext, "Value,1", resp);
+    if (rr) {
+	self->mValue = resp;
+    }
     return mValue;
 }
 

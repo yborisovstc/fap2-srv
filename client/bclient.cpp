@@ -83,6 +83,7 @@ int BaseClient::ParseUri(const string& aUri, string& aScheme, string& aHost, str
 	size_t port_end = string::npos;
 	aPort = auth.substr(port_beg, (port_end == string::npos) ? string::npos : port_end - port_beg);
     }
+    return 0;
 }
 
 int BaseClient::GetPortInt(const string& aPort)

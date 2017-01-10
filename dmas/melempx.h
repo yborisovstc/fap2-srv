@@ -131,7 +131,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TBool RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	virtual const MChromo& Chromos() const;
 	virtual MChromo& Chromos();
-	virtual auto_ptr<MChromo> GetFullChromo() const;
+	virtual unique_ptr<MChromo> GetFullChromo() const;
 	virtual string GetChromoSpec() const;
 	virtual void SetMutation(const ChromoNode& aMuta);
 	virtual TBool AppendMutation(const string& aFileName);
