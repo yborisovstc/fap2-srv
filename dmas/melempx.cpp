@@ -379,14 +379,12 @@ TBool MelemPx::RebaseUri(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBo
 
 MElem* MelemPx::GetAowner()
 {
-    __ASSERT(false);
-    return NULL;
+    return NewMElemProxyRequest("GetAowner,1");
 }
 
 const MElem* MelemPx::GetAowner() const
 {
-    __ASSERT(false);
-    return NULL;
+    return NewMElemProxyRequest("GetAowner,1");
 }
 
 MElem* MelemPx::GetAcompOwning(MElem* aComp)
@@ -514,13 +512,19 @@ TBool MelemPx::IsInheritedComp(const MElem* aNode) const
 
 MElem* MelemPx::GetCompAowner(const MElem* aComp)
 {
-    __ASSERT(false);
-};
+    string req = Ifu::CombineIcSpec("GetCompAowner", "1");
+    string uri = aComp->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    return NewMElemProxyRequest(req);
+}
 
 const MElem* MelemPx::GetCompAowner(const MElem* aComp) const
 {
-    __ASSERT(false);
-};
+    string req = Ifu::CombineIcSpec("GetCompAowner", "1");
+    string uri = aComp->GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    return NewMElemProxyRequest(req);
+}
 
 TBool MelemPx::HasInherDeps(const MElem* aScope) const
 {
@@ -856,8 +860,17 @@ TBool  MelemPx::OnChanged(MElem& aComp)
 
 TBool MelemPx::OnCompRenamed(MElem& aComp, const string& aOldName)
 {
-    __ASSERT(false);
-    return false;
+    TBool res = EFalse;
+    string resp;
+    string req = Ifu::CombineIcSpec("OnCompRenamed", "1");
+    string uri = aComp.GetUri(NULL, ETrue);
+    Ifu::AddIcSpecArg(req, uri);
+    Ifu::AddIcSpecArg(req, aOldName);
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    }
+    return res;
 }
 
 TBool  MelemPx::IsComp(const MElem* aElem) const
