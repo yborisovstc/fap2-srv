@@ -141,7 +141,7 @@ MProxy* DaaPxMgr::CreateProxy(const string& aId, const string& aContext)
 	if (res != NULL) {
 	    RegProxy(res);
 	} else {
-	    Logger()->Write(MLogRec::EErr, mOwner, "Cannot create proxy [%s], context [%s]", aId.c_str(), aContext.c_str());
+	    Logger()->Write(EErr, mOwner, "Cannot create proxy [%s], context [%s]", aId.c_str(), aContext.c_str());
 	}
     }
     return res;
@@ -181,7 +181,7 @@ TBool DaaPxMgr::Request(const string& aContext, const string& aReq, string& aRes
 {
     TBool res =  mRenvClient.Request(aContext, aReq, aResp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s", aContext.c_str(),
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s", aContext.c_str(),
 		aReq.c_str(), aResp.c_str());
     }
     return res;
@@ -255,7 +255,7 @@ MIface* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& aPxType
 	    }
 	}
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s", mContext.c_str(), aCallSpec.c_str(), resp.c_str());
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s", mContext.c_str(), aCallSpec.c_str(), resp.c_str());
     }
     return res;
 }
@@ -284,7 +284,7 @@ const MIface* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& a
 	    }
 	}
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s", mContext.c_str(), aCallSpec.c_str(), resp.c_str());
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s", mContext.c_str(), aCallSpec.c_str(), resp.c_str());
     }
     return res;
 }

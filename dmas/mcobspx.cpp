@@ -79,7 +79,7 @@ void MCobsPx::OnCompAdding(MElem& aComp, TBool aModif)
     string uri = aComp.GetUri(NULL, ETrue);
     TBool rr = mMgr->Request(mContext, "OnCompAdding,1," + uri, resp);
     if (!rr) {
-	Logger()->Write(MLogRec::EErr, NULL, "OnCompAdding notification of AgentObserver [%s] failed: %s", GetContext().c_str(), resp.c_str());
+	Logger()->Write(EErr, NULL, "OnCompAdding notification of AgentObserver [%s] failed: %s", GetContext().c_str(), resp.c_str());
     }
 }
 
@@ -136,7 +136,7 @@ MIface* CobsPxMgr::GetEIface(const string& aIfaceId, const string& aIfaceType)
     GUri uri(aIfaceId);
     if (!mIsConnected) {
 	if (uri.IsErr()) {
-	    mEnv->Logger()->Write(MLogRec::EErr, NULL, "Incorrect ExtIface Uri: %s", aIfaceId.c_str());
+	    mEnv->Logger()->Write(EErr, NULL, "Incorrect ExtIface Uri: %s", aIfaceId.c_str());
 	} else {
 	    Connect(uri.Scheme() + "://" + uri.Authority());
 	}
@@ -164,7 +164,7 @@ void CobsPxMgr::Connect(const string& aSrvUri)
 	mBsClient.Connect(aSrvUri);
 	mIsConnected = true;
     } catch (exception& e) {
-	mEnv->Logger()->Write(MLogRec::EErr, NULL, "CobsPxMgr: Connecting to primary environment failed");
+	mEnv->Logger()->Write(EErr, NULL, "CobsPxMgr: Connecting to primary environment failed");
     }
 }
 

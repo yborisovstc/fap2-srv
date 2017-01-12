@@ -67,7 +67,7 @@ void MelemPx::Delete()
     string req("Delete,1");
     TBool rr = mMgr->Request(mContext, req, resp);
     if (!rr) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }
@@ -179,7 +179,7 @@ void MelemPx::GetCRoot(TMut& aMut) const
     if (rr) {
 	aMut = resp;
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }
@@ -272,7 +272,7 @@ string MelemPx::GetContComp(const string& aOwnerName, TInt aInd) const
     Ifu::AddIcSpecArg(req, Ifu::FromInt(aInd));
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
 	return string();
     } else {
@@ -288,7 +288,7 @@ string MelemPx::GetContent(const string& aName, TBool aFull) const
     Ifu::AddIcSpecArg(req, Ifu::FromBool(aFull));
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
 	return string();
     } else {
@@ -311,7 +311,7 @@ void MelemPx::Mutate(TBool aRunTimeOnly, TBool aCheckSafety, TBool aTrialMode, c
     string resp;
     TBool rres = mMgr->Request(mContext, req, resp);
     if (!rres) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [Mutate#2] failed: %s", Uid().c_str(), resp.c_str());
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [Mutate#2] failed: %s", Uid().c_str(), resp.c_str());
     }
 }
 
@@ -339,7 +339,7 @@ string MelemPx::GetUri(MElem* aTop, TBool aShort) const
     if (aTop == NULL) {
 	TBool rres = mMgr->Request(mContext, "GetUri,1", res);
 	if (!rres) {
-	    Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetUri] request failed: %s",
+	    Logger()->Write(EErr, NULL, "Proxy [%s]: [GetUri] request failed: %s",
 		    Uid().c_str(), res.c_str());
 	}
     } else {
@@ -347,14 +347,14 @@ string MelemPx::GetUri(MElem* aTop, TBool aShort) const
 	/*
 	TBool rres = mMgr->Request(mContext, "GetUri,1", base);
 	if (!rres) {
-	    Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetUri] failed on getting base: %s",
+	    Logger()->Write(EErr, NULL, "Proxy [%s]: [GetUri] failed on getting base: %s",
 		    Uid().c_str(), base.c_str());
 	}
 	*/
 	base = aTop->GetUri();
 	TBool rres = mMgr->Request(mContext, "GetUri#2,1," + base, res);
 	if (!rres) {
-	    Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetUri %s] failed on GetUri#2 request: %s",
+	    Logger()->Write(EErr, NULL, "Proxy [%s]: [GetUri %s] failed on GetUri#2 request: %s",
 		    Uid().c_str(), base.c_str(), res.c_str());
 	}
     }
@@ -367,7 +367,7 @@ string MelemPx::GetRUri(MElem* aTop)
     string res;
     TBool rres = mMgr->Request(mContext, "GetRUri,1," + base, res);
     if (!rres) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [GetRUri %s] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [GetRUri %s] request failed: %s",
 		Uid().c_str(), base.c_str(), res.c_str());
     }
     return res;
@@ -475,7 +475,7 @@ TInt MelemPx::GetCompLrank(const MElem* aComp) const
     if (rr) {
 	res = Ifu::ToInt(resp);
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: Request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: Request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
     return res;
@@ -580,7 +580,7 @@ TBool MelemPx::IsCompAttached(const MElem* aComp) const
     if (rr) {
 	res = Ifu::ToBool(resp);
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
     return res;
@@ -694,7 +694,7 @@ void MelemPx::AppendMutation(const TMut& aMut)
     string req = Ifu::CombineIcSpec("AppendMutation", "1", aMut);
     TBool rr = mMgr->Request(mContext, req, resp);
     if (!rr) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [AppendMutation] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [AppendMutation] request failed: %s",
 		Uid().c_str(), resp.c_str());
     }
 }
@@ -731,7 +731,7 @@ TBool  MelemPx::IsChromoAttached() const
     if (rr) {
 	res = Ifu::ToBool(resp);
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
     return res;
@@ -792,7 +792,7 @@ void MelemPx::OnNodeMutated(const MElem* aNode, const TMut& aMut, const MElem* a
     Ifu::AddIcSpecArg(req, ctx);
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [OnNodeMutated %s] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [OnNodeMutated %s] request failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }
@@ -811,7 +811,7 @@ void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft, TBool aModif)
     Ifu::AddIcSpecArg(req, Ifu::FromBool(aSoft));
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }
@@ -824,7 +824,7 @@ void  MelemPx::OnCompAdding(MElem& aComp, TBool aModif)
     req += uri;
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [OnCompAdding %s] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [OnCompAdding %s] request failed: %s",
 		Uid().c_str(), uri.c_str(), resp.c_str());
     }
 }
@@ -883,7 +883,7 @@ TBool  MelemPx::IsComp(const MElem* aElem) const
     if (rr) {
 	res = Ifu::ToBool(resp);
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: [%s] request failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
     return res;
@@ -900,7 +900,7 @@ TBool  MelemPx::AppendComp(MElem* aComp, TBool aRt)
     if (rres) {
 	res = Ifu::ToBool(resp);
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
     return res;
@@ -914,7 +914,7 @@ void MelemPx::RemoveComp(MElem* aComp)
     Ifu::AddIcSpecArg(req, uri);
     TBool rres = mMgr->Request(mContext, req, resp);
     if (!rres) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }
@@ -929,7 +929,7 @@ void  MelemPx::OnChildDeleting(MElem* aChild)
     Ifu::AddIcSpecArg(req, uri);
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }
@@ -951,7 +951,7 @@ TBool  MelemPx::AppendChild(MElem* aChild)
     if (rres) {
 	res = Ifu::ToBool(resp);
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
     return res;
@@ -965,7 +965,7 @@ void  MelemPx::RemoveChild(MElem* aChild)
     Ifu::AddIcSpecArg(req, uri);
     TBool rres = mMgr->Request(mContext, req, resp);
     if (!rres) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }
@@ -992,7 +992,7 @@ void  MelemPx::OnParentDeleting(MElem* aParent)
     Ifu::AddIcSpecArg(req, uri);
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }
@@ -1010,7 +1010,7 @@ void  MelemPx::SetParent(MElem* aParent)
     Ifu::AddIcSpecArg(req, uri);
     TBool res = mMgr->Request(mContext, req, resp);
     if (!res) {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     }
 }

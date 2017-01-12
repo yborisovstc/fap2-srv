@@ -79,7 +79,7 @@ class ARenvu: public Elem, public MLogObserver
 	// From MLogObserver
 	virtual void AddObservable(MLogRec* aObservable);
 	virtual void RemoveObservable(MLogRec* aObservable);
-	virtual void OnLogAdded(long aTimeStamp, MLogRec::TLogRecCtg aCtg, const MElem* aNode, const std::string& aContent, TInt aMutId = 0);
+	virtual void OnLogAdded(long aTimeStamp, TLogRecCtg aCtg, const MElem* aNode, const std::string& aContent, TInt aMutId = 0);
 	virtual void OnLogAdded(const TLog& aLog);
 	virtual void OnLogRecDeleting(MLogRec* aLogRec);
     protected:

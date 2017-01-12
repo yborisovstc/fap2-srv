@@ -193,7 +193,7 @@ TBool ARenv::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
 	    try {
 		mRenvClient.Connect("");
 	    } catch (exception& e) {
-		Logger()->Write(MLogRec::EErr, this, "Connecting to [%s] failed", aVal.c_str());
+		Logger()->Write(EErr, this, "Connecting to [%s] failed", aVal.c_str());
 		res = EFalse;
 	    }
 	    if (res) {
@@ -260,7 +260,7 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 		// Propagate till target owning comp if run-time to keep hidden all muts from parent 
 		ftarg->Mutate(EFalse, aCheckSafety, aTrialMode, aRunTime ? GetCompOwning(ftarg) : aCtx);
 	    } else {
-		Logger()->Write(MLogRec::EErr, this, "Cannot find target node [%s]", rno.Attr(ENa_Targ).c_str());
+		Logger()->Write(EErr, this, "Cannot find target node [%s]", rno.Attr(ENa_Targ).c_str());
 	    }
 	} else {
 	    TNodeType rnotype = rno.Type();
@@ -283,7 +283,7 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 		RmNode(rno, aRunTime, aCheckSafety, aTrialMode);
 	    }
 	    else {
-		Logger()->Write(MLogRec::EErr, this, "Mutating - unknown mutation type [%d]", rnotype);
+		Logger()->Write(EErr, this, "Mutating - unknown mutation type [%d]", rnotype);
 	    }
 	    Logger()->SetContextMutId();
 	}
@@ -331,12 +331,12 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
 		    // Create remote model
 		    res = mRenvClient.Request(env, "ConstructSystem", resp);
 		    if (res) {
-			Logger()->Write(MLogRec::EInfo, this, "Added node to remote env [%s]", mRenvUri.c_str());
+			Logger()->Write(EInfo, this, "Added node to remote env [%s]", mRenvUri.c_str());
 			// Get remote root
 			string rroot;
 			res = mRenvClient.Request(env, "Root", rroot);
 			if (res) {
-			    Logger()->Write(MLogRec::EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
+			    Logger()->Write(EInfo, this, "Getting remote env root, resp: %s", rroot.c_str());
 			    // Create proxy for remote root, bind proxy to component
 			    //MelemPx* px = new MelemPx(iEnv, mPxMgr, rroot);
 			    MProxy* mpx = mPxMgr->CreateProxy(MElem::Type(), rroot);
@@ -350,22 +350,22 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
 				NotifyNodeMutated(aSpec, aCtx);
 			    }
 			} else {
-			    Logger()->Write(MLogRec::EErr, this, "Failed getting remote env root, resp: %s", rroot.c_str());
+			    Logger()->Write(EErr, this, "Failed getting remote env root, resp: %s", rroot.c_str());
 			}
 		    } else {
-			Logger()->Write(MLogRec::EErr, this, "Error adding node to remote env [%s], resp [%s]", mRenvUri.c_str(), resp.c_str());
+			Logger()->Write(EErr, this, "Error adding node to remote env [%s], resp [%s]", mRenvUri.c_str(), resp.c_str());
 		    }
 		} else {
-		    Logger()->Write(MLogRec::EErr, this, "Error creating remote env [%s]: %s", mRenvUri.c_str(), env.c_str());
+		    Logger()->Write(EErr, this, "Error creating remote env [%s]: %s", mRenvUri.c_str(), env.c_str());
 		}
 	    } else {
-		Logger()->Write(MLogRec::EErr, this, "Error creating remote model: session ID isn't set");
+		Logger()->Write(EErr, this, "Error creating remote model: session ID isn't set");
 	    }
 	} else {
-	    Logger()->Write(MLogRec::EErr, this, "Error creating remote model env: %s", env.c_str());
+	    Logger()->Write(EErr, this, "Error creating remote model env: %s", env.c_str());
 	}
     } else { // Checking client is connected
-	Logger()->Write(MLogRec::EErr, this, "There is no connection to remote env yet. Check content [Remote_Uri] and remote running");
+	Logger()->Write(EErr, this, "There is no connection to remote env yet. Check content [Remote_Uri] and remote running");
     }
 }
 
@@ -450,7 +450,7 @@ void ARenvu::Connect()
 	    mRenvClient.Connect(psid);
 	    res = ETrue;
 	} catch (exception& e) {
-	    Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed");
+	    Logger()->Write(EErr, this, "Connecting to primary environment failed");
 	}
 	if (res) {
 	    string rsid;
@@ -488,14 +488,14 @@ void ARenvu::Connect()
 		    }
 		    // Create proxy for primary uid
 		} else {
-		    Logger()->Write(MLogRec::EErr, this, "Primary agent access failed: %s", resp.c_str());
+		    Logger()->Write(EErr, this, "Primary agent access failed: %s", resp.c_str());
 		}
 	    } else {
-		Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: missing primary session id");
+		Logger()->Write(EErr, this, "Connecting to primary environment failed: missing primary session id");
 	    }
 	}
     } else {
-	Logger()->Write(MLogRec::EErr, this, "Connecting to primary environment failed: missing primary env ids");
+	Logger()->Write(EErr, this, "Connecting to primary environment failed: missing primary env ids");
     }
 }
 
@@ -507,8 +507,14 @@ void ARenvu::RemoveObservable(MLogRec* aObservable)
 {
 }
 
-void ARenvu::OnLogAdded(long aTimeStamp, MLogRec::TLogRecCtg aCtg, const MElem* aNode, const std::string& aContent, TInt aMutId)
+void ARenvu::OnLogAdded(long aTimeStamp, TLogRecCtg aCtg, const MElem* aNode, const std::string& aContent, TInt aMutId)
 {
+    /*
+    if (mRlog != NULL) {
+	TLog tlog(aCtg, aNode);
+	mRlog->Write(tlog + aContent);
+    }
+    */
 }
 
 void ARenvu::OnLogAdded(const TLog& aLog)

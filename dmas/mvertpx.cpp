@@ -89,7 +89,7 @@ TInt MvertPx::PairsCount() const
     if (rr) {
 	res = Ifu::ToInt(resp);
     } else {
-	Logger()->Write(MLogRec::EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
+	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
 		Uid().c_str(), req.c_str(), resp.c_str());
     } 
     return res;

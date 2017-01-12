@@ -38,7 +38,7 @@ void *ADaaPxProv::DoGetObj(const char *aName)
 
 void ADaaPxProv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
 {
-    Logger()->Write(MLogRec::EErr, this, "Mutation of base proxy provider is not allowed");
+    Logger()->Write(EErr, this, "Mutation of base proxy provider is not allowed");
 }
 
 DaaProxy* ADaaPxProv::CreateProxy(const string& aId, MProxyMgr* aMgr, const string& aContext) const
