@@ -430,6 +430,199 @@ const MIface* MPropPx::GetIface(const string& aName) const
 
 
 
+MConnPointPx::MConnPointPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): DaaProxy(aEnv, aMgr, aContext)
+{
+}
+
+MConnPointPx::~MConnPointPx()
+{
+}
+	
+MIface* MConnPointPx::Call(const string& aSpec, string& aRes)
+{
+    MIface* res = NULL;
+    string name, sig;
+    vector<string> args;
+    Ifu::ParseIcSpec(aSpec, name, sig, args);
+    TBool name_ok = mIfu.CheckMname(name);
+    if (!name_ok) 
+	    throw (runtime_error("Wrong method name"));
+    TBool args_ok = mIfu.CheckMpars(name, args.size());
+    if (!args_ok) 
+	    throw (runtime_error("Wrong arguments number"));
+    if (name == "Value") {
+	mMgr->Request(mContext, aSpec, aRes);
+    } else {
+	throw (runtime_error("Unhandled method: " + name));
+    }
+
+    return res;
+}
+
+string MConnPointPx::Uid() const
+{
+    string res;
+    Ifu::CombineUid(Mid(), GetContext(), res);
+    return res;
+}
+
+string MConnPointPx::Mid() const
+{
+    return mMgr->Oid();
+}
+
+MIface* MConnPointPx::GetIface(const string& aName)
+{
+    MIface* res = NULL;
+    if (aName == MConnPoint::Type()) {
+	res = (MConnPoint*) this;
+    }
+    return res;
+}
+
+const MIface* MConnPointPx::GetIface(const string& aName) const
+{
+    const MIface* res = NULL;
+    if (aName == MConnPoint::Type()) {
+	res = (const MConnPoint*) this;
+    }
+    return res;
+}
+
+
+TBool MConnPointPx::IsProvided(const string& aIfName) const
+{
+    TBool res = EFalse;
+    string resp;
+    string req = Ifu::CombineIcSpec("IsProvided", "1");
+    Ifu::AddIcSpecArg(req, aIfName);
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    }
+    return res;
+}
+
+TBool MConnPointPx::IsRequired(const string& aIfName) const
+{
+    TBool res = EFalse;
+    string resp;
+    string req = Ifu::CombineIcSpec("IsRequired", "1");
+    Ifu::AddIcSpecArg(req, aIfName);
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToBool(resp);
+    }
+    return res;
+}
+
+string MConnPointPx::Provided() const
+{
+    string res;
+    string resp;
+    string req = Ifu::CombineIcSpec("Provided", "1");
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = resp;
+    }
+    return res;
+}
+
+string MConnPointPx::Required() const
+{
+    string res;
+    string resp;
+    string req = Ifu::CombineIcSpec("Required", "1");
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = resp;
+    }
+    return res;
+}
+
+
+
+
+MSocketPx::MSocketPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext): DaaProxy(aEnv, aMgr, aContext)
+{
+}
+
+MSocketPx::~MSocketPx()
+{
+}
+	
+MIface* MSocketPx::Call(const string& aSpec, string& aRes)
+{
+    MIface* res = NULL;
+    string name, sig;
+    vector<string> args;
+    Ifu::ParseIcSpec(aSpec, name, sig, args);
+    TBool name_ok = mIfu.CheckMname(name);
+    if (!name_ok) 
+	    throw (runtime_error("Wrong method name"));
+    TBool args_ok = mIfu.CheckMpars(name, args.size());
+    if (!args_ok) 
+	    throw (runtime_error("Wrong arguments number"));
+    if (name == "Value") {
+	mMgr->Request(mContext, aSpec, aRes);
+    } else {
+	throw (runtime_error("Unhandled method: " + name));
+    }
+
+    return res;
+}
+
+string MSocketPx::Uid() const
+{
+    string res;
+    Ifu::CombineUid(Mid(), GetContext(), res);
+    return res;
+}
+
+string MSocketPx::Mid() const
+{
+    return mMgr->Oid();
+}
+
+MIface* MSocketPx::GetIface(const string& aName)
+{
+    MIface* res = NULL;
+    if (aName == MSocket::Type()) {
+	res = (MSocket*) this;
+    }
+    return res;
+}
+
+const MIface* MSocketPx::GetIface(const string& aName) const
+{
+    const MIface* res = NULL;
+    if (aName == MSocket::Type()) {
+	res = (const MSocket*) this;
+    }
+    return res;
+}
+
+TInt MSocketPx::PinsCount() const
+{
+    TInt res = 0;
+    string resp;
+    string req = Ifu::CombineIcSpec("PinsCount", "1");
+    TBool rr = mMgr->Request(mContext, req, resp);
+    if (rr) {
+	res = Ifu::ToInt(resp);
+    }
+    return res;
+}
+
+MElem* MSocketPx::GetPin(TInt aInd)
+{
+    string resp;
+    string req = Ifu::CombineIcSpec("GetPin", "1");
+    Ifu::AddIcSpecArg(req, aInd);
+    return (MElem*) NewProxyRequest(req, MElem::Type());
+}
+
+
 
 
 

@@ -1,0 +1,25 @@
+<?xml version="1.0" ?>
+
+<!DOCTYPE node SYSTEM "../etc/objspec.dtd"> 
+
+<node id="Root" parent="Elem">
+  <node id="Note" parent="Description"/>
+  <cont val="This is model template for incapsulated system.       Add required modules to [Modules] node and start creating model in [MRoot]" targ="./Note"/>
+  <node id="Modules" parent="AImports"/>
+  <import id="/IncapsComps/Incaps" targ="./Modules"/>
+  <node id="MRoot" parent="/Root/Modules/IncapsComps/Incaps"/>
+  <node id="VPrnt1" parent="Vert" targ="./MRoot"/>
+  <node id="Vert1" parent="Vert" targ="./MRoot"/>
+  <node id="Vert1_1" parent="/Root/MRoot/VPrnt1" targ="./MRoot/Vert1"/>
+  <node id="renv" parent="ARenv" targ="./MRoot"/>
+  <cont id="Remote_Uid" val="Local" targ="./MRoot/renv"/>
+  <node id="remote_root" parent="ARenvu" targ="./MRoot/renv"/>
+  <cont val="Connect" targ="./MRoot/renv/remote_root"/>
+  <node id="vv" parent="Vert" targ="./MRoot/renv/remote_root"/>
+  <node id="vv1" parent="Vert" targ="./MRoot/renv/remote_root"/>
+  <node id="ss" parent="Syst" targ="./MRoot/renv/remote_root"/>
+  <node id="v1" parent="Vert" targ="./MRoot/renv/remote_root/ss"/>
+  <node id="v2" parent="Vert" targ="./MRoot/renv/remote_root/ss"/>
+  <node id="v3" parent="/Root/MRoot/Vert1" targ="./MRoot/renv/remote_root"/>
+  <change attr="id" val="v2_new" comp="./v2" targ="./MRoot/renv/remote_root/ss"/>
+</node>

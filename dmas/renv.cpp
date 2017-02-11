@@ -509,12 +509,10 @@ void ARenvu::RemoveObservable(MLogRec* aObservable)
 
 void ARenvu::OnLogAdded(long aTimeStamp, TLogRecCtg aCtg, const MElem* aNode, const std::string& aContent, TInt aMutId)
 {
-    /*
     if (mRlog != NULL) {
 	TLog tlog(aCtg, aNode);
 	mRlog->Write(tlog + aContent);
     }
-    */
 }
 
 void ARenvu::OnLogAdded(const TLog& aLog)

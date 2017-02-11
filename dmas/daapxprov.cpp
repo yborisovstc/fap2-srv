@@ -54,6 +54,10 @@ DaaProxy* ADaaPxProv::CreateProxy(const string& aId, MProxyMgr* aMgr, const stri
 	res = new MCompatCheckerPx(iEnv, aMgr, aContext);
     } else if (aId == MProp::Type()) {
 	res = new MPropPx(iEnv, aMgr, aContext);
+    } else if (aId == MConnPoint::Type()) {
+	res = new MConnPointPx(iEnv, aMgr, aContext);
+    } else if (aId == MSocket::Type()) {
+	res = new MSocketPx(iEnv, aMgr, aContext);
     } else {
 	__ASSERT(EFalse);
     }

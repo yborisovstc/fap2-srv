@@ -558,17 +558,21 @@ TInt MelemPx::CompsCount() const
     return res;
 }
 
+/*
 MElem* MelemPx::GetComp(const string& aParent, const string& aName)
 {
     __ASSERT(false);
     return NULL;
 };
+*/
 
 MElem* MelemPx::GetComp(const string& aParent, const string& aName) const
 {
-    __ASSERT(false);
-    return NULL;
-};
+    string req = Ifu::CombineIcSpec("GetComp#2", "1");
+    Ifu::AddIcSpecArg(req, aParent);
+    Ifu::AddIcSpecArg(req, aName);
+    return ((MelemPx*) this)->NewMElemProxyRequest(req);
+}
 
 TBool MelemPx::IsCompAttached(const MElem* aComp) const
 {
@@ -597,11 +601,18 @@ TBool  MelemPx::DoMutChangeCont(const ChromoNode& aSpec, TBool aRunTime, TBool a
     return false;
 }
 
-MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
+MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan, MElem* aContext)
 {
     MElem* heir = NULL;
     if (IsProvided()) {
 	heir = Provider()->CreateNode(Name(), aName, aMan, mEnv);
+	// Persistently attach heir to final owner, but also set context for mutation, ref ds_daa_itn_sfo
+	aMan->AppendComp(heir);
+	heir->SetCtx(aContext);
+	// Register final URI, ref ds_daa_itn_sfu
+	//GUri fu(aFinalUri);
+	//fu.AppendElem(string(), aName);
+	//mEnv->RegisterUri(fu, heir);
 	// Using "light" one-way relation on creation phase, ref. ds_daa_hunv
 	MElem* hprnt = heir->GetParent();
 	hprnt->RemoveChild(heir);
@@ -614,14 +625,21 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 	__ASSERT(owner != NULL);
 	if (parent->IsProvided()) {
 	    // Parent is Agent - native element. Create via provider
-	    heir = Provider()->CreateNode(EType(), aName, owner, mEnv);
+	    heir = Provider()->CreateNode(EType(), aName, aMan, mEnv);
+	    // Persistently attach heir to final owner, but also set context for mutation, ref ds_daa_itn_sfo
+	    aMan->AppendComp(heir);
+	    heir->SetCtx(owner);
+	    // Register final URI, ref ds_daa_itn_sfu
+	    //GUri fu(aFinalUri);
+	    //fu.AppendElem(string(), aName);
+	    //mEnv->RegisterUri(fu, heir);
 	    // Using "light" one-way relation on creation phase, ref. ds_daa_hunv
 	    MElem* hprnt = heir->GetParent();
 	    hprnt->RemoveChild(heir);
 	    heir->SetParent(hprnt);
 	}
 	else {
-	    heir = parent->CreateHeir(aName, owner);
+	    heir = parent->CreateHeir(aName, aMan, owner);
 	}
 	// Mutate bare child with original parent chromo, mutate run-time only to have clean heir's chromo
 	string cspec = GetChromoSpec();
@@ -635,8 +653,11 @@ MElem*  MelemPx::CreateHeir(const string& aName, MElem* aMan)
 	// Mutated with parent's own chromo - so panent's name is the type now. Set also the parent, but it will be updated further
 	heir->SetParent(Name());
 	// Relocate heir to hier from which the request of creating heir came
-	heir->SetMan(NULL);
-	heir->SetMan(aMan);
+	heir->SetCtx(NULL);
+	heir->SetCtx(aContext);
+	// Using full comp-owner relation, ref ds_di_cnfr_susl
+	//owner->RemoveComp(heir);
+	//aMan->AppendComp(heir);
 	// Re-adopt the child, obtain real parent of child (it can be local native agent but not parent's proxy), ref. ds_daa_hhb
 	// Using "light" one-way relation on creation phase, ref. ds_daa_hunv
 	heir->SetParent(NULL);
@@ -786,7 +807,7 @@ void MelemPx::OnNodeMutated(const MElem* aNode, const TMut& aMut, const MElem* a
     string resp;
     string req = Ifu::CombineIcSpec("OnNodeMutated", "1");
     string uri = aNode->GetUri(NULL, ETrue);
-    string ctx = aCtx->GetUri(NULL, ETrue);
+    string ctx = aCtx != NULL ? aCtx->GetUri(NULL, ETrue) : string("Nothing");
     Ifu::AddIcSpecArg(req, uri);
     Ifu::AddIcSpecArg(req, aMut);
     Ifu::AddIcSpecArg(req, ctx);
@@ -809,11 +830,7 @@ void  MelemPx::OnCompDeleting(MElem& aComp, TBool aSoft, TBool aModif)
     string uri = aComp.GetUri(NULL, ETrue);
     Ifu::AddIcSpecArg(req, uri);
     Ifu::AddIcSpecArg(req, Ifu::FromBool(aSoft));
-    TBool res = mMgr->Request(mContext, req, resp);
-    if (!res) {
-	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
-		Uid().c_str(), req.c_str(), resp.c_str());
-    }
+    mMgr->Request(mContext, req, resp);
 }
 
 void  MelemPx::OnCompAdding(MElem& aComp, TBool aModif)
@@ -950,9 +967,6 @@ TBool  MelemPx::AppendChild(MElem* aChild)
     TBool rres = mMgr->Request(mContext, req, resp);
     if (rres) {
 	res = Ifu::ToBool(resp);
-    } else {
-	Logger()->Write(EErr, NULL, "Proxy [%s]: request [%s] failed: %s",
-		Uid().c_str(), req.c_str(), resp.c_str());
     }
     return res;
 }
@@ -1231,3 +1245,14 @@ string MelemPx::GetAssociatedData(const string& aUri) const
 {
     __ASSERT(EFalse);
 }
+
+MElem* MelemPx::GetCtx()
+{
+    return NewMElemProxyRequest("GetCtx");
+}
+
+void MelemPx::SetCtx(MElem* aOwner)
+{
+    __ASSERT(EFalse);
+}
+

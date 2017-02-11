@@ -85,7 +85,6 @@ class MCompatCheckerPx : public DaaProxy, public MCompatChecker
 	virtual string Mid() const;
 };
 
-
 class MPropPx : public DaaProxy, public MProp
 {
     public:
@@ -103,6 +102,44 @@ class MPropPx : public DaaProxy, public MProp
 	virtual string Mid() const;
     protected:
 	string mValue;
+};
+
+class MConnPointPx: public DaaProxy, public MConnPoint
+{
+    public:
+	MConnPointPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
+	virtual ~MConnPointPx();
+    public:
+	virtual MIface* GetIface(const string& aName);
+	virtual const MIface* GetIface(const string& aName) const;
+	// From MConnPoint
+	virtual TBool IsProvided(const string& aIfName) const;
+	virtual TBool IsRequired(const string& aIfName) const;
+	virtual string Provided() const;
+	virtual string Required() const;
+    public:
+	// From MIface	
+	virtual MIface* Call(const string& aSpec, string& aRes);
+	virtual string Uid() const;
+	virtual string Mid() const;
+};
+
+class MSocketPx: public DaaProxy, public MSocket
+{
+    public:
+	MSocketPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aContext);
+	virtual ~MSocketPx();
+    public:
+	virtual MIface* GetIface(const string& aName);
+	virtual const MIface* GetIface(const string& aName) const;
+	// From MSocket
+	virtual TInt PinsCount() const;
+	virtual MElem* GetPin(TInt aInd);
+    public:
+	// From MIface	
+	virtual MIface* Call(const string& aSpec, string& aRes);
+	virtual string Uid() const;
+	virtual string Mid() const;
 };
 
 #endif 

@@ -58,7 +58,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void SetObserver(MAgentObserver* aObserver);
 	virtual vector<MElem*>& Comps();
 	virtual const vector<MElem*>& Comps() const;
-	virtual MElem* GetComp(const string& aParent, const string& aName);
+	//virtual MElem* GetComp(const string& aParent, const string& aName);
 	virtual MElem* GetComp(const string& aParent, const string& aName) const;
 	virtual MElem* GetNode(const string& aUri, TBool aInclRm = EFalse);
 	virtual MElem* GetNode(const GUri& aUri, TBool aInclRm = EFalse);
@@ -108,6 +108,8 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TBool HasInherDeps(const MElem* aScope) const;
 	virtual MElem* GetCompAowner(const MElem* aComp);
 	virtual const MElem* GetCompAowner(const MElem* aComp) const;
+	virtual MElem* GetCtx();
+	virtual void SetCtx(MElem* aOwner);
 	// Debugging
 	virtual TInt GetCapacity() const;
 	virtual TBool IsHeirOf(const string& aParent) const;
@@ -126,7 +128,7 @@ class MelemPx : public DaaProxy, public MElem
 	// MMUtable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	virtual TBool DoMutChangeCont(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
-	virtual MElem* CreateHeir(const string& aName, MElem* aMan);
+	virtual MElem* CreateHeir(const string& aName, MElem* aMan, MElem* aContext);
 	virtual MElem* AddElem(const ChromoNode& aSpec, TBool aRunTime = EFalse, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	virtual TBool RmNode(const ChromoNode& aSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	virtual const MChromo& Chromos() const;

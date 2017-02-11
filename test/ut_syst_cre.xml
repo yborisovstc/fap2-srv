@@ -19,19 +19,18 @@
     </node>
 
     <node id="Renv" parent="ARenv">
-	<cont val="test_remote_env"/>
-	<node id="Renv_Root" parent="ARenvu">
-	    <cont val="Connect"/>
-	    <node id="Modules" parent="AImports">
-		<import id="/SysComps" />
+	<cont id="Remote_Uid" val="Local"/>
+	<node id="Renv_Root" parent="ARenvu"/>
+	<cont val="Connect" targ="./Renv_Root"/>
+	<node id="Modules" parent="AImports" targ="./Renv_Root">
+	    <import id="/SysComps" />
+	</node>
+	<node id="Syst2" parent="Syst" targ="./Renv_Root">
+	    <node targ="./Agents" id="Token" parent="Prop">
+		<cont val="Hello!"/>
 	    </node>
-	    <node id="Syst2" parent="Syst">
-		<node targ="./Agents" id="Token" parent="Prop">
-		    <cont val="Hello!"/>
-		</node>
-		<node id="Cp2" parent="./../Modules/SysComps/ConnPoint"> 
-		    <cont node="./Provided" val="MProp"/> <cont node="./Required" val="Role1"/>
-		</node>
+	    <node id="Cp2" parent="./../Modules/SysComps/ConnPoint"> 
+		<cont node="./Provided" val="MProp"/> <cont node="./Required" val="Role1"/>
 	    </node>
 	</node>
     </node>

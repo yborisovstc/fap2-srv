@@ -706,13 +706,15 @@ void Ut_Vert::test_Vert_Cre()
 class Ut_Syst : public CPPUNIT_NS::TestFixture
 {
     CPPUNIT_TEST_SUITE(Ut_Syst);
-    CPPUNIT_TEST(test_Syst_Cre);
+    //CPPUNIT_TEST(test_Syst_Cre);
+    CPPUNIT_TEST(test_Temp_Node);
     CPPUNIT_TEST_SUITE_END();
     public:
     virtual void setUp();
     virtual void tearDown();
     private:
     void test_Syst_Cre();
+    void test_Temp_Node();
 };
 
 CPPUNIT_TEST_SUITE_NAMED_REGISTRATION(Ut_Syst, "Ut_Syst");
@@ -747,6 +749,7 @@ void Ut_Syst::test_Syst_Cre()
     // Create primary model env remotelly
     string cspec;
     ReadCspec("ut_syst_cre.xml", cspec);
+    //ReadCspec("ut_temp_node.xml", cspec);
     res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + cspec, cenv);
     printf("Creating env: %s\n", cenv.c_str());
     CPPUNIT_ASSERT_MESSAGE("Creating env failed: " + cenv, res);
@@ -790,6 +793,70 @@ void Ut_Syst::test_Syst_Cre()
     printf("Getting value from obtained MProp iface: %s\n", token_val.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting value from obtained MProp iface failed: " + token_val, res);
 
+
+    client->Disconnect();
+    delete client;
+}
+
+// Test of supporting of nodes in temporal state (creation in process)
+// Current solution is to attach just created heir persistently but use mutation context to 
+// perform inherited mutations, ref ds_daa_itn_sfo for solution desing
+void Ut_Syst::test_Temp_Node()
+{
+    printf("\n === Test of supporting of temp nodes (i.e. creation of that is not completed)\n");
+    BaseClient* client = new BaseClient();
+    // Wait until server run
+    bool srv_run = WaitSrv();
+    CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
+    try {
+	client->Connect("");
+    } catch (exception& e) {
+	CPPUNIT_ASSERT_MESSAGE("Error connecting to server", false);
+    }
+    printf("Client connected to the server\n");
+    // Creating model
+    string cenv;
+    bool res;
+    // Checking env id
+    string sid;
+    res = client->Request("EnvProvider", "GetId", sid);
+    printf("Getting session1 id -- Response: %s\n", sid.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Gettng session1 id failed: " + sid, res);
+    // Create primary model env remotelly
+    string cspec;
+    ReadCspec("ut_temp_node.xml", cspec);
+    res = client->Request("EnvProvider", KMeth_CreateEnv + ",1," + cspec, cenv);
+    printf("Creating env: %s\n", cenv.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating env failed: " + cenv, res);
+    // Set SID to primary env
+    string resp;
+    res = client->Request(cenv, "SetEVar,1,SID," + sid, resp);
+    printf("Setting Session Id: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Setting Session Id failed: " + resp, res);
+    res = client->Request(cenv, "GetEVar,1,SID", resp);
+    printf("Checking Session Id: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: " + resp, res);
+    CPPUNIT_ASSERT_MESSAGE("Checking Session Id failed: incorrect value", resp == sid);
+    // Construct primary model
+    printf("Started creating model");
+    res = client->Request(cenv, "ConstructSystem", resp);
+    printf("Creating model: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Creating model failed: " + resp, res);
+    // Getting root
+    string root;
+    res = client->Request(cenv, "Root", root);
+    printf("Getting root: %s\n", root.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
+    // Getting local node conn point Syst1/Cp1
+    string v3;
+    res = client->Request(root, "GetNode,1,/Root/MRoot/renv/remote_root/v3", v3);
+    cout << "Getting remote remote_root/v3: " <<  v3 << endl;
+    CPPUNIT_ASSERT_MESSAGE("Getting remote remote_root/v3 failed: " + v3, res);
+    // Getting v3 inherited node Vert1_1
+    string vert1_1;
+    res = client->Request(v3, "GetNode,1,./Vert1_1", vert1_1);
+    cout << "Getting v3 inherited node Vert1_1: " <<  vert1_1 << endl;
+    CPPUNIT_ASSERT_MESSAGE("Getting v3 inherited node Vert1_1 failed: " + vert1_1, res);
 
     client->Disconnect();
     delete client;
