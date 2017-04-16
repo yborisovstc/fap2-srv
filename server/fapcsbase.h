@@ -82,6 +82,7 @@ class CSessionBase : public EnvProvider
 	virtual string Uid() const;
 	virtual string Mid() const;
         static void FindSessionById(const string& mId, CSessionBase *&c);
+	// TODO [YB] Shouldn't we avoid passing aHandle via using aPtr::Uid() instead for registry key
 	static void AddSContext(const string& aHandle, MIface* aPtr);
 	static void RmSContext(MIface* aPtr);
     protected:

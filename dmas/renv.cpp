@@ -479,7 +479,7 @@ void ARenvu::Connect()
 		// Get primary env agent
 		string root, pagt;
 		res = mRenvClient.Request(peid, "Root", root);
-		res = res && mRenvClient.Request(root, "GetNode,1," + puid, pagt);
+		res = res && mRenvClient.Request(root, "GetNode,1," + puid + ",false", pagt);
 		if (res) {
 		    mConnected = ETrue;
 		    MelemPx* px = new MelemPx(iEnv, mPxMgr, pagt);

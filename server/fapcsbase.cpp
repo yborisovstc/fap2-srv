@@ -124,7 +124,7 @@ void CSessionBase::SetId(int id) {
 }
 
 void CSessionBase::HandleMessage(const string& aMsg) {
-    cout << "CSessionBase [" << mId << "] received: " << aMsg << endl;
+    cout << "Session [" << mId << "] received: " << aMsg << endl;
     size_t ctxid_beg = 0;
     size_t ctxid_end = aMsg.find_first_of(RequestIPC::REQ_SEPARATOR, ctxid_beg); 
     if (ctxid_end == ctxid_beg) {
@@ -151,17 +151,17 @@ void CSessionBase::HandleMessage(const string& aMsg) {
 	    try {
 		new_ctx = ctx->Call(cspec, cres);
 	    } catch (exception& e) {
-		cout << " --> ERR, " << e.what() << endl;
+		cout << "Session [" << mId << "]" << " --> ERR, " << e.what() << endl;
 		Send(RequestIPC::RES_ERROR, e.what());
 		return;
 	    }
 	    if (new_ctx != NULL) {
 		string uid = new_ctx->Uid();
 		AddContext(uid, new_ctx);
-		cout << " --> OK, " << uid << endl;
+		cout << "Session [" << mId << "]"  << " --> OK, " << uid << endl;
 		Send(RequestIPC::RES_OK, uid);
 	    } else {
-		cout << " --> OK, " << (cres.empty() ? RequestIPC::RES_OK_NONE : cres) << endl;
+		cout << "Session [" << mId << "]"  << " --> OK, " << (cres.empty() ? RequestIPC::RES_OK_NONE : cres) << endl;
 		Send(RequestIPC::RES_OK, cres.empty() ? RequestIPC::RES_OK_NONE : cres);
 	    }
 	}

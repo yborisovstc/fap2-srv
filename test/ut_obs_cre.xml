@@ -1,7 +1,6 @@
 <?xml version="1.0" ?>
 
-<!-- Unit test for ceation of remote env with bidirectional  Vertex
-     communication. "Down" and "Up" remote env agent are used
+<!-- Unit test for Test of creation model and connecting to observer
      -->
 
 

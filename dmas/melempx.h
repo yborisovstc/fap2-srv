@@ -48,7 +48,7 @@ class MelemPx : public DaaProxy, public MElem
 	// From MElem
 	virtual void Delete();
 	virtual void *DoGetObj(const char *aName);
-	virtual const string EType(TBool aShort = ETrue) const;
+	virtual string EType(TBool aShort = ETrue) const;
 	virtual const string& Name() const;
 	virtual TBool IsProvided() const;
 	virtual MElem* GetMan();
@@ -69,7 +69,6 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TBool ContentExists(const string& aName) const;
 	virtual TBool ContValueExists(const string& aName=string()) const;
 	virtual TBool IsContOfCategory(const string& aName, const string& aCategory) const; 
-	virtual TBool GetCont(string& aValue, const string& aName=string()) const; 
 	virtual string GetContComp(const string& aOwnerName, TInt aInd) const;
 	virtual string GetContent(const string& aName=string(), TBool aFull = EFalse) const; 
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName=string()); 

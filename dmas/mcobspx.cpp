@@ -128,6 +128,7 @@ bool CobsPxMgr::Request(const string& aContext, const string& aReq, string& aRes
     return mBsClient.Request(req, aResp);
 }
 
+// TODO YB What if there is request from another NW node then CobsPxMgr is connected to?
 MIface* CobsPxMgr::GetEIface(const string& aIfaceId, const string& aIfaceType)
 {
     MIface* res = NULL;
@@ -143,7 +144,7 @@ MIface* CobsPxMgr::GetEIface(const string& aIfaceId, const string& aIfaceType)
     }
     MProxy* px = NULL;
     if (!IsCached(aIfaceId)) {
-	px = CreateProxy(aIfaceType, uri.Path());
+	px = CreateProxy(aIfaceType, aIfaceId);
 	RegProxy(px);
     } else {
 	px = GetProxy(aIfaceId);

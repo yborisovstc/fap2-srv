@@ -289,8 +289,39 @@ const MIface* DaaProxy::NewProxyRequest(const string& aCallSpec, const string& a
     return res;
 }
 
+
+MIface* DaaProxy::GetProxy(const string& aSpec, const string& aPxType) const
+{ 
+    MIface* res = NULL;
+    if (aSpec != RequestIPC::RES_OK_NONE) {
+	// Checking if UID is of local Iface to avoid px duplication, ref ds_daa_pxdup
+	TBool isloc = EFalse;
+	string oid, iid;
+	Ifu::ParseUid(aSpec, oid, iid);
+	if (!Ifu::IsSimpleIid(iid)) {
+	    MIface* ifc = mEnv->IfaceResolver()->GetIfaceByUid(iid);
+	    if (ifc != NULL) {
+		res = ifc;
+		isloc = ETrue;
+	    }
+	}
+	if (!isloc) {
+	    MProxy* px = mMgr->CreateProxy(aPxType, aSpec);
+	    res = px->GetIface(aPxType);
+	}
+    }
+    return res;
+}
+
 TBool DaaProxy::Request(const string& aReq, string& aResp)
 {
     TBool res = mMgr->Request(mContext, aReq, aResp);
     return res;
+}
+
+MIface* DaaProxy::RpcPxN(const string& aName, const string& aIfType) const
+{
+    string resp;
+    TBool rres = mMgr->Request(mContext, Ifu::PackMethod(aName), resp);
+    return (rres ? GetProxy(resp, aIfType) : NULL);
 }

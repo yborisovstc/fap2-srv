@@ -7,15 +7,16 @@
 #include <cstdlib>
 #include <cstring>
 #include <sys/socket.h>
-#include "sthread.h"
 #include <env.h>
 #include <ifu.h>
 #include "fapcsbase.h"
+#include "sthread.h"
 
 using namespace std;
 
 
 //#if 0
+class SessionThread;
 class SessionClient : public CSessionBase {
     public:
         SessionClient();

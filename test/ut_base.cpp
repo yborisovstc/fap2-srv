@@ -217,7 +217,7 @@ void Ut_ExecMagt::test_Melem()
     CPPUNIT_ASSERT_MESSAGE("Request -mutating root- failed", res);
     // Checking new node
     string node_1;
-    res = client->Request(root, "GetNode,1,./node_1", node_1);
+    res = client->Request(root, "GetNode,1,./node_1,false", node_1);
     printf("Getting node_1 -- Response: %s\n", node_1.c_str());
     CPPUNIT_ASSERT_MESSAGE("Checking new node, gettin node failed", res);
     res = client->Request(node_1, "Name", resp);
@@ -414,17 +414,17 @@ void Ut_Bidir::test_Bidir_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
     // Getting local native agent Elem
     string lelem;
-    res = client->Request(root, "GetNode,1,Elem", lelem);
+    res = client->Request(root, "GetNode,1,Elem,false", lelem);
     printf("Getting local native agent Elem: %s\n", lelem.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting local native agent Elem failed: " + lelem, res);
     // Getting local native agent Elem URI
     string lelem_uri;
-    res = client->Request(lelem, "GetUri,1", lelem_uri);
+    res = client->Request(lelem, "GetUri,1,nil", lelem_uri);
     printf("Getting local native agent Elem URI: %s\n", lelem_uri.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting local native agent Elem URI failed: " + lelem_uri, res);
     // Getting local node v2
     string v2;
-    res = client->Request(root, "GetNode,1,./v2", v2);
+    res = client->Request(root, "GetNode,1,./v2,false", v2);
     printf("Getting local node v2: %s\n", v2.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting local node v2 failed: " + v2, res);
     // Getting MVert local iface of local node v2
@@ -434,12 +434,12 @@ void Ut_Bidir::test_Bidir_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of local node v2 failed: " + v2_vert, res);
     // Getting local node Renv
     string renv;
-    res = client->Request(root, "GetNode,1,./Renv", renv);
+    res = client->Request(root, "GetNode,1,./Renv,false", renv);
     printf("Getting local node Renv: %s\n", renv.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting local node Renv failed: " + renv, res);
     // Getting remote root
     string rroot;
-    res = client->Request(root, "GetNode,1,./Renv/renv_root", rroot);
+    res = client->Request(root, "GetNode,1,./Renv/renv_root,false", rroot);
     printf("Getting remote root: %s\n", rroot.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote root failed: " + rroot, res);
     // Getting remote root name
@@ -452,11 +452,11 @@ void Ut_Bidir::test_Bidir_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting remote root owner failed: " + resp, res);
     // Getting remote root absolute URI
     string rroot_uri;
-    res = client->Request(rroot, "GetUri,1", rroot_uri);
+    res = client->Request(rroot, "GetUri,1,nil", rroot_uri);
     printf("Getting remote root absolute URI: %s\n", rroot_uri.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote root absolute URI failed: " + rroot_uri, res);
     // Getting upper node via remote root
-    res = client->Request(rroot, "GetNode,1,/*", resp);
+    res = client->Request(rroot, "GetNode,1,/*,false", resp);
     printf("Getting root via remote root: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting root via remote root failed: " + resp, res);
     // Getting remote root comps count
@@ -471,9 +471,13 @@ void Ut_Bidir::test_Bidir_Cre()
     res = client->Request(rroot, "GetComp,1,1", resp);
     printf("Getting remote root comp#1: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote root comp#1: " + resp, res);
+    // Getting remote root compa#1 by name
+    res = client->Request(rroot, "GetComp#2,1,,remote_node_1", resp);
+    printf("Getting remote root comp#1 by name: %s\n", resp.c_str());
+    CPPUNIT_ASSERT_MESSAGE("Getting remote root comp#1 by name: " + resp, res);
     // Getting remote remote_node_1
     string rnode1;
-    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1", rnode1);
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1,false", rnode1);
     printf("Getting remote remote_node_1: %s\n", rnode1.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_1 failed: " + rnode1, res);
     // Adding new node remote_node_3 to renv_root
@@ -486,12 +490,12 @@ void Ut_Bidir::test_Bidir_Cre()
     CPPUNIT_ASSERT_MESSAGE("Adding new node remote_node_3 to renv_root, mutation: " + resp, res);
     // Checking new node addition
     string rnode3;
-    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_3", rnode3);
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_3,false", rnode3);
     printf("Getting remote remote_node_3: %s\n", rnode3.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_3 failed: " + rnode3, res);
     // Getting URI of remote remote_node_1
     string rnode1_uri;
-    res = client->Request(rnode1, "GetUri,1", rnode1_uri);
+    res = client->Request(rnode1, "GetUri,1,nil", rnode1_uri);
     printf("Getting URI of remote remote_node_1: %s\n", rnode1_uri.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting URI of remote remote_node_1 failed: " + rnode1_uri, res);
     // Getting local iface of remote remote_node_1
@@ -501,27 +505,27 @@ void Ut_Bidir::test_Bidir_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting MVert iface of remote remote_node_1 failed: " + rnode1_vert, res);
     // Getting remote_node_1 URI relative to remote root
     string rnode1_ruri;
-    res = client->Request(rnode1, "GetUri#2,1," + rroot_uri, rnode1_ruri);
+    res = client->Request(rnode1, "GetUri,1," + rroot_uri, rnode1_ruri);
     printf("Getting remote_node_1 URI relative to remote root: %s\n", rnode1_ruri.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote root URI relative to remote_node_1 failed: " + rnode1_ruri, res && rnode1_ruri == "./remote_node_1");
     // Getting remote remote_node_2 created from remote parent (from primary env)
     string rnode2;
-    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2,false", rnode2);
     printf("Getting remote remote_node_2: %s\n", rnode2.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_2 failed: " + rnode2, res);
     // Getting remote native agent Elem
     string relem;
-    res = client->Request(rroot, "GetNode,1,Elem", relem);
+    res = client->Request(rroot, "GetNode,1,Elem,false", relem);
     printf("Getting remote native agent Elem: %s\n", relem.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote native agent Elem failed: " + relem, res);
     // Getting remote native agent Elem URI
     string relem_uri;
-    res = client->Request(relem, "GetUri,1", relem_uri);
+    res = client->Request(relem, "GetUri,1,nil", relem_uri);
     printf("Getting remote native agent Elem URI: %s\n", relem_uri.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote native agent Elem URI failed: " + relem_uri, res);
     // Getting remote native node URI relative to remote root 
     string relem_ruri;
-    res = client->Request(relem, "GetUri#2,1," + rroot_uri, relem_ruri);
+    res = client->Request(relem, "GetUri,1," + rroot_uri, relem_ruri);
     printf("Getting remote native node URI relative to remote root: %s\n", relem_ruri.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote native node URI relative to remote root failed: " + relem_ruri, res && relem_ruri == "Elem");
 
@@ -604,7 +608,7 @@ void Ut_Vert::test_Vert_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
     // Getting local node v2
     string v2;
-    res = client->Request(root, "GetNode,1,./v2", v2);
+    res = client->Request(root, "GetNode,1,./v2,false", v2);
     printf("Getting local node v2: %s\n", v2.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting local node v2 failed: " + v2, res);
     // Getting MVert local iface of local node v2
@@ -624,12 +628,12 @@ void Ut_Vert::test_Vert_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting iface from local node v2 failed: " + v2_ifind, res);
     // Getting local node Renv
     string renv;
-    res = client->Request(root, "GetNode,1,./Renv", renv);
+    res = client->Request(root, "GetNode,1,./Renv,false", renv);
     printf("Getting local node Renv: %s\n", renv.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting local node Renv failed: " + renv, res);
     // Getting remote root
     string rroot;
-    res = client->Request(root, "GetNode,1,./Renv/renv_root", rroot);
+    res = client->Request(root, "GetNode,1,./Renv/renv_root,false", rroot);
     printf("Getting remote root: %s\n", rroot.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote root failed: " + rroot, res);
     // Getting remote root name
@@ -641,17 +645,17 @@ void Ut_Vert::test_Vert_Cre()
     printf("Getting remote root owner: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote root owner failed: " + resp, res);
     // Getting upper node via remote root
-    res = client->Request(rroot, "GetNode,1,/*", resp);
+    res = client->Request(rroot, "GetNode,1,/*,false", resp);
     printf("Getting root via remote root: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting root via remote root failed: " + resp, res);
     // Getting remote remote_node_1
     string rnode1;
-    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1", rnode1);
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_1,false", rnode1);
     printf("Getting remote remote_node_1: %s\n", rnode1.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_1 failed: " + rnode1, res);
     // Getting URI of remote remote_node_1
     string rnode1_uri;
-    res = client->Request(rnode1, "GetUri,1", rnode1_uri);
+    res = client->Request(rnode1, "GetUri,1,nil", rnode1_uri);
     printf("Getting URI of remote remote_node_1: %s\n", rnode1_uri.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting URI of remote remote_node_1 failed: " + rnode1_uri, res);
     // Getting local iface of remote remote_node_1
@@ -671,12 +675,12 @@ void Ut_Vert::test_Vert_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting iface from proxy of remote_node_1: " + rnode1_ifind, res);
     // Getting remote remote_node_2 created from remote parent (from primary env)
     string rnode2;
-    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2", rnode2);
+    res = client->Request(root, "GetNode,1,./Renv/renv_root/remote_node_2,false", rnode2);
     printf("Getting remote remote_node_2: %s\n", rnode2.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_node_2 failed: " + rnode2, res);
     // Getting primary env vertex v1
     string v1;
-    res = client->Request(root, "GetNode,1,./v1", v1);
+    res = client->Request(root, "GetNode,1,./v1,false", v1);
     printf("Getting primary env vertex v1: %s\n", v1.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting primary env vertex v1 failed: " + v1, res);
     // Getting vertex iface of primary env vertex v1
@@ -774,7 +778,7 @@ void Ut_Syst::test_Syst_Cre()
     CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
     // Getting local node conn point Syst1/Cp1
     string cp1;
-    res = client->Request(root, "GetNode,1,./Syst1/Cp1", cp1);
+    res = client->Request(root, "GetNode,1,./Syst1/Cp1,false", cp1);
     printf("Getting local conn point Syst1/Cp1: %s\n", cp1.c_str());
     CPPUNIT_ASSERT_MESSAGE("Getting local conn point Syst1/Cp1 failed: " + cp1, res);
     // Getting iface range from local conn point Syst1/Cp1
@@ -849,12 +853,12 @@ void Ut_Syst::test_Temp_Node()
     CPPUNIT_ASSERT_MESSAGE("Getting root failed: " + root, res);
     // Getting local node conn point Syst1/Cp1
     string v3;
-    res = client->Request(root, "GetNode,1,/Root/MRoot/renv/remote_root/v3", v3);
+    res = client->Request(root, "GetNode,1,/Root/MRoot/renv/remote_root/v3,false", v3);
     cout << "Getting remote remote_root/v3: " <<  v3 << endl;
     CPPUNIT_ASSERT_MESSAGE("Getting remote remote_root/v3 failed: " + v3, res);
     // Getting v3 inherited node Vert1_1
     string vert1_1;
-    res = client->Request(v3, "GetNode,1,./Vert1_1", vert1_1);
+    res = client->Request(v3, "GetNode,1,./Vert1_1,false", vert1_1);
     cout << "Getting v3 inherited node Vert1_1: " <<  vert1_1 << endl;
     CPPUNIT_ASSERT_MESSAGE("Getting v3 inherited node Vert1_1 failed: " + vert1_1, res);
 
@@ -1005,8 +1009,10 @@ void Ut_Obs::test_Obs_Cre()
     // Create client session 
     BaseClient* client = new BaseClient();
     // Wait until server run
+    printf("\nPlease ensure the server fap2-srv is run. Waiting for the server running.\n");
     bool srv_run = WaitSrv();
     CPPUNIT_ASSERT_MESSAGE("Server isn't running", srv_run);
+    printf("Detected the server run\n");
     try {
 	client->Connect("");
     } catch (exception& e) {
@@ -1029,10 +1035,10 @@ void Ut_Obs::test_Obs_Cre()
     printf("Creating env: %s\n", cenv.c_str());
     CPPUNIT_ASSERT_MESSAGE("Creating env failed: " + cenv, res);
     // Construct primary model
-    printf("Started creating model");
+    printf("Started creating model ...");
     res = client->Request(cenv, "ConstructSystem", resp);
-    printf("Creating model: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Creating model failed: " + resp, res);
+    printf("  Created model\n");
     // Getting root
     string root;
     res = client->Request(cenv, "Root", root);
@@ -1041,12 +1047,12 @@ void Ut_Obs::test_Obs_Cre()
     // Requesting to connect observer
     string aobs_uri = "socks://localhost:" + BSRV_PORT_S + "/AObs_1#"; 
     res = client->Request(root, "SetObserver,1," + aobs_uri, resp);
-    printf("Connecting observer: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Connecting observer failed: " + resp, res);
+    printf("Connected observer\n");
     // Adding new component to the root
     res = client->Request(root, "Mutate,1,<node><node id=\"node_1\" parent=\"Elem\"></node></node>,false,true,true", resp);
-    printf("Adding new component to the root: %s\n", resp.c_str());
     CPPUNIT_ASSERT_MESSAGE("Adding new component to the root failed: " + resp, res);
+    printf("Added new component to the root\n");
     delete client;
 }
 
