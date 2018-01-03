@@ -102,6 +102,7 @@ class DaaProxy : public MProxy
 	template<typename TRet, typename TArg1, typename TArg2, typename TArg3> TRet* RpcPx(const string& aName, TArg1 aArg1, TArg2 aArg2, TArg3 aArg3) const;
 	template<typename TRet, typename TArg1, typename TArg2, typename TArg3, typename TArg4>
 	    TRet* RpcPx(const string& aName, TArg1 aArg1, TArg2 aArg2, TArg3 aArg3, TArg4 aArg4) const;
+	inline void Rpcv(const string& aName) const;
 	template<typename TArg1> void Rpcv(const string& aName, TArg1 aArg) const;
 	template<typename TArg1, typename TArg2> void Rpcv(const string& aName, TArg1 aArg1, TArg2 aArg2) const;
 	template<typename TArg1, typename TArg2, typename TArg3> void Rpcv(const string& aName, TArg1 aArg1, TArg2 aArg2, TArg3 aArg3) const;
@@ -207,6 +208,12 @@ template<typename TRet, typename TArg1, typename TArg2, typename TArg3, typename
     return (rres ? (TRet*) GetProxy(resp, TRet::Type()) : NULL);
 }
 
+
+void DaaProxy::Rpcv(const string& aName) const
+{
+    string resp;
+    mMgr->Request(mContext, Ifu::PackMethod(aName), resp);
+}
 
 template<typename TArg1> void DaaProxy::Rpcv(const string& aName, TArg1 aArg) const
 {
