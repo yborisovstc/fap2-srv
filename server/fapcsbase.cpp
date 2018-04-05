@@ -338,7 +338,7 @@ void CSessionBase::DumpCtx() const
 
 string CSessionBase::Uid() const
 {
-    return GUriBase::KIfaceSepS + EnvProvider::Type();
+    return GUri::KIfaceSepS + EnvProvider::Type();
 }
 
 string CSessionBase::Mid() const

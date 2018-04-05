@@ -8,23 +8,23 @@
 ARenv::CompsIter::CompsIter(ARenv& aElem, GUri::TElem aId, TBool aToEnd): iElem(aElem), iId(aId), mEnd(aToEnd)
 {
     char rel = SRel();
-    if (!iId.first.empty()) {
-	iExtsrel = iId.first.at(iId.first.size() - 1);
+    if (!iId.ext().empty()) {
+	iExtsrel = iId.ext().at(iId.ext().size() - 1);
 	if (iExtsrel == GUri::KParentSep || iExtsrel == GUri::KNodeSep) {
-	    iExt = iId.first.substr(0, iId.first.size() - 1);
+	    iExt = iId.ext().substr(0, iId.ext().size() - 1);
 	}
     }
     if (rel == GUri::KNodeSep) {
-	if (iId.second.second == GUri::KTypeAny) {
+	if (iId.name() == GUri::KTypeAny) {
 	    mEnd = EFalse;
 	} else {
-	    mEnd = (iElem.mRroot == NULL) ? ETrue : iElem.mRroot->Name() == iId.second.second;
+	    mEnd = (iElem.mRroot == NULL) ? ETrue : iElem.mRroot->Name() == iId.name();
 	}
 	if (aToEnd) {
 	    mEnd = aToEnd;
 	}
 	else {
-	    if (iId.first.empty() || iExtsrel !=  GUri::KParentSep || iExt.empty() || iExt == GUri::KTypeAny) {
+	    if (iId.ext().empty() || iExtsrel !=  GUri::KParentSep || iExt.empty() || iExt == GUri::KTypeAny) {
 		mEnd = EFalse;
 	    } 
 	    else {
@@ -33,16 +33,16 @@ ARenv::CompsIter::CompsIter(ARenv& aElem, GUri::TElem aId, TBool aToEnd): iElem(
 	}
     }
     else if (rel == GUri::KParentSep) {
-	if (iId.second.second == GUri::KTypeAny) {
+	if (iId.name() == GUri::KTypeAny) {
 	    iChildsRange = TNMRegItRange(iElem.iChilds.begin(), iElem.iChilds.end());
 	} else {
-	    iChildsRange = iElem.iChilds.equal_range(iId.second.second);
+	    iChildsRange = iElem.iChilds.equal_range(iId.name());
 	}
 	if (aToEnd) {
 	    iChildsIter = iChildsRange.second;
 	}
 	else {
-	    if (iId.first.empty() || iExtsrel !=  GUri::KNodeSep || iExt.empty() || iExt == GUri::KTypeAny) {
+	    if (iId.ext().empty() || iExtsrel !=  GUri::KNodeSep || iExt.empty() || iExt == GUri::KTypeAny) {
 		iChildsIter = iChildsRange.first;
 		for (; iChildsIter != iChildsRange.second && iChildsIter->second->IsRemoved(); iChildsIter++); 
 	    }
@@ -80,7 +80,7 @@ void ARenv::CompsIter::Set(const MIterImpl& aImpl)
 
 char ARenv::CompsIter::SRel() const
 {
-    return iId.second.first;
+    return iId.rel();
 }
 
 void ARenv::CompsIter::PostIncr()
@@ -92,7 +92,7 @@ void ARenv::CompsIter::PostIncr()
 	iChildsIter++;
 	// Omit removed children from the look
 	for (; iChildsIter != iChildsRange.second && iChildsIter->second->IsRemoved(); iChildsIter++); 
-	if (!iId.first.empty() && iExtsrel == GUri::KNodeSep && !iExt.empty() && iExt != GUri::KTypeAny) {
+	if (!iId.ext().empty() && iExtsrel == GUri::KNodeSep && !iExt.empty() && iExt != GUri::KTypeAny) {
 	    for (;iChildsIter != iChildsRange.second; iChildsIter++) {
 		MElem* comp = iChildsIter->second;
 		MElem* cowner = comp->GetMan()->GetObj(cowner);

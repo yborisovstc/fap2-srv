@@ -155,11 +155,9 @@ void DaaPxMgr::RegProxy(DaaProxy* aProxy)
 
 void DaaPxMgr::UnregProxy(const DaaProxy* aProxy)
 {
-    TBool found = EFalse;
     for (TPxs::iterator it = mProxies.begin(); it != mProxies.end(); it++) {
 	if (it->second == aProxy) {
 	    mProxies.erase(it);
-	    found = ETrue;
 	    break;
 	}
     }

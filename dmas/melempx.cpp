@@ -200,14 +200,14 @@ MElem* MelemPx::GetNode(const string& aUri, TBool aInclRm)
 
 MElem* MelemPx::GetNode(const GUri& aUri, TBool aInclRm)
 {
-    return GetNode(aUri.GetUri(ETrue), aInclRm);
+    return GetNode(aUri.toString(ETrue), aInclRm);
 }
 
 // TODO [YB] Implicit reduction of args is used here (aUri is not sent). To check for correctness.
 MElem* MelemPx::GetNode(const GUri& aUri, GUri::const_elem_iter& aPathBase, TBool aAnywhere, TBool aInclRm)
 { 
     MElem* res = NULL;
-    string suri = aUri.GetUri(aPathBase);
+    string suri = aUri.toString(aPathBase);
     string cspec = "GetNode#2,1," + suri + "," + Ifu::FromBool(aAnywhere) + "," + Ifu::FromBool(aInclRm);
     res = NewMElemProxyRequest(cspec);
     return res;
