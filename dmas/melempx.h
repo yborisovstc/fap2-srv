@@ -56,8 +56,6 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void GetCRoot(TMut& aMut) const;
 	virtual void SetMan(MElem* aMan);
 	virtual void SetObserver(MAgentObserver* aObserver);
-	virtual vector<MElem*>& Comps();
-	virtual const vector<MElem*>& Comps() const;
 	//virtual MElem* GetComp(const string& aParent, const string& aName);
 	virtual MElem* GetComp(const string& aParent, const string& aName) const;
 	virtual MElem* GetNode(const string& aUri, TBool aInclRm = EFalse);
@@ -114,6 +112,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual TBool IsHeirOf(const string& aParent) const;
 	virtual void DumpMcDeps() const;
 	virtual void DumpCmDeps() const;
+	virtual void DumpIfReqs() const override {}
 	virtual MElem* GetNodeS(const char* aUri);
 	virtual TInt CompsCount() const;
 	virtual MElem* GetComp(TInt aInd);

@@ -160,11 +160,12 @@ ARenv::~ARenv() {
     // Plainly delete all comps and clear comps registry. There is only one comp - proxy. 
     // It doesn't have relation // comp-owner established, so the base agent mechanism of
     // comps removal will not work (it assumes that comp notifies owner OnCompDeleting).
-    for (vector<MElem*>::reverse_iterator it = iComps.rbegin(); it != iComps.rend(); it++) {
-	MElem* comp = *it;
+    // for (vector<MElem*>::reverse_iterator it = iComps.rbegin(); it != iComps.rend(); it++) {
+    for (auto& it: iMComps) {
+	MElem* comp = it.second;
 	comp->Delete();
     };
-    iComps.clear();
+    iMComps.clear();
     delete mPxMgr;
 }
 
@@ -397,12 +398,12 @@ ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL),
 ARenvu::~ARenvu()
 {
     // Remove the comps first before proxies to support normal deletion of model, ref ds_daa_powrd
-    vector<MElem*>::reverse_iterator it = iComps.rbegin();
-    while (it != iComps.rend()) {
-	delete *it;
-	it = iComps.rbegin();
+    auto it = iMComps.begin();
+    while (it != iMComps.end()) {
+	delete it->second;
+	it = iMComps.begin();
     }
-    iComps.clear();
+    iMComps.clear();
     if (iMan != NULL) {
 	iMan->OnCompDeleting(*this, EFalse);
 	iMan = NULL;

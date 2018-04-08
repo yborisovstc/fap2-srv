@@ -186,13 +186,6 @@ void MelemPx::SetObserver(MAgentObserver* aObserver)
     Rpcv<MIface*>(__func__, aObserver);
 }
 
-vector<MElem*>& MelemPx::Comps()
-{ 
-    return FakeComps;
-}
-
-const vector<MElem*>& MelemPx::Comps() const { return FakeComps;}
-
 MElem* MelemPx::GetNode(const string& aUri, TBool aInclRm) 
 {
     return RpcPx<MElem>(__func__, aUri, aInclRm);
