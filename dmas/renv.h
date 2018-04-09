@@ -13,29 +13,6 @@
 class ARenv: public Elem
 {
     public:
-	class CompsIter: public MIterImpl {
-	    friend class ARenv;
-	    public:
-	    CompsIter(ARenv& aElem, GUri::TElem aId, TBool aToEnd = EFalse);
-	    CompsIter(ARenv& aElem);
-	    CompsIter(const CompsIter& aImpl);
-	    char SRel() const;
-	    virtual MIterImpl* Clone();
-	    virtual void Set(const MIterImpl& aImpl);
-	    virtual void PostIncr();
-	    virtual TBool IsEqual(const MIterImpl& aImpl) const;
-	    virtual TBool IsCompatible(const MIterImpl& aImpl) const;
-	    virtual MElem*  GetElem();
-	    public:
-	    ARenv& iElem;
-	    GUri::TElem iId;
-	    char iExtsrel;
-	    string iExt;
-	    TNMReg::iterator iChildsIter;
-	    pair<TNMReg::iterator, TNMReg::iterator> iChildsRange;
-	    TBool mEnd;
-	};
-    public:
 	static const char* Type() { return "ARenv";};
 	static string PEType();
 	ARenv(const string& aName, MElem* aMan, MEnv* aEnv);
