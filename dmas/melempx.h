@@ -138,17 +138,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual ChromoNode AppendMutation(const ChromoNode& aMuta);
 	virtual ChromoNode AppendMutation(TNodeType aType);
 	virtual void AppendMutation(const TMut& aMut);
-	virtual TMDeps& GetMDeps();
-	virtual void AddMDep(MElem* aNode, const ChromoNode& aMut, TNodeAttr aAttr);
-	virtual void AddCMDep(const ChromoNode& aMut, TNodeAttr aAttr, MElem* aNode);
-	virtual void RemoveMDep(const TMDep& aDep, const MElem* aContext = NULL);
-	virtual TBool RmCMDep(const ChromoNode& aMut, TNodeAttr aAttr, const MElem* aContext = NULL);
 	virtual TBool IsChromoAttached() const;
-	virtual void GetDep(TMDep& aDep, TNodeAttr aAttr, TBool aLocalOnly = EFalse, TBool aAnyType = EFalse) const;
-	virtual TMDep GetMajorDep();
-	virtual void GetMajorDep(TMDep& aDep, TBool aUp = EFalse, TBool aDown = ETrue);
-	virtual TMDep GetMajorDep(TNodeType aMut, MChromo::TDepsLevel aLevel);
-	virtual void GetMajorDep(TMDep& aDep, TNodeType aMut, MChromo::TDPath aDpath, MChromo::TDepsLevel aLevel, TBool aUp = ETrue, TBool aDown = ETrue);
 	virtual TBool CompactChromo();
 	virtual TBool CompactChromo(const ChromoNode& aNode);
 	virtual void OnNodeMutated(const MElem* aNode, const TMut& aMut, const MElem* aCtx);
@@ -192,7 +182,6 @@ class MelemPx : public DaaProxy, public MElem
 	const MElem* NewMElemProxyRequest(const string& aCallSpec) const;
     protected:
 	Chromo* mChromo;
-	TMDeps mMDeps;
 	string mName;
 };
 

@@ -554,29 +554,6 @@ void MelemPx::AppendMutation(const TMut& aMut)
     Rpcv<string>(__func__, aMut);
 }
 
-TMDeps&  MelemPx::GetMDeps() { return mMDeps;}
-
-void  MelemPx::AddMDep(MElem* aNode, const ChromoNode& aMut, TNodeAttr aAttr)
-{
-    __ASSERT(false);
-}
-
-void  MelemPx::AddCMDep(const ChromoNode& aMut, TNodeAttr aAttr, MElem* aNode)
-{
-    __ASSERT(false);
-}
-
-void  MelemPx::RemoveMDep(const TMDep& aDep, const MElem* aContext)
-{
-    __ASSERT(false);
-}
-
-TBool  MelemPx::RmCMDep(const ChromoNode& aMut, TNodeAttr aAttr, const MElem* aContext)
-{
-    __ASSERT(false);
-    return false;
-}
-
 TBool  MelemPx::IsChromoAttached() const
 {
     return Rpc<TBool>(__func__);
@@ -586,33 +563,6 @@ unique_ptr<MChromo> MelemPx::GetFullChromo() const
 {
     __ASSERT(false);
 };
-
-void  MelemPx::GetDep(TMDep& aDep, TNodeAttr aAttr, TBool aLocalOnly, TBool aAnyType) const
-{
-    __ASSERT(false);
-}
-
-TMDep MelemPx::GetMajorDep()
-{
-    __ASSERT(false);
-    return mMDeps.at(0);
-}
-
-void MelemPx::GetMajorDep(TMDep& aDep, TBool aUp, TBool aDown)
-{
-    __ASSERT(false);
-}
-
-TMDep MelemPx::GetMajorDep(TNodeType aMut, MChromo::TDepsLevel aLevel)
-{
-    __ASSERT(false);
-    return mMDeps.at(0);
-}
-
-void  MelemPx::GetMajorDep(TMDep& aDep, TNodeType aMut, MChromo::TDPath aDpath, MChromo::TDepsLevel aLevel, TBool aUp, TBool aDown)
-{
-    __ASSERT(false);
-}
 
 TBool  MelemPx::CompactChromo()
 {
