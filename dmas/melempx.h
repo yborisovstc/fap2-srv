@@ -113,6 +113,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void DumpMcDeps() const;
 	virtual void DumpCmDeps() const;
 	virtual void DumpIfReqs() const override {}
+	virtual void DumpIfCache() const override {}
 	virtual MElem* GetNodeS(const char* aUri);
 	virtual TInt CompsCount() const;
 	virtual MElem* GetComp(TInt aInd);
