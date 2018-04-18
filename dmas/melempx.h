@@ -24,7 +24,7 @@ class MelemPx : public DaaProxy, public MElem
 	    virtual MIfIter& operator=(const MIfIter& aIt);
 	    virtual MIfIter& operator++();
 	    virtual TBool operator==(const MIfIter& aIt);
-	    virtual void*  operator*();
+	    virtual MIface*  operator*();
 	    public:
 	    MelemPx* mHost;
 	    string mIfName; // Iface name
@@ -171,10 +171,9 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void SetParent(MElem* aParent);
     public:
 	// MIfProv
-	virtual void* GetSIfiC(const string& aName, Base* aRequestor);
-	virtual void* GetSIfi(const string& aName, const RqContext* aCtx);
-	virtual void* GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert);
-	virtual TIfRange GetIfi(const string& aName, const RqContext* aCtx);
+	virtual MIface* GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert);
+	//virtual TIfRange GetIfi(const string& aName, const RqContext* aCtx);
+	TIfRange GetIfi(const string& aName, const TICacheRCtx& aCtx) override;
 	void* GetIfind(const string& aName, const TICacheRCtx& aCtx, TInt aInd);
 	virtual void UnregIfReq(const string& aIfName, const TICacheRCtx& aCtx);
 	virtual void UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem* aProv, TBool aInv = EFalse);

@@ -43,9 +43,9 @@ TBool MelemPx::IfIter::operator==(const MIfIter& aIt)
     return res;
 }
 
-void*  MelemPx::IfIter::operator*()
+MIface*  MelemPx::IfIter::operator*()
 {
-    void* res = mHost->GetIfind(mIfName, mReq, mInd);
+    MIface* res = (MIface*) mHost->GetIfind(mIfName, mReq, mInd);
     return res;
 }
 
@@ -682,30 +682,18 @@ void  MelemPx::SetParent(MElem* aParent)
 
 // MIfProv
 
-void*  MelemPx::GetSIfiC(const string& aName, Base* aRequestor)
-{
-    RqContext ctx(aRequestor);
-    return GetSIfi(aName, &ctx);
-}
 
-// TODO [YB] To use ctx operator string() for serialization of ctx
-void*  MelemPx::GetSIfi(const string& aName, const RqContext* aCtx)
-{
-    return RpcPxN(__func__, aName, aName, aCtx);
-}
-
-void*  MelemPx::GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert)
+MIface*  MelemPx::GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert)
 {
     __ASSERT(false);
     return NULL;
 }
 
-MElem::TIfRange  MelemPx::GetIfi(const string& aName, const RqContext* aCtx)
+MElem::TIfRange  MelemPx::GetIfi(const string& aName, const TICacheRCtx& aCtx)
 {
-    TInt ifcnt = Rpc<TInt, const string&, const RqContext*>(__func__, aName, aCtx);
-    TICacheRCtx rctx(aCtx);
-    IfIter beg(this, aName, rctx, 0);
-    IfIter end(this, aName, rctx, ifcnt);
+    TInt ifcnt = Rpc<TInt, const string&, const TICacheRCtx&>(__func__, aName, aCtx);
+    IfIter beg(this, aName, aCtx, 0);
+    IfIter end(this, aName, aCtx, ifcnt);
     return TIfRange(beg, end);
 }
 
