@@ -172,8 +172,8 @@ class MelemPx : public DaaProxy, public MElem
     public:
 	// MIfProv
 	virtual MIface* GetSIfi(const string& aReqUri, const string& aName, TBool aReqAssert);
-	//virtual TIfRange GetIfi(const string& aName, const RqContext* aCtx);
 	TIfRange GetIfi(const string& aName, const TICacheRCtx& aCtx) override;
+	MIface* getLocalIface(const string& aName, const TICacheRCtx& aCtx) override { return NULL;}
 	void* GetIfind(const string& aName, const TICacheRCtx& aCtx, TInt aInd);
 	virtual void UnregIfReq(const string& aIfName, const TICacheRCtx& aCtx);
 	virtual void UnregIfProv(const string& aIfName, const TICacheRCtx& aCtx, MElem* aProv, TBool aInv = EFalse);

@@ -135,6 +135,7 @@ class MSocketPx: public DaaProxy, public MSocket
 	// From MSocket
 	virtual TInt PinsCount() const;
 	virtual MElem* GetPin(TInt aInd);
+	MElem* GetPin(const TICacheRCtx& aCtx) override { return NULL;}
     public:
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);
