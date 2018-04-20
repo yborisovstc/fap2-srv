@@ -10,7 +10,7 @@
 
 class DaaProxy;
 
-class MIpxProv
+class MIpxProv: public MIfaceStub
 {
     public:
 	static const char* Type() { return "MIpxProv";};

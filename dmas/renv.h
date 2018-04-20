@@ -19,8 +19,6 @@ class ARenv: public Elem
 	ARenv(MElem* aMan, MEnv* aEnv);
 	virtual ~ARenv();
     public:
-	// From Base
-	virtual void *DoGetObj(const char *aName);
 	// From MElem
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName = string()); 
 	virtual TBool IsContChangeable(const string& aName = string()) const; 
@@ -48,8 +46,6 @@ class ARenvu: public Elem, public MLogObserver
 	ARenvu(MElem* aMan, MEnv* aEnv);
 	virtual ~ARenvu();
     public:
-	// From Base
-	virtual void *DoGetObj(const char *aName);
 	// From MElem
 	virtual TBool ChangeCont(const string& aVal, TBool aRtOnly = ETrue, const string& aName = string()); 
 	virtual TBool IsContChangeable(const string& aName = string()) const; 

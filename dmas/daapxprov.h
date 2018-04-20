@@ -17,7 +17,7 @@ class ADaaPxProv: public Elem, public MIpxProv
 	virtual ~ADaaPxProv();
     public:
 	// From Base
-	virtual void *DoGetObj(const char *aName);
+	virtual MIface *DoGetObj(const char *aName);
 	// From MMutable
 	virtual void DoMutation(const ChromoNode& aCromo, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode = EFalse, const MElem* aCtx = NULL);
 	// From MIpxProv

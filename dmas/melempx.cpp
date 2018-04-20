@@ -716,9 +716,9 @@ MElem* MelemPx::GetComp(TInt aInd)
     return RpcPx<MElem>(__func__, aInd);
 };
 
-void *MelemPx::DoGetObj(const char *aName)
+MIface *MelemPx::DoGetObj(const char *aName)
 {
-    return RpcPxN(__func__, aName, aName);
+return RpcPxN(__func__, aName, aName);
 }
 
 void MelemPx::SaveChromo(const char* aPath) const {}

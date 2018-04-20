@@ -47,7 +47,7 @@ class MelemPx : public DaaProxy, public MElem
     public:
 	// From MElem
 	virtual void Delete();
-	virtual void *DoGetObj(const char *aName);
+	virtual MIface *DoGetObj(const char *aName);
 	virtual string EType(TBool aShort = ETrue) const;
 	virtual const string& Name() const;
 	virtual TBool IsProvided() const;

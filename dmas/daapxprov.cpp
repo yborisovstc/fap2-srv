@@ -23,12 +23,10 @@ ADaaPxProv::ADaaPxProv(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv)
 ADaaPxProv::~ADaaPxProv() {
 }
 
-void *ADaaPxProv::DoGetObj(const char *aName)
+MIface *ADaaPxProv::DoGetObj(const char *aName)
 {
-    void* res = NULL;
-    if (strcmp(aName, Type()) == 0) {
-	res = this;
-    } else if (strcmp(aName, MIpxProv::Type()) == 0) {
+    MIface* res = NULL;
+    if (strcmp(aName, MIpxProv::Type()) == 0) {
 	res = (MIpxProv*) this;
     } else {
 	res = Elem::DoGetObj(aName);

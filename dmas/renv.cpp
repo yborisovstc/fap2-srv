@@ -40,17 +40,6 @@ ARenv::~ARenv() {
     delete mPxMgr;
 }
 
-void *ARenv::DoGetObj(const char *aName)
-{
-    void* res = NULL;
-    if (strcmp(aName, Type()) == 0) {
-	res = this;
-    } else {
-	res = Elem::DoGetObj(aName);
-    }
-    return res;
-}
-
 TBool ARenv::IsContChangeable(const string& aName) const
 {
     return ETrue;
@@ -286,17 +275,6 @@ ARenvu::~ARenvu()
 	delete mRlog;
     }
     delete mPxMgr;
-}
-
-void *ARenvu::DoGetObj(const char *aName)
-{
-    void* res = NULL;
-    if (strcmp(aName, Type()) == 0) {
-	res = this;
-    } else {
-	res = Elem::DoGetObj(aName);
-    }
-    return res;
 }
 
 TBool ARenvu::IsContChangeable(const string& aName) const
