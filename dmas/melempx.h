@@ -56,6 +56,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual void GetCRoot(TMut& aMut) const;
 	virtual void SetMan(MElem* aMan);
 	virtual void SetObserver(MAgentObserver* aObserver);
+	void UnsetObserver(MAgentObserver* aObserver) override;
 	//virtual MElem* GetComp(const string& aParent, const string& aName);
 	virtual MElem* GetComp(const string& aParent, const string& aName) const;
 	virtual MElem* GetNode(const string& aUri, TBool aInclRm = EFalse);

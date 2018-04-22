@@ -186,6 +186,11 @@ void MelemPx::SetObserver(MAgentObserver* aObserver)
     Rpcv<MIface*>(__func__, aObserver);
 }
 
+void MelemPx::UnsetObserver(MAgentObserver* aObserver)
+{
+    Rpcv<MIface*>(__func__, aObserver);
+}
+
 MElem* MelemPx::GetNode(const string& aUri, TBool aInclRm) 
 {
     return RpcPx<MElem>(__func__, aUri, aInclRm);
