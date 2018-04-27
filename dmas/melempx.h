@@ -120,7 +120,7 @@ class MelemPx : public DaaProxy, public MElem
 	virtual MElem* GetComp(TInt aInd);
 	virtual void SaveChromo(const char* aPath) const;
 	virtual void DumpChilds() const;
-	virtual void DumpComps() const;
+	virtual void DumpComps(TBool aRecurs = EFalse) const;
 	virtual void DumpContent() const;
 	// Visual client debugging, ref ds_visdbg
 	virtual string GetAssociatedData(const string& aUri) const;

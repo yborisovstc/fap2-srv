@@ -815,7 +815,7 @@ TBool MelemPx::IsContOfCategory(const string& aName, const string& aCategory) co
     return Rpc<TBool, const string&, const string&>(__func__, aName, aCategory);
 }
 
-void MelemPx::DumpComps() const
+void MelemPx::DumpComps(TBool aRecurs) const
 {
     __ASSERT(EFalse);
 }
