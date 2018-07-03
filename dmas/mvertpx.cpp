@@ -79,6 +79,10 @@ string MvertPx::Uid() const
     return res;
 }
 
+string MvertPx::MVert_Mid() const
+{
+    return mMgr->Oid();
+}
 
 TInt MvertPx::PairsCount() const
 {

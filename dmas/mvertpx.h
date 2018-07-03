@@ -36,6 +36,7 @@ class MvertPx : public DaaProxy, public MVert
 	virtual MIface* Call(const string& aSpec, string& aRes);
 	virtual string Uid() const;
 	virtual string Mid() const;
+	virtual string MVert_Mid() const;
 };
 
 class MedgePx : public DaaProxy, public MEdge
