@@ -25,18 +25,19 @@ class MvertPx : public DaaProxy, public MVert
 	virtual const MIface* GetIface(const string& aName) const;
 	// From MVert
 	static const char* Type() { return "MVert";};
-	virtual TBool Connect(MVert* aPair);
-	virtual void Disconnect(MVert* aPair);
-	virtual TInt PairsCount() const;
-	virtual MVert* GetPair(TInt aInd) const;
-	virtual TBool IsPair(const MVert* aPair) const;
-	virtual MIface* MVert_DoGetObj(const char *aName);
+	virtual TBool Connect(MVert* aPair) override;
+	virtual void Disconnect(MVert* aPair) override;
+	virtual TInt PairsCount() const override;
+	virtual MVert* GetPair(TInt aInd) const override;
+	virtual TBool IsPair(const MVert* aPair) const override;
+	virtual TBool IsLinked(const MVert* aPair, TBool aDirect = EFalse) const override;
+	virtual MIface* MVert_DoGetObj(const char *aName) override;
     public:
 	// From MIface	
-	virtual MIface* Call(const string& aSpec, string& aRes);
-	virtual string Uid() const;
-	virtual string Mid() const;
-	virtual string MVert_Mid() const;
+	virtual MIface* Call(const string& aSpec, string& aRes) override;
+	virtual string Uid() const override;
+	virtual string Mid() const override;
+	virtual string MVert_Mid() const override;
 };
 
 class MedgePx : public DaaProxy, public MEdge
@@ -48,23 +49,20 @@ class MedgePx : public DaaProxy, public MEdge
 	virtual MIface* GetIface(const string& aName);
 	virtual const MIface* GetIface(const string& aName) const;
 	// From MEdge
-	virtual string EdgeName() const;
-	virtual string EdgeUri() const;
-	virtual TBool ConnectP1(MVert* aPoint);
-	virtual TBool ConnectP2(MVert* aPoint);
-	virtual void Disconnect(MVert* aPoint);
-	virtual void Disconnect();
-	virtual MVert* Point1() const;
-	virtual MVert* Point2() const;
-	virtual MVert* Ref1() const;
-	virtual MVert* Ref2() const;
-	virtual void SetPoint1(const string& aRef);
-	virtual void SetPoint2(const string& aRef);
-    public:
-	// From MIface	
-	virtual MIface* Call(const string& aSpec, string& aRes);
-	virtual string Uid() const;
-	virtual string Mid() const;
+	virtual TBool ConnectP1(MVert* aPoint) override;
+	virtual TBool ConnectP2(MVert* aPoint) override;
+	virtual void Disconnect(MVert* aPoint) override;
+	virtual void Disconnect() override;
+	virtual MVert* Point1() const override;
+	virtual MVert* Point2() const override;
+	virtual MVert* Ref1() const override;
+	virtual MVert* Ref2() const override;
+	virtual void SetPoint1(const string& aRef) override;
+	virtual void SetPoint2(const string& aRef) override;
+	// From MEdge.MIface	
+	virtual MIface* MEdge_Call(const string& aSpec, string& aRes) override;
+	virtual string Uid() const override;
+	virtual string MEdge_Mid() const override;
 };
 
 class MCompatCheckerPx : public DaaProxy, public MCompatChecker
@@ -76,9 +74,9 @@ class MCompatCheckerPx : public DaaProxy, public MCompatChecker
 	virtual MIface* GetIface(const string& aName);
 	virtual const MIface* GetIface(const string& aName) const;
 	// From MCompatChecker
-	virtual TBool IsCompatible(MElem* aPair, TBool aExt = EFalse);
-	virtual MElem* GetExtd();
-	virtual TDir GetDir() const;
+	virtual TBool IsCompatible(MUnit* aPair, TBool aExt = EFalse) override;
+	virtual MUnit* GetExtd() override;
+	virtual TDir GetDir() const override;
     public:
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);
@@ -134,9 +132,9 @@ class MSocketPx: public DaaProxy, public MSocket
 	virtual MIface* GetIface(const string& aName);
 	virtual const MIface* GetIface(const string& aName) const;
 	// From MSocket
-	virtual TInt PinsCount() const;
-	virtual MElem* GetPin(TInt aInd);
-	MElem* GetPin(const TICacheRCtx& aCtx) override { return NULL;}
+	virtual TInt PinsCount() const override;
+	virtual MUnit* GetPin(TInt aInd) override;
+	MUnit* GetPin(const TICacheRCtx& aCtx) override { return NULL;}
     public:
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);

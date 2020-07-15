@@ -69,43 +69,34 @@ MIface* MCobsPx::Call(const string& aSpec, string& aRes)
     return res;
 }
 
-void MCobsPx::OnCompDeleting(MElem& aComp, TBool aSoft, TBool aModif)
+void MCobsPx::OnCompDeleting(const MUnit* aComp, TBool aSoft, TBool aModif)
 {
+    return Rpcv<const MUnit*, TBool, TBool>(__func__, aComp, aSoft, aModif);
 }
 
-void MCobsPx::OnCompAdding(MElem& aComp, TBool aModif)
+void MCobsPx::OnCompAdding(const MUnit* aComp, TBool aModif)
 {
-    string resp;
-    string uri = aComp.GetUri(NULL, ETrue);
-    TBool rr = mMgr->Request(mContext, "OnCompAdding,1," + uri, resp);
-    if (!rr) {
-	Logger()->Write(EErr, NULL, "OnCompAdding notification of AgentObserver [%s] failed: %s", GetContext().c_str(), resp.c_str());
-    }
+    return Rpcv<const MUnit*, TBool>(__func__, aComp, aModif);
 }
 
-TBool MCobsPx::OnCompChanged(MElem& aComp, const string& aContName, TBool aModif)
+TBool MCobsPx::OnCompChanged(const MUnit* aComp, const string& aContName, TBool aModif)
 {
-    string resp;
-    string uri = aComp.GetUri(NULL, ETrue);
-    TBool rr = mMgr->Request(mContext, "OnCompChanged,1," + uri, resp);
-    if (!rr) {
-	cout << "Error requesting AgentObserver [" << GetContext() << "] OnCompChanged";
-    }
-    return true;
+    return Rpc<TBool, const MUnit*, const string&, TBool>(__func__, aComp, aContName, aModif);
 }
 
-TBool MCobsPx::OnChanged(MElem& aComp)
+TBool MCobsPx::OnChanged(const MUnit* aComp)
 {
-    return true;
+    return Rpc<TBool, const MUnit*>(__func__, aComp);
 }
 
-TBool MCobsPx::OnCompRenamed(MElem& aComp, const string& aOldName)
+TBool MCobsPx::OnCompRenamed(const MUnit* aComp, const string& aOldName)
 {
-    return true;
+    return Rpc<TBool, const MUnit*, const string&>(__func__, aComp, aOldName);
 }
 
-void MCobsPx::OnCompMutated(const MElem* aNode)
+void MCobsPx::OnCompMutated(const MUnit* aNode)
 {
+    return Rpcv<const MUnit*>(__func__, aNode);
 }
 
 

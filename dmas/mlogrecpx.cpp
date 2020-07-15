@@ -32,12 +32,12 @@ void MlogrecPx::WriteFormat(const char* aFmt,...)
     __ASSERT(false);
 }
 
-void MlogrecPx::Write(TLogRecCtg aCtg, const MElem* aNode, const char* aFmt,...)
+void MlogrecPx::Write(TLogRecCtg aCtg, const MUnit* aNode, const char* aFmt,...)
 {
     __ASSERT(false);
 }
 
-void MlogrecPx::Write(TLogRecCtg aCtg, MElem* aNode, const ChromoNode& aMut, const char* aFmt,...)
+void MlogrecPx::Write(TLogRecCtg aCtg, MUnit* aNode, const ChromoNode& aMut, const char* aFmt,...)
 {
     __ASSERT(false);
 }

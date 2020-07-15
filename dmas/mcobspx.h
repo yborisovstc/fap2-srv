@@ -2,7 +2,7 @@
 #define _mcobspx_h_
 
 #include <menv.h>
-#include <melem.h>
+#include <munit.h>
 #include "daaproxy.h"
 #include "../client/bclient.h"
 
@@ -41,12 +41,13 @@ class MCobsPx: public DaaProxy, public MAgentObserver
 	virtual MIface* GetIface(const string& aName);
 	virtual const MIface* GetIface(const string& aName) const;
 	// From MCompsObserver
-	virtual void OnCompDeleting(MElem& aComp, TBool aSoft = ETrue, TBool aModif = EFalse);
-	virtual void OnCompAdding(MElem& aComp, TBool aModif = EFalse);
-	virtual TBool OnCompChanged(MElem& aComp, const string& aContName = string(), TBool aModif = EFalse);
-	virtual TBool OnChanged(MElem& aComp);
-	virtual TBool OnCompRenamed(MElem& aComp, const string& aOldName);
-	virtual void OnCompMutated(const MElem* aNode);
+	virtual void OnCompDeleting(const MUnit* aComp, TBool aSoft = ETrue, TBool aModif = EFalse) override;
+	virtual void OnCompAdding(const MUnit* aComp, TBool aModif = EFalse) override;
+	virtual TBool OnCompChanged(const MUnit* aComp, const string& aContName = string(), TBool aModif = EFalse) override;
+	virtual TBool OnChanged(const MUnit* aComp) override;
+	virtual TBool OnCompRenamed(const MUnit* aComp, const string& aOldName) override;
+	virtual void OnCompMutated(const MUnit* aNode) override;
+	virtual void OnError(const MUnit* aComp) override;
 	// From MIface	
 	virtual MIface* Call(const string& aSpec, string& aRes);
 	virtual string Uid() const;

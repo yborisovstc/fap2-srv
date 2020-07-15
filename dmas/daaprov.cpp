@@ -10,9 +10,9 @@ DaaProv::DaaProv(const string &aName, MEnv* aEnv): GProvider(aName, aEnv)
 {
 }
 
-Elem* DaaProv::CreateNode(const string& aType, const string& aName, MElem* aMan, MEnv* aEnv)
+Unit* DaaProv::CreateNode(const string& aType, const string& aName, MUnit* aMan, MEnv* aEnv)
 {
-    Elem* res = NULL;
+    Unit* res = NULL;
     if (aType.compare(ARenv::Type()) == 0) {
 	res = new ARenv(aName, aMan, aEnv);
     }
@@ -23,22 +23,25 @@ Elem* DaaProv::CreateNode(const string& aType, const string& aName, MElem* aMan,
 	res = new ADaaPxProv(aName, aMan, aEnv);
     }
     if (res != NULL) {
-	Elem* parent = GetNode(aType);
+	Unit* parent = GetNode(aType);
 	if (parent != NULL) {
-	    parent->AppendChild(res);
+	    MElem* eparent = parent->GetObj(eparent);
+	    if (eparent != NULL) {
+		eparent->AppendChild(res);
+	    }
 	}
     }
     return res;
 }
 
-Elem* DaaProv::GetNode(const string& aUri){
+Unit* DaaProv::GetNode(const string& aUri){
     MProvider* prov = iEnv->Provider();
-    Elem* res = NULL;
+    Unit* res = NULL;
     if (iReg.count(aUri) > 0) {
 	res = iReg.at(aUri);
     }
     else { 
-	Elem* parent = NULL;
+	MUnit* parent = NULL;
 	if (aUri.compare(ARenv::Type()) == 0) {
 	    parent = prov->GetNode("Elem");
 	    res = new ARenv(NULL, iEnv);
@@ -53,14 +56,16 @@ Elem* DaaProv::GetNode(const string& aUri){
 	}
 	if (res != NULL) {
 	    if (parent != NULL) {
-		parent->AppendChild(res);
+		MElem* eparent = parent->GetObj(eparent);
+		if (eparent != NULL) {
+		    eparent->AppendChild(res);
+		}
 	    }
 	    iReg.insert(TRegVal(aUri, res));
 	}
     }
     return res;
 }
-
 
 void DaaProv::AppendNodesInfo(vector<string>& aInfo)
 {

@@ -12,14 +12,14 @@ string ARenv::PEType()
     return Elem::PEType() + GUri::KParentSep + Type();
 }
 
-ARenv::ARenv(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL)
+ARenv::ARenv(const string& aName, MUnit* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL)
 {
     SetParent(Type());
     mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
     ChangeCont(string(), ETrue, KRemoteUid);
 }
 
-ARenv::ARenv(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
+ARenv::ARenv(MUnit* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL)
 {
     SetParent(Elem::PEType());
     mPxMgr = new DaaPxMgr(aEnv, this, mRenvClient);
@@ -33,7 +33,7 @@ ARenv::~ARenv() {
     // comps removal will not work (it assumes that comp notifies owner OnCompDeleting).
     // for (vector<MElem*>::reverse_iterator it = iComps.rbegin(); it != iComps.rend(); it++) {
     for (auto& it: iMComps) {
-	MElem* comp = it.second;
+	MUnit* comp = it.second;
 	comp->Delete();
     };
     iMComps.clear();
@@ -59,9 +59,9 @@ TBool ARenv::ChangeCont(const string& aVal, TBool aRtOnly, const string& aName)
 	    }
 	    if (res) {
 		if (aRtOnly) {
-		    iMan->OnChanged(*this);
+		    iMan->OnChanged(this);
 		} else {
-		    iMan->OnCompChanged(*this);
+		    iMan->OnCompChanged(this);
 		}
 	    }
 	}
@@ -78,7 +78,7 @@ TBool ARenv::GetCont(string& aCont, const string& aName) const
 }
 */
 
-void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MElem* aCtx)
+void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckSafety, TBool aTrialMode, const MutCtx& aCtx)
 {
     const ChromoNode& mroot = aMutSpec;
     if (mroot.Begin() == mroot.End()) return;
@@ -100,6 +100,8 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 	    }
 	    continue;
 	}
+	TNs ns = aCtx.mNs;
+	UpdateNs(ns, rno);
 	Logger()->SetContextMutId(rno.LineId());
 	TInt order = rno.GetOrder();
 	// Avoiding mutations above limit. Taking into account only attached chromos.
@@ -112,14 +114,16 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 	if (rno.AttrExists(ENa_Targ)) {
 	    // Targeted mutation, propagate downward, i.e redirect to comp owning the target
 	    // ref ds_mut_osm_linchr_lce
-	    MElem* ftarg = GetNode(rno.Attr(ENa_Targ));
+	    MUnit* ftargu = GetNode(rno.Attr(ENa_Targ));
 	    // Mutation is not local, propagate downward
-	    if (ftarg != NULL) {
+	    if (ftargu != NULL) {
+		MElem* ftarg = ftargu->GetObj(ftarg);
 		rno.RmAttr(ENa_Targ);
 		ftarg->AppendMutation(rno);
 		// Redirect the mut to target: no run-time to keep the mut in internal nodes
 		// Propagate till target owning comp if run-time to keep hidden all muts from parent 
-		ftarg->Mutate(EFalse, aCheckSafety, aTrialMode, aRunTime ? GetCompOwning(ftarg) : aCtx);
+		MutCtx mctx(aRunTime ? GetCompOwning(ftargu) : aCtx.mUnit, ns);
+		ftarg->Mutate(EFalse, aCheckSafety, aTrialMode, mctx);
 	    } else {
 		Logger()->Write(EErr, this, "Cannot find target node [%s]", rno.Attr(ENa_Targ).c_str());
 	    }
@@ -129,19 +133,19 @@ void ARenv::DoMutation(const ChromoNode& aMutSpec, TBool aRunTime, TBool aCheckS
 		AddElemRmt(rno, aRunTime, aTrialMode, aCtx);
 	    }
 	    else if (rnotype == ENt_Change) {
-		ChangeAttr(rno, aRunTime, aCheckSafety, aTrialMode);
+		ChangeAttr(rno, aRunTime, aCheckSafety, aTrialMode, aCtx);
 	    }
 	    else if (rnotype == ENt_Cont) {
-		DoMutChangeCont(rno, aRunTime, aCheckSafety, aTrialMode);
+		DoMutChangeCont(rno, aRunTime, aCheckSafety, aTrialMode, aCtx);
 	    }
 	    else if (rnotype == ENt_Move) {
-		MoveNode(rno, aRunTime, aTrialMode);
+		MoveNode(rno, aRunTime, aTrialMode, aCtx);
 	    }
 	    else if (rnotype == ENt_Import) {
 		ImportNode(rno, aRunTime, aTrialMode);
 	    }
 	    else if (rnotype == ENt_Rm) {
-		RmNode(rno, aRunTime, aCheckSafety, aTrialMode);
+		RmNode(rno, aRunTime, aCheckSafety, aTrialMode, aCtx);
 	    }
 	    else {
 		Logger()->Write(EErr, this, "Mutating - unknown mutation type [%d]", rnotype);
@@ -164,7 +168,7 @@ Elem::Iterator ARenv::NodesLoc_End(const GUri::TElem& aId, TBool aInclRm)
 */
 
 
-void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode, const MElem* aCtx)
+void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode, const MutCtx& aCtx)
 {
     string env;
     string spec;
@@ -201,8 +205,7 @@ void ARenv::AddElemRmt(const ChromoNode& aSpec, TBool aRunTime, TBool aTrialMode
 			    // Create proxy for remote root, bind proxy to component
 			    //MelemPx* px = new MelemPx(iEnv, mPxMgr, rroot);
 			    MProxy* mpx = mPxMgr->CreateProxy(MElem::Type(), rroot);
-			    MElem* px = (MElem*) mpx->GetIface(MElem::Type());
-			    //MelemPx* px = dynamic_cast<MelemPx*>(mpx);
+			    MUnit* px = dynamic_cast<MUnit*>(mpx->GetIface(MElem::Type()));
 			    res = AppendComp(px);
 			    //mRroot = px;
 			    if (!aRunTime) {
@@ -239,7 +242,7 @@ string ARenvu::PEType()
     return Elem::PEType() + GUri::KParentSep + Type();
 }
 
-ARenvu::ARenvu(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse),
+ARenvu::ARenvu(const string& aName, MUnit* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv), mRroot(NULL), mConnected(EFalse),
     mPxMgr(NULL), mRlog(NULL), mLogObsbl(NULL)
 {
     SetParent(Type());
@@ -247,7 +250,7 @@ ARenvu::ARenvu(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, 
     //Connect();
 }
 
-ARenvu::ARenvu(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse), mPxMgr(NULL),
+ARenvu::ARenvu(MUnit* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv), mRroot(NULL), mConnected(EFalse), mPxMgr(NULL),
     mRlog(NULL), mLogObsbl(NULL)
 {
     SetParent(Elem::PEType());
@@ -265,7 +268,7 @@ ARenvu::~ARenvu()
     }
     iMComps.clear();
     if (iMan != NULL) {
-	iMan->OnCompDeleting(*this, EFalse);
+	iMan->OnCompDeleting(this, EFalse);
 	iMan = NULL;
     }
     if (mLogObsbl != NULL) {
@@ -334,7 +337,7 @@ void ARenvu::Connect()
 		    mConnected = ETrue;
 		    MelemPx* px = new MelemPx(iEnv, mPxMgr, pagt);
 		    if (px != NULL) {
-			iMan = px;
+			iMan = px->GetUnit();
 		    }
 		    // Create proxy for primary uid
 		} else {
@@ -357,7 +360,7 @@ void ARenvu::RemoveObservable(MLogRec* aObservable)
 {
 }
 
-void ARenvu::OnLogAdded(long aTimeStamp, TLogRecCtg aCtg, const MElem* aNode, const std::string& aContent, TInt aMutId)
+void ARenvu::OnLogAdded(long aTimeStamp, TLogRecCtg aCtg, const MUnit* aNode, const std::string& aContent, TInt aMutId)
 {
     if (mRlog != NULL) {
 	TLog tlog(aCtg, aNode);

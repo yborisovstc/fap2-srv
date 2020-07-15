@@ -21,27 +21,24 @@ MIface* MvertPx::Call(const string& aSpec, string& aRes)
     Ifu::ParseIcSpec(aSpec, name, sig, args);
     TBool name_ok = mIfu.CheckMname(name);
     if (!name_ok) 
-	    throw (runtime_error("Wrong method name"));
+	throw (runtime_error("Wrong method name"));
     TBool args_ok = mIfu.CheckMpars(name, args.size());
-    if (!args_ok) 
-	    throw (runtime_error("Wrong arguments number"));
+    if (!args_ok) {
+	throw (runtime_error("Wrong arguments number"));
+    } else {
+	mMgr->Request(mContext, aSpec, aRes);
+    }
     return res;
 }
 
 TBool MvertPx::Connect(MVert* aPair)
 {
-    TBool res = EFalse;
-    string resp;
-    MElem* epair = aPair->MVert::GetObj(epair);
-    string puri = epair->GetUri(NULL, ETrue);
-    TBool rr = mMgr->Request(mContext, "Connect,1," + puri, resp);
-    if (rr) 
-	res = Ifu::ToBool(resp);
-    return res;
+    return Rpc<TBool, MVert*>(__func__, aPair);
 }
 
 void MvertPx::Disconnect(MVert* aPair)
 {
+    return Rpcv<MVert*>(__func__, aPair);
 }
 
 MIface* MvertPx::GetIface(const string& aName)
@@ -106,17 +103,13 @@ MVert* MvertPx::GetPair(TInt aInd) const
 
 TBool MvertPx::IsPair(const MVert* aPair) const
 {
-    TBool res = EFalse;
-    MElem* epair = ((MVert*) aPair)->MVert::GetObj(epair);
-    string pair_uri = epair->GetUri(NULL, ETrue);
-    string resp;
-    TBool rr = mMgr->Request(mContext, string("IsPair,1,") + pair_uri, resp);
-    if (rr) 
-	res = Ifu::ToBool(resp);
-    return res;
-
+    return Rpc<TBool, const MVert*>(__func__, aPair);
 }
 
+TBool MvertPx::IsLinked(const MVert* aPair, TBool aDirect) const
+{
+    return Rpc<TBool, const MVert*, TBool>(__func__, aPair, aDirect);
+}
 
 
 
@@ -131,7 +124,7 @@ MedgePx::~MedgePx()
 {
 }
 	
-MIface* MedgePx::Call(const string& aSpec, string& aRes)
+MIface* MedgePx::MEdge_Call(const string& aSpec, string& aRes)
 {
     MIface* res = NULL;
     string name, sig;
@@ -139,10 +132,13 @@ MIface* MedgePx::Call(const string& aSpec, string& aRes)
     Ifu::ParseIcSpec(aSpec, name, sig, args);
     TBool name_ok = mIfu.CheckMname(name);
     if (!name_ok) 
-	    throw (runtime_error("Wrong method name"));
+	throw (runtime_error("Wrong method name"));
     TBool args_ok = mIfu.CheckMpars(name, args.size());
-    if (!args_ok) 
-	    throw (runtime_error("Wrong arguments number"));
+    if (!args_ok) {
+	throw (runtime_error("Wrong arguments number"));
+    } else {
+	mMgr->Request(mContext, aSpec, aRes);
+    }
     return res;
 }
 
@@ -164,35 +160,14 @@ const MIface* MedgePx::GetIface(const string& aName) const
     return res;
 }
 
-string MedgePx::EdgeName() const
-{
-    __ASSERT(EFalse); // To implement
-}
-
 TBool MedgePx::ConnectP1(MVert* aPoint)
 {
-    TBool res = EFalse;
-    string resp;
-    MElem* epoint = aPoint->MVert::GetObj(epoint);
-    string puri = epoint->GetUri(NULL, ETrue);
-    TBool rr = mMgr->Request(mContext, "ConnectP1,1," + puri, resp);
-    if (rr) {
-	res = Ifu::ToBool(resp);
-    }
-    return res;
+    return Rpc<TBool, MVert*>(__func__, aPoint);
 }
 
 TBool MedgePx::ConnectP2(MVert* aPoint)
 {
-    TBool res = EFalse;
-    string resp;
-    MElem* epoint = aPoint->MVert::GetObj(epoint);
-    string puri = epoint->GetUri(NULL, ETrue);
-    TBool rr = mMgr->Request(mContext, "ConnectP2,1," + puri, resp);
-    if (rr) {
-	res = Ifu::ToBool(resp);
-    }
-    return res;
+    return Rpc<TBool, MVert*>(__func__, aPoint);
 }
 
 void MedgePx::Disconnect(MVert* aPoint)
@@ -204,17 +179,6 @@ void MedgePx::Disconnect()
 {
     __ASSERT(EFalse); // To implement
 }
-
-/*
-MVert* MedgePx::Pair(const MVert* aPoint)
-{
-    string resp;
-    MVert* point = (MVert*) aPoint;
-    MElem* pe = point->GetObj(pe);
-    string puri = pe->GetUri(NULL, ETrue);
-    return (MVert*) NewProxyRequest(string("Pair,1,") + puri, MVert::Type());
-}
-*/
 
 MVert* MedgePx::Point1() const
 {
@@ -243,16 +207,9 @@ string MedgePx::Uid() const
     return res;
 }
 
-string MedgePx::Mid() const
+string MedgePx::MEdge_Mid() const
 {
     return mMgr->Oid();
-}
-
-string MedgePx::EdgeUri() const
-{
-    string resp;
-    TBool rr = mMgr->Request(mContext, "EdgeUri", resp);
-    return rr ? resp : string();
 }
 
 void MedgePx::SetPoint1(const string& aRef)
@@ -273,7 +230,7 @@ MCompatCheckerPx::MCompatCheckerPx(MEnv* aEnv, MProxyMgr* aMgr, const string& aC
 MCompatCheckerPx::~MCompatCheckerPx()
 {
 }
-	
+
 MIface* MCompatCheckerPx::Call(const string& aSpec, string& aRes)
 {
     MIface* res = NULL;
@@ -282,20 +239,13 @@ MIface* MCompatCheckerPx::Call(const string& aSpec, string& aRes)
     Ifu::ParseIcSpec(aSpec, name, sig, args);
     TBool name_ok = mIfu.CheckMname(name);
     if (!name_ok) 
-	    throw (runtime_error("Wrong method name"));
+	throw (runtime_error("Wrong method name"));
     TBool args_ok = mIfu.CheckMpars(name, args.size());
-    if (!args_ok) 
-	    throw (runtime_error("Wrong arguments number"));
-    if (name == "GetExtd") {
-	res = (MIface*) NewProxyRequest(aSpec, MElem::Type());
-    } else if (name == "GetDir") {
-	mMgr->Request(mContext, aSpec, aRes);
-    } else if (name == "IsCompatible") {
-	mMgr->Request(mContext, aSpec, aRes);
+    if (!args_ok) {
+	throw (runtime_error("Wrong arguments number"));
     } else {
 	mMgr->Request(mContext, aSpec, aRes);
     }
-
     return res;
 }
 
@@ -311,33 +261,28 @@ string MCompatCheckerPx::Mid() const
     return mMgr->Oid();
 }
 
-TBool MCompatCheckerPx::IsCompatible(MElem* aPair, TBool aExt)
+TBool MCompatCheckerPx::IsCompatible(MUnit* aPair, TBool aExt)
 {
-    TBool res = EFalse;
-    string uri = aPair->GetUri(NULL, ETrue);
-    string ext = Ifu::FromBool(aExt);
-    string resp;
-    TBool rr = mMgr->Request(mContext, string("IsCompatible,1,") + uri + "," + ext, resp);
-    if (rr) {
-	res = Ifu::ToBool(resp);
-    }
-    return  res;
+    return Rpc<TBool, MUnit*, TBool>(__func__, aPair, aExt);
 }
 
-MElem* MCompatCheckerPx::GetExtd()
+MUnit* MCompatCheckerPx::GetExtd()
 {
-    return (MElem*) NewProxyRequest("GetExtd,1", MElem::Type());
+    return RpcPx<MUnit>(__func__);
 }
 
 MCompatChecker::TDir MCompatCheckerPx::GetDir() const
 {
-    TDir res = ERegular;
+    return Rpc<MCompatChecker::TDir>(__func__);
+    /*
+       TDir res = ERegular;
     string resp;
     TBool rr = mMgr->Request(mContext, "GetDir,1", resp);
     if (rr) {
 	res = (TDir) Ifu::ToInt(resp);
     }
     return res;
+    */
 }
 
 MIface* MCompatCheckerPx::GetIface(const string& aName)
@@ -563,16 +508,13 @@ MIface* MSocketPx::Call(const string& aSpec, string& aRes)
     Ifu::ParseIcSpec(aSpec, name, sig, args);
     TBool name_ok = mIfu.CheckMname(name);
     if (!name_ok) 
-	    throw (runtime_error("Wrong method name"));
+	throw (runtime_error("Wrong method name"));
     TBool args_ok = mIfu.CheckMpars(name, args.size());
-    if (!args_ok) 
-	    throw (runtime_error("Wrong arguments number"));
-    if (name == "Value") {
-	mMgr->Request(mContext, aSpec, aRes);
+    if (!args_ok) {
+	throw (runtime_error("Wrong arguments number"));
     } else {
-	throw (runtime_error("Unhandled method: " + name));
+	mMgr->Request(mContext, aSpec, aRes);
     }
-
     return res;
 }
 
@@ -618,12 +560,9 @@ TInt MSocketPx::PinsCount() const
     return res;
 }
 
-MElem* MSocketPx::GetPin(TInt aInd)
+MUnit* MSocketPx::GetPin(TInt aInd)
 {
-    string resp;
-    string req = Ifu::CombineIcSpec("GetPin", "1");
-    Ifu::AddIcSpecArg(req, aInd);
-    return (MElem*) NewProxyRequest(req, MElem::Type());
+    return RpcPx<MUnit, TInt>(__func__, aInd);
 }
 
 

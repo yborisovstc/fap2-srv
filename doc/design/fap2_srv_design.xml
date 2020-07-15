@@ -205,6 +205,20 @@
 	    <simpara>The simplest solution is the use additional sessions to remote env in the case when cyclic request occurs.</simpara>
 	</sect2>
     </sect1>
+    <sect1 id="ds_pa_pxd"><title>Proxy design</title>
+	<sect2 id="ds_pa_pxd_chl"><title>Do we need proxy CreateHeir local very own implementation.</title>
+	    <simpara>Currently (9b49b78b7a29ee) proxy has it but this causes the problem: this method is in MUnit only. In
+		native agents hier it is reimplemented (for instance in Elem). But in proxy we have only pure ifaces methods. Moreover
+		having local implementation means that this method isn't passed thru remote call.</simpara>
+	    <simpara>Why would local implementation needed. Probably the idea was that proxy has to be build in the local hier, i.e. can
+		be created via inheritance procedure. But this idea seems wrong. Proxies are just references to the real agent and doesn't create
+		their own inheritance hier. </simpara>
+	    <simpara>So the decision is to not have proxy CreateHeir implementation.</simpara>
+	</sect2>
+	<sect2><title>Proxy identification</title>
+	    <simpara>Note that proxy is not identified by URI in the local native hier. Instead proxy is identified by referenced iface UID.</simpara>
+	</sect2>
+    </sect1>
     <sect1 id="ds_tohandle"><title>Traceability: To handle</title>
 	<orderedlist>
 	</orderedlist>

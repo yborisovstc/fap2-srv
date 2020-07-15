@@ -10,12 +10,12 @@ string ADaaPxProv::PEType()
     return Elem::PEType() + GUri::KParentSep + Type();
 }
 
-ADaaPxProv::ADaaPxProv(const string& aName, MElem* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv)
+ADaaPxProv::ADaaPxProv(const string& aName, MUnit* aMan, MEnv* aEnv): Elem(aName, aMan, aEnv)
 {
     SetParent(Type());
 }
 
-ADaaPxProv::ADaaPxProv(MElem* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv)
+ADaaPxProv::ADaaPxProv(MUnit* aMan, MEnv* aEnv): Elem(Type(), aMan, aEnv)
 {
     SetParent(Elem::PEType());
 }

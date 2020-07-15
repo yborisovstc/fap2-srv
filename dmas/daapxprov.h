@@ -4,16 +4,15 @@
 #include <elem.h>
 #include "mipxprov.h"
 
-/*
- * Base agent for DAA proxies provider, ref. ds_pp_da
- */
+/** @brief Base agent for DAA proxies provider, ref. ds_pp_da
+*/
 class ADaaPxProv: public Elem, public MIpxProv
 {
     public:
 	static const char* Type() { return "ADaaPxProv";};
 	static string PEType();
-	ADaaPxProv(const string& aName, MElem* aMan, MEnv* aEnv);
-	ADaaPxProv(MElem* aMan, MEnv* aEnv);
+	ADaaPxProv(const string& aName, MUnit* aMan, MEnv* aEnv);
+	ADaaPxProv(MUnit* aMan, MEnv* aEnv);
 	virtual ~ADaaPxProv();
     public:
 	// From Base

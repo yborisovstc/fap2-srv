@@ -46,7 +46,7 @@ class DaaPxMgr: public MProxyMgr
     public:
 	typedef map<string, DaaProxy*> TPxs;
     public:
-	DaaPxMgr(MEnv* aEnv, MElem* aOwner, RenvClient& aRenvClient);
+	DaaPxMgr(MEnv* aEnv, MUnit* aOwner, RenvClient& aRenvClient);
 	virtual ~DaaPxMgr();
     public:
 	// From MProxyMgr
@@ -62,7 +62,7 @@ class DaaPxMgr: public MProxyMgr
 	inline MLogRec* Logger() const;
     protected:
 	MEnv* mEnv;
-	MElem* mOwner;
+	MUnit* mOwner;
 	TPxs mProxies;
 	RenvClient& mRenvClient;
 };

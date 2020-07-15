@@ -112,7 +112,7 @@ BaseClient* RenvClient::GetClient()
 
 
 
-DaaPxMgr::DaaPxMgr(MEnv* aEnv, MElem* aOwner, RenvClient& aRenvClient):
+DaaPxMgr::DaaPxMgr(MEnv* aEnv, MUnit* aOwner, RenvClient& aRenvClient):
     mEnv(aEnv), mOwner(aOwner), mRenvClient(aRenvClient)
 {
 }
@@ -133,7 +133,7 @@ MProxy* DaaPxMgr::CreateProxy(const string& aId, const string& aContext)
     if (IsCached(aContext)) {
 	res = GetProxy(aContext);
     } else {
-	MElem* eprov = mEnv->Root()->GetNode("ADaaPxProv");
+	MUnit* eprov = mEnv->Root()->GetNode("ADaaPxProv");
 	__ASSERT(eprov != NULL);
 	MIpxProv* prov = eprov->GetObj(prov);
 	__ASSERT(prov != NULL);
